@@ -31,3 +31,14 @@ node server.js        # port 8200 (env PORT untuk ubah)
 ## Teknis
 
 Node http murni tanpa dependensi; data di `data/db.json`; upload di `uploads/`. Auth token Bearer in-memory (SESS).
+
+
+## Revisi v2
+- Semua laporan progres langsung di website (tanpa Google Form/Sheet) — link eksternal dihapus
+- Mitra mobile-first (bottom nav + drawer); admin desktop (sidebar) & mobile sama-sama nyaman
+- Upload foto per nama mitra: nama file `foto_<mitra>_<ts>_<rand>.ext`, filter galeri per mitra & program
+- Dashboard progres setiap mitra di setiap program (tabel + filter + pencarian + peringkat mitra)
+- Impor mitra Excel/CSV (`/api/template.xlsx` template resmi): mitra baru + penugasan otomatis terintegrasi (login, lapor, upload)
+- Desain sidebar profesional mengikuti referensi (hero biru + KPI + quick actions + peringkat)
+- Superadmin kelola program penuh (nama, bidang, target, satuan, tenggat, wajib foto, status)
+- Verifikasi laporan oleh admin; aktivitas tercatat; bahasa Indonesia penuh

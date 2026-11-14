@@ -1,1 +1,1923 @@
-{"users": [{"u": "superadmin", "p": "bps3305", "role": "superadmin", "n": "Super Admin BPS Kebumen"}, {"u": "admin", "p": "bps3305", "role": "admin", "n": "Admin Statistik Produksi"}, {"u": "mitra", "p": "mitra3305", "role": "mitra", "n": "Mitra Statistik"}], "bidang": [{"id": "tp", "nama": "Statistik Tanaman Pangan", "ikon": "\ud83c\udf3e", "ket": "Survei KSA, Ubinan, SKGB, Konversi Gabah"}, {"id": "inpek", "nama": "Statistik INPEK", "ikon": "\ud83c\udfed", "ket": "Industri, Pertambangan, Energi & Konstruksi"}, {"id": "horti", "nama": "Statistik Horti, Perkebunan, Peternakan & Perikanan", "ikon": "\ud83d\udc04", "ket": "SPT, SKP, Komstrat, VIP Horti, DPP DUTL"}], "survei": [{"id": "SV-001", "bidang": "tp", "nama": "Survei Kerangka Sampel Area (KSA) 2026", "tahun": "2026", "target": 890, "selesai": 120, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim TP", "linkSheet": "", "linkForm": ""}, {"id": "SV-002", "bidang": "tp", "nama": "Survei Ubinan Subround 1 2026", "tahun": "2026", "target": 140, "selesai": 44, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim TP", "linkSheet": "", "linkForm": ""}, {"id": "SV-003", "bidang": "tp", "nama": "Survei Ubinan Subround 2 2026", "tahun": "2026", "target": 140, "selesai": 0, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Belum Mulai", "pic": "Tim TP", "linkSheet": "", "linkForm": ""}, {"id": "SV-004", "bidang": "tp", "nama": "Survei Ubinan Subround 3 2026", "tahun": "2026", "target": 140, "selesai": 0, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Belum Mulai", "pic": "Tim TP", "linkSheet": "", "linkForm": ""}, {"id": "SV-005", "bidang": "tp", "nama": "Survei Konversi Jagung (SKJG) 2026", "tahun": "2026", "target": 96, "selesai": 52, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim TP", "linkSheet": "", "linkForm": ""}, {"id": "SV-006", "bidang": "tp", "nama": "Survei Konversi Gabah ke Beras 2026", "tahun": "2026", "target": 64, "selesai": 30, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim TP", "linkSheet": "", "linkForm": ""}, {"id": "SV-007", "bidang": "tp", "nama": "SKGB 3305 Tahun 2025", "tahun": "2025", "target": 210, "selesai": 210, "mulai": "2025-01-15", "selesaiTarget": "2025-12-20", "status": "Selesai", "pic": "Tim TP", "linkSheet": "", "linkForm": ""}, {"id": "SV-008", "bidang": "tp", "nama": "Survei Ubinan Subround 1 2025", "tahun": "2025", "target": 140, "selesai": 140, "mulai": "2025-01-15", "selesaiTarget": "2025-12-20", "status": "Selesai", "pic": "Tim TP", "linkSheet": "", "linkForm": ""}, {"id": "SV-009", "bidang": "tp", "nama": "Survei Ubinan Subround 2 2025", "tahun": "2025", "target": 140, "selesai": 138, "mulai": "2025-01-15", "selesaiTarget": "2025-12-20", "status": "Berjalan", "pic": "Tim TP", "linkSheet": "", "linkForm": ""}, {"id": "SV-010", "bidang": "tp", "nama": "Survei Ubinan Subround 3 2025", "tahun": "2025", "target": 140, "selesai": 95, "mulai": "2025-01-15", "selesaiTarget": "2025-12-20", "status": "Berjalan", "pic": "Tim TP", "linkSheet": "", "linkForm": ""}, {"id": "SV-011", "bidang": "inpek", "nama": "Survei IMK Tahunan 2026", "tahun": "2026", "target": 412, "selesai": 180, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-012", "bidang": "inpek", "nama": "Survei IMK Triwulanan 2026", "tahun": "2026", "target": 126, "selesai": 48, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-013", "bidang": "inpek", "nama": "Survei DPA, STPIM dan IBSTR 2026", "tahun": "2026", "target": 88, "selesai": 31, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-014", "bidang": "inpek", "nama": "Survei Galian URT 2026", "tahun": "2026", "target": 74, "selesai": 22, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-015", "bidang": "inpek", "nama": "Updating Direktori Perusahaan PE 2026", "tahun": "2026", "target": 310, "selesai": 145, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-016", "bidang": "inpek", "nama": "Survei Konstruksi 2026", "tahun": "2026", "target": 58, "selesai": 18, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-017", "bidang": "inpek", "nama": "Survei INPEK Triwulanan TW 4 2025", "tahun": "2025", "target": 96, "selesai": 96, "mulai": "2025-01-15", "selesaiTarget": "2025-12-20", "status": "Selesai", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-018", "bidang": "inpek", "nama": "Survei IBS Triwulan 3 2025", "tahun": "2025", "target": 42, "selesai": 42, "mulai": "2025-01-15", "selesaiTarget": "2025-12-20", "status": "Selesai", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-019", "bidang": "inpek", "nama": "Survei IMK Triwulan 3 2025", "tahun": "2025", "target": 126, "selesai": 126, "mulai": "2025-01-15", "selesaiTarget": "2025-12-20", "status": "Selesai", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-020", "bidang": "inpek", "nama": "Survei Galian BH Triwulan 3 2025", "tahun": "2025", "target": 38, "selesai": 38, "mulai": "2025-01-15", "selesaiTarget": "2025-12-20", "status": "Selesai", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-021", "bidang": "inpek", "nama": "Survei Konstruksi Triwulan 3 2025", "tahun": "2025", "target": 58, "selesai": 58, "mulai": "2025-01-15", "selesaiTarget": "2025-12-20", "status": "Selesai", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-022", "bidang": "inpek", "nama": "Survei IMK Tahunan 2025", "tahun": "2025", "target": 412, "selesai": 412, "mulai": "2025-01-15", "selesaiTarget": "2025-12-20", "status": "Selesai", "pic": "Tim INPEK", "linkSheet": "", "linkForm": ""}, {"id": "SV-023", "bidang": "horti", "nama": "Survei Pertanian Terintegrasi (SPT) 2026", "tahun": "2026", "target": 520, "selesai": 210, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim HORTI", "linkSheet": "", "linkForm": ""}, {"id": "SV-024", "bidang": "horti", "nama": "Survei Kesejahteraan Petani (SKP)", "tahun": "2026", "target": 180, "selesai": 64, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim HORTI", "linkSheet": "", "linkForm": ""}, {"id": "SV-025", "bidang": "horti", "nama": "Survei Komstrat 2026", "tahun": "2026", "target": 240, "selesai": 88, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim HORTI", "linkSheet": "", "linkForm": ""}, {"id": "SV-026", "bidang": "horti", "nama": "Survei VIP - HORTI 2026", "tahun": "2026", "target": 165, "selesai": 52, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim HORTI", "linkSheet": "", "linkForm": ""}, {"id": "SV-027", "bidang": "horti", "nama": "Survei DPP DUTL 2026", "tahun": "2026", "target": 132, "selesai": 40, "mulai": "2026-01-15", "selesaiTarget": "2026-12-20", "status": "Berjalan", "pic": "Tim HORTI", "linkSheet": "", "linkForm": ""}], "progress": [], "foto": [], "aktivitas": [{"t": 1794672506361, "oleh": "Super Admin BPS Kebumen", "aksi": "Hapus survei", "detail": "SV-028"}], "meta": {"instansi": "BPS Kabupaten Kebumen", "unit": "Tim Statistik Produksi 3305", "tahun": 2026}}
+{
+ "users": [
+  {
+   "u": "superadmin",
+   "p": "bps3305",
+   "role": "superadmin",
+   "n": "Super Admin BPS Kebumen",
+   "wilayah": "Kebumen",
+   "hp": "",
+   "email": ""
+  },
+  {
+   "u": "admin",
+   "p": "bps3305",
+   "role": "admin",
+   "n": "Admin Statistik Produksi",
+   "wilayah": "Kebumen",
+   "hp": "",
+   "email": ""
+  },
+  {
+   "u": "mitra1",
+   "p": "mitra3305",
+   "role": "mitra",
+   "n": "Ahmad Fauzi",
+   "wilayah": "Kebumen",
+   "hp": "",
+   "email": ""
+  },
+  {
+   "u": "mitra2",
+   "p": "mitra3305",
+   "role": "mitra",
+   "n": "Siti Nurhaliza",
+   "wilayah": "Gombong",
+   "hp": "",
+   "email": ""
+  },
+  {
+   "u": "mitra3",
+   "p": "mitra3305",
+   "role": "mitra",
+   "n": "Budi Santoso",
+   "wilayah": "Kutowinangun",
+   "hp": "",
+   "email": ""
+  },
+  {
+   "u": "mitra4",
+   "p": "mitra3305",
+   "role": "mitra",
+   "n": "Dewi Lestari",
+   "wilayah": "Prembun",
+   "hp": "",
+   "email": ""
+  },
+  {
+   "u": "mitra5",
+   "p": "mitra3305",
+   "role": "mitra",
+   "n": "Rizki Ramadhan",
+   "wilayah": "Karanganyar",
+   "hp": "",
+   "email": ""
+  },
+  {
+   "u": "mitra6",
+   "p": "mitra3305",
+   "role": "mitra",
+   "n": "Nur Aisyah",
+   "wilayah": "Alian",
+   "hp": "",
+   "email": ""
+  },
+  {
+   "u": "mitra7",
+   "p": "mitra3305",
+   "role": "mitra",
+   "n": "Contoh: Ahmad Fauzi",
+   "wilayah": "Kebumen",
+   "hp": "081234567890",
+   "email": "ahmad@contoh.id"
+  }
+ ],
+ "bidang": [
+  {
+   "id": "tp",
+   "nama": "Statistik Tanaman Pangan",
+   "ikon": "🌾"
+  },
+  {
+   "id": "inpek",
+   "nama": "Statistik INPEK",
+   "ikon": "🏭"
+  },
+  {
+   "id": "horti",
+   "nama": "Statistik Horti, Perkebunan, Peternakan & Perikanan",
+   "ikon": "🐄"
+  }
+ ],
+ "programs": [
+  {
+   "id": "PRG-001",
+   "nama": "Survei Kerangka Sampel Area (KSA) 2026",
+   "bidang": "tp",
+   "tahun": 2026,
+   "target": 900,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-002",
+   "nama": "Survei Ubinan Padi Subround 1 2026",
+   "bidang": "tp",
+   "tahun": 2026,
+   "target": 144,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-003",
+   "nama": "Survei Ubinan Padi Subround 2 2026",
+   "bidang": "tp",
+   "tahun": 2026,
+   "target": 144,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-004",
+   "nama": "Survei Ubinan Palawija 2026",
+   "bidang": "tp",
+   "tahun": 2026,
+   "target": 120,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-005",
+   "nama": "Survei Konversi Jagung (SKJG) 2026",
+   "bidang": "tp",
+   "tahun": 2026,
+   "target": 96,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-006",
+   "nama": "Survei Konversi Gabah ke Beras 2026",
+   "bidang": "tp",
+   "tahun": 2026,
+   "target": 64,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-007",
+   "nama": "Survei IMK Tahunan 2026",
+   "bidang": "inpek",
+   "tahun": 2026,
+   "target": 420,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-008",
+   "nama": "Survei IMK Triwulanan 2026",
+   "bidang": "inpek",
+   "tahun": 2026,
+   "target": 126,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-009",
+   "nama": "Survei DPA, STPIM dan IBSTR 2026",
+   "bidang": "inpek",
+   "tahun": 2026,
+   "target": 88,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-010",
+   "nama": "Survei Galian URT 2026",
+   "bidang": "inpek",
+   "tahun": 2026,
+   "target": 72,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-011",
+   "nama": "Updating Direktori Perusahaan PE 2026",
+   "bidang": "inpek",
+   "tahun": 2026,
+   "target": 310,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-012",
+   "nama": "Survei Konstruksi 2026",
+   "bidang": "inpek",
+   "tahun": 2026,
+   "target": 58,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-013",
+   "nama": "Survei Pertanian Terintegrasi (SPT) 2026",
+   "bidang": "horti",
+   "tahun": 2026,
+   "target": 520,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-014",
+   "nama": "Survei Kesejahteraan Petani (SKP) 2026",
+   "bidang": "horti",
+   "tahun": 2026,
+   "target": 180,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-015",
+   "nama": "Survei Komstrat 2026",
+   "bidang": "horti",
+   "tahun": 2026,
+   "target": 240,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-016",
+   "nama": "Survei VIP Hortikultura 2026",
+   "bidang": "horti",
+   "tahun": 2026,
+   "target": 165,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-017",
+   "nama": "Survei DPP DUTL 2026",
+   "bidang": "horti",
+   "tahun": 2026,
+   "target": 132,
+   "unit": "sampel/BS",
+   "deskripsi": "Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.",
+   "mulai": "2026-02-01",
+   "deadline": "2026-11-30",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah sampel/BS selesai",
+     "tipe": "number",
+     "wajib": true
+    },
+    {
+     "key": "catatan",
+     "label": "Catatan kendala lapangan",
+     "tipe": "text",
+     "wajib": false
+    }
+   ]
+  },
+  {
+   "id": "PRG-018",
+   "nama": "Survei Ubinan Padi Subround 1 2025",
+   "bidang": "tp",
+   "tahun": 2025,
+   "target": 144,
+   "unit": "sampel/BS",
+   "deskripsi": "Arsip pelaksanaan tahun 2025.",
+   "mulai": "2025-01-10",
+   "deadline": "2025-12-15",
+   "status": "Selesai",
+   "wajibFoto": false,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah selesai",
+     "tipe": "number",
+     "wajib": true
+    }
+   ]
+  },
+  {
+   "id": "PRG-019",
+   "nama": "Survei Ubinan Padi Subround 2 2025",
+   "bidang": "tp",
+   "tahun": 2025,
+   "target": 144,
+   "unit": "sampel/BS",
+   "deskripsi": "Arsip pelaksanaan tahun 2025.",
+   "mulai": "2025-01-10",
+   "deadline": "2025-12-15",
+   "status": "Selesai",
+   "wajibFoto": false,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah selesai",
+     "tipe": "number",
+     "wajib": true
+    }
+   ]
+  },
+  {
+   "id": "PRG-020",
+   "nama": "Survei IMK Triwulan 3 2025",
+   "bidang": "inpek",
+   "tahun": 2025,
+   "target": 126,
+   "unit": "sampel/BS",
+   "deskripsi": "Arsip pelaksanaan tahun 2025.",
+   "mulai": "2025-01-10",
+   "deadline": "2025-12-15",
+   "status": "Selesai",
+   "wajibFoto": false,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah selesai",
+     "tipe": "number",
+     "wajib": true
+    }
+   ]
+  },
+  {
+   "id": "PRG-021",
+   "nama": "Survei Galian BH 2025",
+   "bidang": "inpek",
+   "tahun": 2025,
+   "target": 38,
+   "unit": "sampel/BS",
+   "deskripsi": "Arsip pelaksanaan tahun 2025.",
+   "mulai": "2025-01-10",
+   "deadline": "2025-12-15",
+   "status": "Selesai",
+   "wajibFoto": false,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah selesai",
+     "tipe": "number",
+     "wajib": true
+    }
+   ]
+  },
+  {
+   "id": "PRG-022",
+   "nama": "Survei Coba Superadmin",
+   "bidang": "tp",
+   "tahun": 2026,
+   "target": 75,
+   "unit": "contoh BS",
+   "deskripsi": "",
+   "mulai": "",
+   "deadline": "2026-12-01",
+   "status": "Berjalan",
+   "wajibFoto": true,
+   "fields": [
+    {
+     "key": "jumlah",
+     "label": "Jumlah selesai",
+     "tipe": "number",
+     "wajib": true
+    }
+   ]
+  }
+ ],
+ "assignments": [
+  {
+   "id": "ASG-0001",
+   "programId": "PRG-001",
+   "mitraU": "mitra1",
+   "target": 150,
+   "selesai": 42,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0002",
+   "programId": "PRG-001",
+   "mitraU": "mitra2",
+   "target": 150,
+   "selesai": 36,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0003",
+   "programId": "PRG-001",
+   "mitraU": "mitra3",
+   "target": 150,
+   "selesai": 28,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0004",
+   "programId": "PRG-001",
+   "mitraU": "mitra4",
+   "target": 150,
+   "selesai": 20,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0005",
+   "programId": "PRG-001",
+   "mitraU": "mitra5",
+   "target": 150,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0006",
+   "programId": "PRG-001",
+   "mitraU": "mitra6",
+   "target": 150,
+   "selesai": 16,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0007",
+   "programId": "PRG-002",
+   "mitraU": "mitra1",
+   "target": 24,
+   "selesai": 18,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0008",
+   "programId": "PRG-002",
+   "mitraU": "mitra2",
+   "target": 24,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0009",
+   "programId": "PRG-002",
+   "mitraU": "mitra3",
+   "target": 24,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0010",
+   "programId": "PRG-002",
+   "mitraU": "mitra4",
+   "target": 24,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0011",
+   "programId": "PRG-002",
+   "mitraU": "mitra5",
+   "target": 24,
+   "selesai": 14,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0012",
+   "programId": "PRG-002",
+   "mitraU": "mitra6",
+   "target": 24,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0013",
+   "programId": "PRG-003",
+   "mitraU": "mitra1",
+   "target": 24,
+   "selesai": 10,
+   "status": "Berjalan",
+   "updatedAt": 1794675604096
+  },
+  {
+   "id": "ASG-0014",
+   "programId": "PRG-003",
+   "mitraU": "mitra2",
+   "target": 24,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0015",
+   "programId": "PRG-003",
+   "mitraU": "mitra3",
+   "target": 24,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0016",
+   "programId": "PRG-003",
+   "mitraU": "mitra4",
+   "target": 24,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0017",
+   "programId": "PRG-003",
+   "mitraU": "mitra5",
+   "target": 24,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0018",
+   "programId": "PRG-003",
+   "mitraU": "mitra6",
+   "target": 24,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0019",
+   "programId": "PRG-004",
+   "mitraU": "mitra1",
+   "target": 20,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0020",
+   "programId": "PRG-004",
+   "mitraU": "mitra2",
+   "target": 20,
+   "selesai": 12,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0021",
+   "programId": "PRG-004",
+   "mitraU": "mitra3",
+   "target": 20,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0022",
+   "programId": "PRG-004",
+   "mitraU": "mitra4",
+   "target": 20,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0023",
+   "programId": "PRG-004",
+   "mitraU": "mitra5",
+   "target": 20,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0024",
+   "programId": "PRG-004",
+   "mitraU": "mitra6",
+   "target": 20,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0025",
+   "programId": "PRG-005",
+   "mitraU": "mitra1",
+   "target": 16,
+   "selesai": 20,
+   "status": "Selesai",
+   "updatedAt": 1794674474783
+  },
+  {
+   "id": "ASG-0026",
+   "programId": "PRG-005",
+   "mitraU": "mitra2",
+   "target": 16,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0027",
+   "programId": "PRG-005",
+   "mitraU": "mitra3",
+   "target": 16,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0028",
+   "programId": "PRG-005",
+   "mitraU": "mitra4",
+   "target": 16,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0029",
+   "programId": "PRG-005",
+   "mitraU": "mitra5",
+   "target": 16,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0030",
+   "programId": "PRG-005",
+   "mitraU": "mitra6",
+   "target": 16,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0031",
+   "programId": "PRG-006",
+   "mitraU": "mitra1",
+   "target": 11,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0032",
+   "programId": "PRG-006",
+   "mitraU": "mitra2",
+   "target": 11,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0033",
+   "programId": "PRG-006",
+   "mitraU": "mitra3",
+   "target": 11,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0034",
+   "programId": "PRG-006",
+   "mitraU": "mitra4",
+   "target": 11,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0035",
+   "programId": "PRG-006",
+   "mitraU": "mitra5",
+   "target": 11,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0036",
+   "programId": "PRG-006",
+   "mitraU": "mitra6",
+   "target": 11,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0037",
+   "programId": "PRG-007",
+   "mitraU": "mitra1",
+   "target": 70,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0038",
+   "programId": "PRG-007",
+   "mitraU": "mitra2",
+   "target": 70,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0039",
+   "programId": "PRG-007",
+   "mitraU": "mitra3",
+   "target": 70,
+   "selesai": 22,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0040",
+   "programId": "PRG-007",
+   "mitraU": "mitra4",
+   "target": 70,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0041",
+   "programId": "PRG-007",
+   "mitraU": "mitra5",
+   "target": 70,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0042",
+   "programId": "PRG-007",
+   "mitraU": "mitra6",
+   "target": 70,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0043",
+   "programId": "PRG-008",
+   "mitraU": "mitra1",
+   "target": 21,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0044",
+   "programId": "PRG-008",
+   "mitraU": "mitra2",
+   "target": 21,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0045",
+   "programId": "PRG-008",
+   "mitraU": "mitra3",
+   "target": 21,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0046",
+   "programId": "PRG-008",
+   "mitraU": "mitra4",
+   "target": 21,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0047",
+   "programId": "PRG-008",
+   "mitraU": "mitra5",
+   "target": 21,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0048",
+   "programId": "PRG-008",
+   "mitraU": "mitra6",
+   "target": 21,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0049",
+   "programId": "PRG-009",
+   "mitraU": "mitra1",
+   "target": 15,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0050",
+   "programId": "PRG-009",
+   "mitraU": "mitra2",
+   "target": 15,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0051",
+   "programId": "PRG-009",
+   "mitraU": "mitra3",
+   "target": 15,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0052",
+   "programId": "PRG-009",
+   "mitraU": "mitra4",
+   "target": 15,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0053",
+   "programId": "PRG-009",
+   "mitraU": "mitra5",
+   "target": 15,
+   "selesai": 9,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0054",
+   "programId": "PRG-009",
+   "mitraU": "mitra6",
+   "target": 15,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0055",
+   "programId": "PRG-010",
+   "mitraU": "mitra1",
+   "target": 12,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0056",
+   "programId": "PRG-010",
+   "mitraU": "mitra2",
+   "target": 12,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0057",
+   "programId": "PRG-010",
+   "mitraU": "mitra3",
+   "target": 12,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0058",
+   "programId": "PRG-010",
+   "mitraU": "mitra4",
+   "target": 12,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0059",
+   "programId": "PRG-010",
+   "mitraU": "mitra5",
+   "target": 12,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0060",
+   "programId": "PRG-010",
+   "mitraU": "mitra6",
+   "target": 12,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0061",
+   "programId": "PRG-011",
+   "mitraU": "mitra1",
+   "target": 52,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0062",
+   "programId": "PRG-011",
+   "mitraU": "mitra2",
+   "target": 52,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0063",
+   "programId": "PRG-011",
+   "mitraU": "mitra3",
+   "target": 52,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0064",
+   "programId": "PRG-011",
+   "mitraU": "mitra4",
+   "target": 52,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0065",
+   "programId": "PRG-011",
+   "mitraU": "mitra5",
+   "target": 52,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0066",
+   "programId": "PRG-011",
+   "mitraU": "mitra6",
+   "target": 52,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0067",
+   "programId": "PRG-012",
+   "mitraU": "mitra1",
+   "target": 10,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0068",
+   "programId": "PRG-012",
+   "mitraU": "mitra2",
+   "target": 10,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0069",
+   "programId": "PRG-012",
+   "mitraU": "mitra3",
+   "target": 10,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0070",
+   "programId": "PRG-012",
+   "mitraU": "mitra4",
+   "target": 10,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0071",
+   "programId": "PRG-012",
+   "mitraU": "mitra5",
+   "target": 10,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0072",
+   "programId": "PRG-012",
+   "mitraU": "mitra6",
+   "target": 10,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0073",
+   "programId": "PRG-013",
+   "mitraU": "mitra1",
+   "target": 87,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0074",
+   "programId": "PRG-013",
+   "mitraU": "mitra2",
+   "target": 87,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0075",
+   "programId": "PRG-013",
+   "mitraU": "mitra3",
+   "target": 87,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0076",
+   "programId": "PRG-013",
+   "mitraU": "mitra4",
+   "target": 87,
+   "selesai": 35,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0077",
+   "programId": "PRG-013",
+   "mitraU": "mitra5",
+   "target": 87,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0078",
+   "programId": "PRG-013",
+   "mitraU": "mitra6",
+   "target": 87,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0079",
+   "programId": "PRG-014",
+   "mitraU": "mitra1",
+   "target": 30,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0080",
+   "programId": "PRG-014",
+   "mitraU": "mitra2",
+   "target": 30,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0081",
+   "programId": "PRG-014",
+   "mitraU": "mitra3",
+   "target": 30,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0082",
+   "programId": "PRG-014",
+   "mitraU": "mitra4",
+   "target": 30,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0083",
+   "programId": "PRG-014",
+   "mitraU": "mitra5",
+   "target": 30,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0084",
+   "programId": "PRG-014",
+   "mitraU": "mitra6",
+   "target": 30,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0085",
+   "programId": "PRG-015",
+   "mitraU": "mitra1",
+   "target": 40,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0086",
+   "programId": "PRG-015",
+   "mitraU": "mitra2",
+   "target": 40,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0087",
+   "programId": "PRG-015",
+   "mitraU": "mitra3",
+   "target": 40,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0088",
+   "programId": "PRG-015",
+   "mitraU": "mitra4",
+   "target": 40,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0089",
+   "programId": "PRG-015",
+   "mitraU": "mitra5",
+   "target": 40,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0090",
+   "programId": "PRG-015",
+   "mitraU": "mitra6",
+   "target": 40,
+   "selesai": 25,
+   "status": "Berjalan",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0091",
+   "programId": "PRG-016",
+   "mitraU": "mitra1",
+   "target": 28,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0092",
+   "programId": "PRG-016",
+   "mitraU": "mitra2",
+   "target": 28,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0093",
+   "programId": "PRG-016",
+   "mitraU": "mitra3",
+   "target": 28,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0094",
+   "programId": "PRG-016",
+   "mitraU": "mitra4",
+   "target": 28,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0095",
+   "programId": "PRG-016",
+   "mitraU": "mitra5",
+   "target": 28,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0096",
+   "programId": "PRG-016",
+   "mitraU": "mitra6",
+   "target": 28,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0097",
+   "programId": "PRG-017",
+   "mitraU": "mitra1",
+   "target": 22,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0098",
+   "programId": "PRG-017",
+   "mitraU": "mitra2",
+   "target": 22,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0099",
+   "programId": "PRG-017",
+   "mitraU": "mitra3",
+   "target": 22,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0100",
+   "programId": "PRG-017",
+   "mitraU": "mitra4",
+   "target": 22,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0101",
+   "programId": "PRG-017",
+   "mitraU": "mitra5",
+   "target": 22,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0102",
+   "programId": "PRG-017",
+   "mitraU": "mitra6",
+   "target": 22,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674450318
+  },
+  {
+   "id": "ASG-0103",
+   "programId": "PRG-001",
+   "mitraU": "mitra7",
+   "target": 60,
+   "selesai": 0,
+   "status": "Belum Mulai",
+   "updatedAt": 1794674474746
+  }
+ ],
+ "laporan": [
+  {
+   "id": "LPR-0014",
+   "programId": "PRG-003",
+   "mitraU": "mitra1",
+   "mitraN": "Ahmad Fauzi",
+   "jumlah": 10,
+   "catatan": "Tes UI mitra",
+   "tgl": "2026-11-14",
+   "foto": [],
+   "t": 1794675604096,
+   "verified": false,
+   "verifiedBy": "",
+   "verifiedAt": 0
+  },
+  {
+   "id": "LPR-0013",
+   "programId": "PRG-005",
+   "mitraU": "mitra1",
+   "mitraN": "Ahmad Fauzi",
+   "jumlah": 20,
+   "catatan": "tes revisi",
+   "tgl": "2026-11-14",
+   "foto": [],
+   "t": 1794674474783,
+   "verified": false,
+   "verifiedBy": "",
+   "verifiedAt": 0
+  },
+  {
+   "id": "LPR-0012",
+   "programId": "PRG-015",
+   "mitraU": "mitra6",
+   "mitraN": "Nur Aisyah",
+   "jumlah": 25,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794627650318,
+   "verified": true,
+   "verifiedBy": "Admin Statistik Produksi",
+   "verifiedAt": 1794674450318
+  },
+  {
+   "id": "LPR-0011",
+   "programId": "PRG-001",
+   "mitraU": "mitra6",
+   "mitraN": "Nur Aisyah",
+   "jumlah": 16,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794631250318,
+   "verified": false,
+   "verifiedBy": "",
+   "verifiedAt": 0
+  },
+  {
+   "id": "LPR-0010",
+   "programId": "PRG-009",
+   "mitraU": "mitra5",
+   "mitraN": "Rizki Ramadhan",
+   "jumlah": 9,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794634850318,
+   "verified": true,
+   "verifiedBy": "Admin Statistik Produksi",
+   "verifiedAt": 1794674450318
+  },
+  {
+   "id": "LPR-0009",
+   "programId": "PRG-002",
+   "mitraU": "mitra5",
+   "mitraN": "Rizki Ramadhan",
+   "jumlah": 14,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794638450318,
+   "verified": true,
+   "verifiedBy": "Admin Statistik Produksi",
+   "verifiedAt": 1794674450318
+  },
+  {
+   "id": "LPR-0008",
+   "programId": "PRG-013",
+   "mitraU": "mitra4",
+   "mitraN": "Dewi Lestari",
+   "jumlah": 35,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794642050318,
+   "verified": false,
+   "verifiedBy": "",
+   "verifiedAt": 0
+  },
+  {
+   "id": "LPR-0007",
+   "programId": "PRG-001",
+   "mitraU": "mitra4",
+   "mitraN": "Dewi Lestari",
+   "jumlah": 20,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794645650318,
+   "verified": true,
+   "verifiedBy": "Admin Statistik Produksi",
+   "verifiedAt": 1794674450318
+  },
+  {
+   "id": "LPR-0006",
+   "programId": "PRG-007",
+   "mitraU": "mitra3",
+   "mitraN": "Budi Santoso",
+   "jumlah": 22,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794649250318,
+   "verified": true,
+   "verifiedBy": "Admin Statistik Produksi",
+   "verifiedAt": 1794674450318
+  },
+  {
+   "id": "LPR-0005",
+   "programId": "PRG-001",
+   "mitraU": "mitra3",
+   "mitraN": "Budi Santoso",
+   "jumlah": 28,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794652850318,
+   "verified": false,
+   "verifiedBy": "",
+   "verifiedAt": 0
+  },
+  {
+   "id": "LPR-0004",
+   "programId": "PRG-004",
+   "mitraU": "mitra2",
+   "mitraN": "Siti Nurhaliza",
+   "jumlah": 12,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794656450318,
+   "verified": true,
+   "verifiedBy": "Admin Statistik Produksi",
+   "verifiedAt": 1794674450318
+  },
+  {
+   "id": "LPR-0003",
+   "programId": "PRG-001",
+   "mitraU": "mitra2",
+   "mitraN": "Siti Nurhaliza",
+   "jumlah": 36,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794660050318,
+   "verified": true,
+   "verifiedBy": "Admin Statistik Produksi",
+   "verifiedAt": 1794674450318
+  },
+  {
+   "id": "LPR-0002",
+   "programId": "PRG-002",
+   "mitraU": "mitra1",
+   "mitraN": "Ahmad Fauzi",
+   "jumlah": 18,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794663650318,
+   "verified": false,
+   "verifiedBy": "",
+   "verifiedAt": 0
+  },
+  {
+   "id": "LPR-0001",
+   "programId": "PRG-001",
+   "mitraU": "mitra1",
+   "mitraN": "Ahmad Fauzi",
+   "jumlah": 42,
+   "catatan": "Pendataan lapangan selesai sesuai jadwal.",
+   "foto": [],
+   "t": 1794667250318,
+   "verified": true,
+   "verifiedBy": "Admin Statistik Produksi",
+   "verifiedAt": 1794674450318
+  }
+ ],
+ "foto": [
+  {
+   "file": "foto_mitra1_1794675772137_b6f123.png",
+   "judul": "Koordinasi Desa Sidomulyo",
+   "programId": "PRG-001",
+   "mitraU": "mitra1",
+   "mitraN": "Ahmad Fauzi",
+   "oleh": "Admin Statistik Produksi",
+   "role": "admin",
+   "t": 1794675772137,
+   "size": 74
+  }
+ ],
+ "aktivitas": [
+  {
+   "t": 1794676209155,
+   "oleh": "Super Admin BPS Kebumen",
+   "aksi": "Masuk aplikasi",
+   "detail": "superadmin"
+  },
+  {
+   "t": 1794676071927,
+   "oleh": "Super Admin BPS Kebumen",
+   "aksi": "Masuk aplikasi",
+   "detail": "superadmin"
+  },
+  {
+   "t": 1794676057509,
+   "oleh": "Admin Statistik Produksi",
+   "aksi": "Masuk aplikasi",
+   "detail": "admin"
+  },
+  {
+   "t": 1794675815125,
+   "oleh": "Super Admin BPS Kebumen",
+   "aksi": "Tambah program",
+   "detail": "Survei Coba Superadmin"
+  },
+  {
+   "t": 1794675812306,
+   "oleh": "Super Admin BPS Kebumen",
+   "aksi": "Masuk aplikasi",
+   "detail": "superadmin"
+  },
+  {
+   "t": 1794675772137,
+   "oleh": "Admin Statistik Produksi",
+   "aksi": "Unggah foto",
+   "detail": "Koordinasi Desa Sidomulyo · Ahmad Fauzi"
+  },
+  {
+   "t": 1794675772085,
+   "oleh": "Admin Statistik Produksi",
+   "aksi": "Masuk aplikasi",
+   "detail": "admin"
+  },
+  {
+   "t": 1794675759745,
+   "oleh": "Ahmad Fauzi",
+   "aksi": "Masuk aplikasi",
+   "detail": "mitra"
+  },
+  {
+   "t": 1794675664949,
+   "oleh": "Admin Statistik Produksi",
+   "aksi": "Masuk aplikasi",
+   "detail": "admin"
+  },
+  {
+   "t": 1794675604096,
+   "oleh": "Ahmad Fauzi",
+   "aksi": "Kirim laporan",
+   "detail": "Survei Ubinan Padi Subround 2 2026 · 10 sampel/BS"
+  },
+  {
+   "t": 1794675462122,
+   "oleh": "Ahmad Fauzi",
+   "aksi": "Masuk aplikasi",
+   "detail": "mitra"
+  },
+  {
+   "t": 1794675436305,
+   "oleh": "Super Admin BPS Kebumen",
+   "aksi": "Masuk aplikasi",
+   "detail": "superadmin"
+  },
+  {
+   "t": 1794675271504,
+   "oleh": "Admin Statistik Produksi",
+   "aksi": "Masuk aplikasi",
+   "detail": "admin"
+  },
+  {
+   "t": 1794675009299,
+   "oleh": "Admin Statistik Produksi",
+   "aksi": "Masuk aplikasi",
+   "detail": "admin"
+  },
+  {
+   "t": 1794674513634,
+   "oleh": "Admin Statistik Produksi",
+   "aksi": "Masuk aplikasi",
+   "detail": "admin"
+  },
+  {
+   "t": 1794674474783,
+   "oleh": "Ahmad Fauzi",
+   "aksi": "Kirim laporan",
+   "detail": "Survei Konversi Jagung (SKJG) 2026 · 20 sampel/BS"
+  },
+  {
+   "t": 1794674474756,
+   "oleh": "Ahmad Fauzi",
+   "aksi": "Masuk aplikasi",
+   "detail": "mitra"
+  },
+  {
+   "t": 1794674474746,
+   "oleh": "Admin Statistik Produksi",
+   "aksi": "Impor mitra",
+   "detail": "1 baru · 1 penugasan"
+  },
+  {
+   "t": 1794674474707,
+   "oleh": "Admin Statistik Produksi",
+   "aksi": "Masuk aplikasi",
+   "detail": "admin"
+  },
+  {
+   "t": 1794674450318,
+   "oleh": "Sistem",
+   "aksi": "Dashboard disiapkan",
+   "detail": "17 program 2026 · 6 mitra statistik"
+  }
+ ],
+ "meta": {
+  "instansi": "BPS Kabupaten Kebumen",
+  "unit": "Tim Statistik Produksi 3305",
+  "tahun": 2026
+ }
+}

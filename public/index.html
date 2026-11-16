@@ -2,15 +2,32 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="api-base" content="">
 <title>SINTA PADI — Sistem Informasi SKGB Jawa Tengah</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%BE%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--pri:#10b981;--pri2:#14b8a6;--navy:#0f172a;--bg:#f4fafa;--or:#f97316;--bl:#3b82f6;--pk:#ec4899;--vi:#8b5cf6;}
 *{box-sizing:border-box;margin:0;padding:0}
+html.dark{color-scheme:dark}
 html.dark body{background:#020617;color:#e2e8f0}
-html.dark .card{background:#0f172a;border-color:#1e293b}
+html.dark .card,html.dark .login .c{background:#0f172a;border-color:#1e293b}
+html.dark .hdr{background:#0f172a;border-bottom-color:#1e293b;color:#e2e8f0}
 html.dark .tbl td{border-color:#1e293b;color:#cbd5e1}
 html.dark .tbl th{background:#1e293b;color:#94a3b8}
+html.dark .tbl tr:hover td{background:#1e293b}
+html.dark .tbl .tot td{background:#064e3b;color:#d1fae5}
+html.dark .sel,html.dark input,html.dark textarea,html.dark .tabs button{background:#020617;border-color:#334155;color:#e2e8f0}
+html.dark .btn.w{background:#1e293b;border-color:#334155;color:#e2e8f0}
+html.dark .seg{background:#1e293b}
+html.dark .donut::after{background:#0f172a}
+html.dark .login{background:#020617}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #0f766e;outline-offset:2px}
+.skip{position:absolute;left:-999px;top:8px;background:#fff;color:#0f172a;padding:8px 12px;border-radius:8px;z-index:80}
+.skip:focus{left:8px}
+.status-api{font-size:11px;color:#16a34a;font-weight:700}
 body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:#0f172a}
 .sb{position:fixed;left:0;top:0;bottom:0;width:250px;background:var(--navy);color:#fff;display:flex;flex-direction:column;z-index:50;transition:.2s}
 .sb.min{width:64px}.sb.min .lbl{display:none}
@@ -49,6 +66,7 @@ h1{font-size:24px;font-weight:900;font-style:italic;letter-spacing:-.5px}
 .btn.o{background:var(--or);color:#fff}
 .sel,input,textarea{border:1px solid #e2e8f0;border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;background:#fff;color:inherit}
 .sel:disabled{background:#f1f5f9;color:#94a3b8}
+html.dark .sel:disabled{background:#1e293b;color:#94a3b8}
 .fld{margin-bottom:12px}.fld label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;color:#64748b;margin-bottom:5px;text-transform:uppercase}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
 .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
@@ -78,23 +96,28 @@ h1{font-size:24px;font-weight:900;font-style:italic;letter-spacing:-.5px}
 .err{background:#fee2e2;color:#991b1b;padding:10px;border-radius:10px;font-size:12px;margin-top:12px}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.25)}
 .mob{display:none}
+#map{height:440px;border-radius:12px}
 @media(max-width:900px){
  .sb{transform:translateX(-100%)}.sb.open{transform:none}
  .hdr,.main{margin-left:0;left:0}.sb.min~.hdr,.sb.min~.main{margin-left:0}
  .mob{display:inline-flex}
  .grid2{grid-template-columns:1fr}
+ .status-api{display:none}
+ .hdr{padding:0 12px}
+ #map{height:320px}
 }
-#map{height:440px;border-radius:12px}
 .leaflet-container{font:inherit}
 @media print{.sb,.hdr,.tabs,.btn{display:none!important}.main{margin:0}}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
+<a class="skip" href="#isi">Lewati ke isi</a>
+<noscript><p style="padding:24px;font-family:sans-serif">SINTA PADI membutuhkan JavaScript.</p></noscript>
 <div id="app"></div>
 <script>
 /* ====== STATE ====== */
@@ -103,12 +126,28 @@ if(S.dark)document.documentElement.classList.add('dark');
 const $=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n||0).toLocaleString('id-ID');
+const pct=(a,b)=>{const n=Number(a)||0,d=Number(b)||0;return d?Math.round(n/d*100):0};
+const normKab=s=>String(s||'').toUpperCase().replace(/\s+/g,' ').trim();
+function sameKab(a,b){const x=normKab(a),y=normKab(b);return !!x&&(x===y||x==='KOTA '+y||y==='KOTA '+x);}
 let CONST=null;
-const toast=m=>{const t=$(`<div class="toast">${esc(m)}</div>`);document.body.appendChild(t);setTimeout(()=>t.remove(),3000)};
+const toast=m=>{const t=$(`<div class="toast" role="status">${esc(m)}</div>`);document.body.appendChild(t);setTimeout(()=>t.remove(),3000)};
+const API_BASE=(document.querySelector('meta[name="api-base"]')?.getAttribute('content')||'').trim().replace(/\/$/,'');
+const GEO_KAB='https://raw.githubusercontent.com/rifani/geojson-political-indonesia/master/IDN_adm_2_kabkota.json';
+function whenReady(pred,ms=8000){
+  return new Promise((resolve,reject)=>{
+    const t0=Date.now();
+    (function tick(){
+      if(pred()) return resolve();
+      if(Date.now()-t0>ms) return reject(new Error('Pustaka belum termuat. Periksa koneksi lalu coba lagi.'));
+      setTimeout(tick,40);
+    })();
+  });
+}
 
 /* ====== API ====== */
 async function api(p,opt={}){
-  const r=await fetch(p,{...opt,headers:{'Content-Type':'application/json',...(S.user?{Authorization:'Bearer '+S.user.token}:{}) ,...(opt.headers||{})}});
+  const url=(API_BASE&&p.startsWith('/'))?API_BASE+p:p;
+  const r=await fetch(url,{...opt,headers:{'Content-Type':'application/json',...(S.user?{Authorization:'Bearer '+S.user.token}:{}) ,...(opt.headers||{})}});
   const j=await r.json().catch(()=>({}));
   if(r.status===401&&p!=='/api/login'){localStorage.removeItem('sp_user');S.user=null;throw new Error('Sesi habis, login ulang');}
   return j;
@@ -126,7 +165,11 @@ const ROUTES=[
  ['anom-k','▸ Anomali Kering','⚠️',''],['anom-g','▸ Anomali Giling','⚠️',''],
  ['monitoring','Monitoring GC','📊',''],['gs-tp','▸ Mon. Tanaman Pangan','📈','gs'],['gs-inpek','▸ Mon. INPEK','📈','gs'],['gs-horti','▸ Mon. Horti/Per/Pet/Perikanan','📈','gs'],['pengaturan','Pengaturan','⚙️','admin']
 ];
-function go(r){S.route=r;render();window.scrollTo(0,0)}
+function go(r){
+  if(!ROUTES.some(x=>x[0]===r)) r='dashboard';
+  if(location.hash!=='#'+r){location.hash=r;return;}
+  S.route=r;render();window.scrollTo(0,0);
+}
 
 /* ====== LOGIN ====== */
 function renderLogin(){
@@ -136,9 +179,9 @@ function renderLogin(){
     <h1>SINTA PADI</h1>
     <div style="font-size:10px;letter-spacing:2px;color:#64748b;font-weight:700;margin-bottom:8px">SISTEM INFORMASI SKGB JAWA TENGAH</div>
     <div style="font-size:11px;color:#94a3b8;margin-bottom:8px">PROVINSI JAWA TENGAH • 2026</div>
-    <div class="f"><div class="fld"><label>Username (Kode Kabupaten)</label><input id="lu" placeholder="Contoh: 3301" style="width:100%"></div>
-    <div class="fld"><label>Password</label><input id="lp" type="password" placeholder="••••••••" style="width:100%"></div>
-    <button class="btn g" id="lb" style="width:100%;padding:12px;font-size:14px">Masuk</button></div>
+    <div class="f"><div class="fld"><label for="lu">Username (Kode Kabupaten)</label><input id="lu" autocomplete="username" placeholder="Contoh: 3301" style="width:100%"></div>
+    <div class="fld"><label for="lp">Password</label><input id="lp" type="password" autocomplete="current-password" placeholder="••••••••" style="width:100%"></div>
+    <button type="button" class="btn g" id="lb" style="width:100%;padding:12px;font-size:14px">Masuk</button></div>
     <div id="lerr"></div>
     <div style="font-size:10px;color:#94a3b8;margin-top:16px;font-weight:600">HUBUNGI ADMIN BPS PROVINSI JAWA TENGAH JIKA LUPA PASSWORD</div>
   </div></div>`;
@@ -158,18 +201,18 @@ function layout(content){
   const u=S.user;
   return `<div class="sb ${S.sbmin?'min':''}" id="sb">
     <div class="logo"><div class="bx">🌾</div><div><b class="lbl">SINTA PADI</b><small class="lbl">SKGB JAWA TENGAH</small></div></div>
-    <nav>${ROUTES.filter(r=>!r[3]||r[3]==='admin'&&u.role!=='kab').map(r=>`<a href="#${r[0]}" class="${S.route===r[0]?'on':''}"><span>${r[2]}</span><span class="lbl">${r[1]}</span></a>`).join('')}</nav>
-    <div class="foot"><span class="lbl">${esc(u.kode)} · ${esc(u.nama)}</span><br><a href="#" onclick="logout()" style="color:#f87171;font-size:11px;padding:4px 0">⏻ Logout</a></div>
+    <nav aria-label="Menu utama">${ROUTES.filter(r=>!r[3]||r[3]==='gs'||(r[3]==='admin'&&u.role!=='kab')).map(r=>`<a href="#${r[0]}" class="${S.route===r[0]?'on':''}" aria-current="${S.route===r[0]?'page':'false'}" onclick="go('${r[0]}');return false"><span aria-hidden="true">${r[2]}</span><span class="lbl">${esc(r[1])}</span></a>`).join('')}</nav>
+    <div class="foot"><span class="lbl">${esc(u.kode)} · ${esc(u.nama)}</span><br><a href="#keluar" onclick="logout();return false" style="color:#f87171;font-size:11px;padding:4px 0">⏻ Logout</a></div>
   </div>
   <div class="hdr"><div class="t"><b>SINTA PADI</b> <small>PROVINSI JAWA TENGAH • 2026</small></div>
   <div class="r">
-    <button class="btn w mob" onclick="document.getElementById('sb').classList.toggle('open')">☰</button>
-    <button class="btn w" onclick="toggleDark()" title="Dark mode">${S.dark?'☀️':'🌙'}</button>
-    <span style="font-size:11px;color:#16a34a;font-weight:700"><span class="dot"></span> STATUS API</span>
-    <div class="av">${esc(u.kode.slice(-2))}</div>
-    <button class="btn w" onclick="logout()">Logout</button>
+    <button type="button" class="btn w mob" aria-label="Buka menu" onclick="document.getElementById('sb').classList.toggle('open')">☰</button>
+    <button type="button" class="btn w" onclick="toggleDark()" title="Mode gelap" aria-label="Mode gelap">${S.dark?'☀️':'🌙'}</button>
+    <span class="status-api"><span class="dot" aria-hidden="true"></span> STATUS API</span>
+    <div class="av" aria-hidden="true">${esc(u.kode.slice(-2))}</div>
+    <button type="button" class="btn w" onclick="logout()">Logout</button>
   </div></div>
-  <div class="main">${content}</div>`;
+  <div class="main" id="isi">${content}</div>`;
 }
 function toggleDark(){S.dark=!S.dark;localStorage.setItem('sp_dark',S.dark?'1':'0');document.documentElement.classList.toggle('dark',S.dark);render()}
 
@@ -177,13 +220,15 @@ function toggleDark(){S.dark=!S.dark;localStorage.setItem('sp_dark',S.dark?'1':'
 function waBtn(no){const d=String(no||'').replace(/\D/g,'');if(!d||d==='-')return '<a class="wa off">WhatsApp</a>';
   let n=d;if(n.startsWith('0'))n='62'+n.slice(1);else if(n.startsWith('8'))n='62'+n;
   return `<a class="wa" target="_blank" href="https://wa.me/${n}">💬 WhatsApp</a>`}
-function exportPDF(title,cols,rows){
+async function exportPDF(title,cols,rows){
+  try{await whenReady(()=>window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API&&window.jspdf.jsPDF.API.autoTable);}catch(e){toast(e.message);return;}
   const doc=new window.jspdf.jsPDF({orientation:cols.length>7?'landscape':'portrait',unit:'pt'});
   doc.text(title,40,40);doc.setFontSize(9);doc.text('SINTA PADI — '+new Date().toLocaleDateString('id-ID'),40,56);
   doc.autoTable({head:[cols],body:rows.map(r=>cols.map(c=>String(r[c]??''))),startY:70,styles:{fontSize:7},headStyles:{fillColor:[15,23,42]}});
   doc.save(title.replace(/\s+/g,'_')+'.pdf');toast('PDF terunduh ✓');
 }
-function exportXL(title,cols,rows){
+async function exportXL(title,cols,rows){
+  try{await whenReady(()=>window.XLSX&&window.XLSX.utils);}catch(e){toast(e.message);return;}
   const ws=XLSX.utils.json_to_sheet(rows.map(r=>{const o={};cols.forEach(c=>o[c]=r[c]);return o}));
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Data');
   XLSX.writeFile(wb,'SINTA_PADI_'+title.replace(/\s+/g,'_')+'_'+(S.user?S.user.kode:'')+'_'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.xlsx');toast('Excel terunduh ✓');
@@ -194,7 +239,7 @@ const filterKab=(id,lock)=>`<select id="${id}" class="sel" ${lock?'disabled':''}
 /* ====== PAGES ====== */
 async function pgDashboard(){
   const [rl,kpi]=await Promise.all([api('/api/realisasi'),api('/api/kpi')]);
-  const t=rl.total,p1=Math.round(t.rK/t.tK*100),p2=Math.round(t.rK2/t.tK*100),pg=Math.round(t.rG/t.tG*100);
+  const t=rl.total,p1=pct(t.rK,t.tK),p2=pct(t.rK2,t.tK),pg=pct(t.rG,t.tG);
   const donut=(p,c1)=>`<div class="donut" style="background:conic-gradient(${c1} ${p*3.6}deg,#e2e8f0 0)"><div class="p">${p}%<small style="font-weight:600;color:#64748b">${fmt(p===p1?t.rK:p===p2?t.rK2:t.rG)}/${fmt(p===p1?t.tK:p===p2?t.tK2:t.tG)}</small></div></div>`;
   const rows=rl.rows;
   let html=`<h1>DASHBOARD</h1><div class="sub">Capaian SKGB (Survei Konversi Gabah ke Beras) Jawa Tengah 2026 — badge LIVE UPDATE</div>
@@ -210,12 +255,12 @@ async function pgDashboard(){
     <div class="card" style="text-align:center"><span class="badge b-g">LIVE UPDATE</span><div class="donut" style="background:conic-gradient(#ec4899 ${pg*3.6}deg,#e2e8f0 0)"><div class="p">${pg}%<small style="color:#64748b;font-weight:600">${fmt(t.rG)}/${fmt(t.tG)}</small></div></div><b>Realisasi Penggilingan</b></div>
   </div>
   <div class="card"><b>Realisasi Per Kabupaten/Kota</b><div class="sub">DETAIL DISTRIBUSI CAPAIAN PENGERINGAN — TOTAL: 35 WILAYAH</div>
-  ${rows.map(r=>{const p=Math.round(r.rK/r.tK*100);return `<div class="bwrap"><span class="lb">${r.kode}</span><div class="tr"><i class="r" style="width:${Math.min(100,p)}%"></i><i class="t" style="left:${Math.min(100,Math.round(r.rK2/r.tK*100))}%"></i></div><b style="width:70px;text-align:right">${fmt(r.rK)}/${fmt(r.tK)}</b></div>`}).join('')}
-  <div style="display:flex;gap:12px;margin-top:12px"><div class="card" style="flex:1;margin:0;text-align:center"><small>RATA-RATA</small><div style="font-size:22px;font-weight:900;color:#10b981">${Math.round(rows.reduce((a,r)=>a+r.rK/r.tK,0)/rows.length*100)}%</div></div>
+  ${rows.map(r=>{const p=pct(r.rK,r.tK);return `<div class="bwrap"><span class="lb">${r.kode}</span><div class="tr"><i class="r" style="width:${Math.min(100,p)}%"></i><i class="t" style="left:${Math.min(100,pct(r.rK2,r.tK))}%"></i></div><b style="width:70px;text-align:right">${fmt(r.rK)}/${fmt(r.tK)}</b></div>`}).join('')}
+  <div style="display:flex;gap:12px;margin-top:12px"><div class="card" style="flex:1;margin:0;text-align:center"><small>RATA-RATA</small><div style="font-size:22px;font-weight:900;color:#10b981">${rows.length?Math.round(rows.reduce((a,r)=>a+(r.tK?r.rK/r.tK:0),0)/rows.length*100):0}%</div></div>
   <div class="card" style="flex:1;margin:0;text-align:center"><small>WILAYAH AKTIF</small><div style="font-size:22px;font-weight:900;color:#3b82f6">${rows.filter(r=>r.rK>0).length}</div></div></div></div>
   <div class="card"><b>Tabel Per Kabupaten/Kota</b><div class="sub">TARGET, REALISASI & PERSENTASE — PENGERINGAN & PENGGILINGAN</div>
   <div style="overflow-x:auto"><table class="tbl"><tr><th>KAB</th><th>NAMA</th><th>PENG. TARGET</th><th>PENG. REALISASI</th><th>PENG. %</th><th>GIL. TARGET</th><th>GIL. REALISASI</th><th>GIL. %</th></tr>
-  ${rows.map(r=>{const pk=Math.round(r.rK/r.tK*100),pg2=Math.round(r.rG/r.tG*100);return `<tr><td>${r.kode}</td><td>${esc(r.nama)}</td><td>${fmt(r.tK)}</td><td>${fmt(r.rK)}</td><td><span class="badge ${pk>=100?'b-g':pk===0?'b-r':'b-o'}">${pk}%</span></td><td>${fmt(r.tG)}</td><td>${fmt(r.rG)}</td><td><span class="badge ${pg2>=100?'b-g':pg2===0?'b-r':'b-o'}">${pg2}%</span></td></tr>`}).join('')}
+  ${rows.map(r=>{const pk=pct(r.rK,r.tK),pg2=pct(r.rG,r.tG);return `<tr><td>${r.kode}</td><td>${esc(r.nama)}</td><td>${fmt(r.tK)}</td><td>${fmt(r.rK)}</td><td><span class="badge ${pk>=100?'b-g':pk===0?'b-r':'b-o'}">${pk}%</span></td><td>${fmt(r.tG)}</td><td>${fmt(r.rG)}</td><td><span class="badge ${pg2>=100?'b-g':pg2===0?'b-r':'b-o'}">${pg2}%</span></td></tr>`}).join('')}
   <tr class="tot"><td colspan="2">TOTAL JAWA TENGAH</td><td>${fmt(t.tK)}</td><td>${fmt(t.rK)}</td><td>${p1}%</td><td>${fmt(t.tG)}</td><td>${fmt(t.rG)}</td><td>${pg}%</td></tr></table></div></div>`;
   return html;
 }
@@ -235,30 +280,47 @@ async function pgPeta(){
     ${[['SAMPEL ELIGIBLE KERING','#d1fae5','#065f46',fmt(tot.tK)],['SAMPEL ELIGIBLE GILING','#ffedd5','#9a3412',fmt(tot.tG)],['TARGET KERING','#dbeafe','#1e40af',fmt(tot.tK)],['TARGET GILING','#ede9fe','#5b21b6',fmt(tot.tG)],['REALISASI KERING',null,'#065f46',`${fmt(tot.rK)} / ${fmt(tot.tK)}`],['REALISASI GILING',null,'#9d174d',`${fmt(tot.rG)} / ${fmt(tot.tG)}`]].map(([l,bg,fg,v])=>`<div style="border-radius:12px;padding:12px;background:${bg||'#fff'};border:1px solid #e2e8f0"><div style="font-size:9px;letter-spacing:1px;font-weight:800;color:#64748b">${l}</div><div style="font-size:18px;font-weight:900;color:${fg}">${v}</div></div>`).join('')}
   </div>
   <div id="map"></div>
-  <div style="font-size:10px;color:#94a3b8;margin-top:6px">© OpenStreetMap contributors — Leaflet 1.9.4</div></div>`;
+  <div style="font-size:10px;color:#94a3b8;margin-top:6px">© OpenStreetMap contributors — Leaflet 1.9.4 — batas kabupaten: geojson-political-indonesia</div></div>`;
   setTimeout(drawMap,60);
   return html;
 }
+async function loadJatengGeo(){
+  if(S.geo) return S.geo;
+  const gj=await(await fetch(GEO_KAB)).json();
+  const features=(gj.features||[]).filter(f=>normKab(f.properties&&f.properties.NAME_1)==='JAWA TENGAH');
+  S.geo={type:'FeatureCollection',features};
+  return S.geo;
+}
+function rowForFeature(rows,f){
+  const p=f.properties||{};
+  const name=p.NAME_2||p.nama||p.Name||p.name||'';
+  const alt=p.VARNAME_2||'';
+  return rows.find(r=>sameKab(r.nama,name)||sameKab(r.nama,alt))||null;
+}
 async function drawMap(){
   const el=document.getElementById('map');if(!el)return;
+  if(typeof L==='undefined'){toast('Peta belum siap, coba lagi');return;}
   if(S.map){S.map.remove();S.map=null}
   S.map=L.map(el).setView([-7.3,109.8],8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(S.map);
-  let gj;try{gj=await(await fetch('https://raw.githubusercontent.com/superpikar/indonesia-geojson/master/indonesia-district-simple.json')).json()}catch(e){gj=null}
+  let gj;try{gj=await loadJatengGeo()}catch(e){gj=null}
   const rl=await api('/api/realisasi');
   const val=r=>({ku:r.rK,kc:r.rK,kt1:r.rK,kt2:r.rK2,kg:r.rG}[S.layer]||0);
   const max=Math.max(...rl.rows.map(val),1);
-  if(gj){
-    const byKode={};rl.rows.forEach(r=>byKode[r.nama.toUpperCase()]=val(r));
-    L.geoJSON(gj,{filter:f=>{const n=(f.properties.Name||f.properties.name||'').toUpperCase();return n.includes('JAWA TENGAH')||true},style:f=>{
-      const n=(f.properties.Name||f.properties.name||'').toUpperCase();
-      let v=null;for(const k in byKode){if(n.includes(k.replace('KOTA ',''))){v=byKode[k];break}}
+  if(gj&&gj.features&&gj.features.length){
+    L.geoJSON(gj,{style:f=>{
+      const row=rowForFeature(rl.rows,f);
+      const v=row?val(row):null;
       const c=v==null?'#f1f5f9':['#dcfce7','#bbf7d0','#86efac','#4ade80','#22c55e'][Math.min(4,Math.floor(v/(max/4.01)))];
       return {fillColor:c,fillOpacity:.85,color:'#fff',weight:1};
-    },onEachFeature:(f,l)=>{const n=(f.properties.Name||f.properties.name||'');l.bindTooltip(n);l.on('click',()=>{const r=rl.rows.find(r=>n.toUpperCase().includes(r.nama));if(r)toast(r.nama+': '+val(r))})}}).addTo(S.map);
+    },onEachFeature:(f,l)=>{
+      const row=rowForFeature(rl.rows,f);
+      const label=(f.properties&&(f.properties.NAME_2||f.properties.nama))||'';
+      l.bindTooltip(label);
+      l.on('click',()=>{if(row)toast(row.nama+': '+val(row))});
+    }}).addTo(S.map);
   }else{
-    // fallback: circles per kab at approximate centroid — skip
-    toast('GeoJSON kab tidak termuat — peta base only');
+    toast('GeoJSON kab tidak termuat — peta dasar saja');
   }
 }
 
@@ -274,10 +336,12 @@ async function pgKSA(bulan){
     ${filterKab('fksa',true)}<input id="qksa" class="sel" placeholder="Cari…" oninput="drawKsa()"><button class="btn w" onclick="render()">⟳ Refresh</button></div>
     <div id="ksabox" style="overflow-x:auto;max-height:480px;overflow-y:auto"></div></div>`;
     window.drawKsa=()=>{
-      const q=(qksa.value||'').toLowerCase();
+      const input=document.getElementById('qksa'), box=document.getElementById('ksabox');
+      if(!input||!box) return;
+      const q=(input.value||'').toLowerCase();
       const f=rows.filter(r=>!q||JSON.stringify(r).toLowerCase().includes(q));
       const opts=CONST.ksaPetakLain;
-      document.getElementById('ksabox').innerHTML=`<table class="tbl"><tr><th>NO</th><th>ID SEGMEN</th><th>SUBSEGMEN</th><th>ID_SUBSEGMEN</th><th>NAMA</th><th>FEB</th><th>MAR</th><th>APRIL</th><th style="background:#ecfdf5">${bulan.toUpperCase()}</th><th style="background:#ecfdf5">PETAK LAIN (EDIT)</th></tr>
+      box.innerHTML=`<table class="tbl"><tr><th>NO</th><th>ID SEGMEN</th><th>SUBSEGMEN</th><th>ID_SUBSEGMEN</th><th>NAMA</th><th>FEB</th><th>MAR</th><th>APRIL</th><th style="background:#ecfdf5">${bulan.toUpperCase()}</th><th style="background:#ecfdf5">PETAK LAIN (EDIT)</th></tr>
       ${f.slice(0,200).map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.idseg)}</td><td>${esc(r.subseg)}</td><td><b>${esc(r.id_subsegmen)}</b></td><td>${esc(r.nama)}</td><td>${esc(r.feb)}</td><td>${esc(r.mar)}</td><td>${esc(r.april)}</td><td>${esc(r[bulan.toLowerCase()]||'')}</td>
       <td><select class="sel" style="padding:4px 8px" onchange="updKsa('${esc(r.id_subsegmen)}',this.value)">${opts.map(o=>`<option ${o===(r.petak||'--')?'selected':''}>${o}</option>`).join('')}</select></td></tr>`).join('')}</table>
       <div style="font-size:11px;color:#64748b;margin-top:8px">Menampilkan ${Math.min(200,f.length)} dari ${fmt(rows.length)} baris.</div>`;
@@ -314,9 +378,11 @@ async function pgIdentifikasi(){
     <input id="qlk" class="sel" placeholder="Search anything…" oninput="drawLK()"><span style="margin-left:auto;font-size:20px;font-weight:900">${fmt(rows.length)} <small style="font-size:9px;color:#64748b;letter-spacing:1px">TOTAL DATA</small></span></div>
     <div id="lkbox" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px"></div></div>`;
     window.drawLK=()=>{
-      const q=(qlk.value||'').toLowerCase();
+      const input=document.getElementById('qlk'), box=document.getElementById('lkbox');
+      if(!input||!box) return;
+      const q=(input.value||'').toLowerCase();
       const f=rows.filter(r=>!q||JSON.stringify(r).toLowerCase().includes(q)).slice(0,100);
-      document.getElementById('lkbox').innerHTML=f.map(r=>`<div class="card" style="margin:0">
+      box.innerHTML=f.map(r=>`<div class="card" style="margin:0">
       <div style="display:flex;gap:6px;margin-bottom:8px"><span class="badge ${r.jenis==='Utama'?'b-g':'b-o'}">${r.jenis.toUpperCase()}</span>${r.status==='Eligible'?'<span class="badge b-g">ELIGIBLE</span>':''}</div>
       <b style="font-size:14px">${esc(r.id)}</b><div style="font-size:11px;color:#64748b">KDKAB ${esc(r.kdkab)}</div>
       <div style="font-size:11px;margin-top:6px">🌱 APRIL: ${esc(r.april)}<br>🌿 MEI: ${esc(r.mei)}<br>🌾 JUNI: ${esc(r.juni)}</div>
@@ -338,13 +404,16 @@ async function pgIdentifikasi(){
     <div class="fld" id="c-perk" style="display:none"><label>PERKIRAAN PANEN</label><input id="fpp" type="date" class="sel" style="width:100%"></div>
     <div class="fld" id="c-jp" style="display:none"><label>JENIS PEMANENAN</label><select id="fjp" class="sel"><option value="">-- Pilih --</option>${CONST.jenisPemanenan.map(o=>`<option>${o}</option>`).join('')}</select></div>
     <div class="fld" id="c-hp" style="display:none"><label>NO HP PETANI/PENEBAS</label><input id="fhp" class="sel" placeholder="08xxxxxxxxxx" style="width:100%"></div>
-    <div class="fld" id="c-loc" style="display:none"><label>LOKASI SAWAH</label><div style="display:flex;gap:6px"><input id="flo" class="sel" placeholder="Lat, Long" style="flex:1"><button class="btn w" onclick="gpsFill('flo')">📍</button></div></div>
+    <div class="fld" id="c-loc" style="display:none"><label>LOKASI SAWAH</label><div style="display:flex;gap:6px"><input id="flo" class="sel" placeholder="Lat, Long" style="flex:1"><button type="button" class="btn w" aria-label="Isi lokasi dari GPS" onclick="gpsFill('flo')">📍</button></div></div>
     <div class="fld"><label>CATATAN</label><textarea id="fc" class="sel" rows="2" style="width:100%"></textarea></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn w" onclick="S.tab.jenisi='';render()">RESET</button><button class="btn g" onclick="submitIdent()">Kirim Data</button></div></div>`;
     window.identCond=()=>{
-      const sudah=fhi.value==='2. Sudah Panen';
-      cPetak.style.display=sudah?'':'none';cPerk.style.display=cJp.style.display=cHp.style.display=cLoc.style.display=(sudah&&fpl.value==='1. Ya')?'':'none';
+      const sudah=document.getElementById('fhi').value==='2. Sudah Panen';
+      const ya=document.getElementById('fpl').value==='1. Ya';
+      const show=(id,on)=>{const el=document.getElementById(id);if(el) el.style.display=on?'':'none';};
+      show('c-petak',sudah);
+      show('c-perk',sudah&&ya);show('c-jp',sudah&&ya);show('c-hp',sudah&&ya);show('c-loc',sudah&&ya);
     };
     window.gpsFill=id=>{navigator.geolocation&&navigator.geolocation.getCurrentPosition(p=>{document.getElementById(id).value=p.coords.latitude.toFixed(5)+', '+p.coords.longitude.toFixed(5)})};
     window.submitIdent=async()=>{
@@ -376,9 +445,11 @@ async function pgMapping(jenis){ // jenis 'k' or 'g'
     html+=`<div class="sub">Data dari sheet UTKer (kolom A, B, E) digabung dengan Panen (kolom M). Pilih Sampel Pengganti dari Cadangan Kering yang masih eligible, lalu simpan.</div>
     <div class="card"><div style="display:flex;gap:10px;margin-bottom:10px">${filterKab('fmk',true)}<input id="qmk" class="sel" placeholder="Cari ID…" oninput="drawMK()"><button class="btn w" onclick="render()">⟳</button></div><div id="mkbox" style="overflow-x:auto;max-height:460px;overflow-y:auto"></div></div>`;
     window.drawMK=()=>{
-      const q=(qmk.value||'').toLowerCase();
+      const input=document.getElementById('qmk'), box=document.getElementById('mkbox');
+      if(!input||!box) return;
+      const q=(input.value||'').toLowerCase();
       const f=rows.filter(r=>(S.user.role==='kab'?r.kdkab===S.user.kode:true)&&(!q||r.idsub.toLowerCase().includes(q))).slice(0,150);
-      document.getElementById('mkbox').innerHTML=`<table class="tbl"><tr><th>NO</th><th>KDKAB</th><th>IDSUBSEGMEN</th><th>STATUS ELIGIBLE</th><th>STATUS PROBABLE</th><th>SAMPEL PENGGANTI</th><th>AKSI</th></tr>
+      box.innerHTML=`<table class="tbl"><tr><th>NO</th><th>KDKAB</th><th>IDSUBSEGMEN</th><th>STATUS ELIGIBLE</th><th>STATUS PROBABLE</th><th>SAMPEL PENGGANTI</th><th>AKSI</th></tr>
       ${f.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.kdkab)}</td><td><b>${esc(r.idsub)}</b></td><td><span class="badge ${r.status==='Eligible'?'b-g':'b-o'}">${esc(r.status)}</span></td><td>${esc(r.probable||'-')}</td>
       <td><select id="mp${i}" class="sel" style="padding:4px 8px"><option value="">-- Pilih Pengganti (Cadangan) --</option>${cad.filter(c=>c.kdkab===r.kdkab).map(c=>`<option ${c.id===r.pengganti?'selected':''} value="${esc(c.id)}">${esc(c.id)}</option>`).join('')}</select></td>
       <td><button class="btn g" style="padding:5px 10px" onclick="saveMK('${esc(r.idsub)}',${i})">Simpan</button></td></tr>`).join('')}</table>
@@ -397,9 +468,11 @@ async function pgMapping(jenis){ // jenis 'k' or 'g'
     html+=`<div class="sub">Daftar penggilingan sampel Utama. Pilih sampel pengganti dari daftar penggilingan Cadangan jika diperlukan. <b>Menampilkan ${fmt(utama.length)} penggilingan utama</b></div>
     <div class="card"><div style="display:flex;gap:10px;margin-bottom:10px">${filterKab('fmg',true)}<input id="qmg" class="sel" placeholder="Nama penggilingan…" oninput="drawMG()"><button class="btn w" onclick="render()">⟳</button></div><div id="mgbox" style="overflow-x:auto;max-height:460px;overflow-y:auto"></div></div>`;
     window.drawMG=()=>{
-      const q=(qmg.value||'').toLowerCase();
+      const input=document.getElementById('qmg'), box=document.getElementById('mgbox');
+      if(!input||!box) return;
+      const q=(input.value||'').toLowerCase();
       const f=utama.filter(r=>!q||r.nama.toLowerCase().includes(q)).slice(0,100);
-      document.getElementById('mgbox').innerHTML=`<table class="tbl"><tr><th>NO</th><th>KAB</th><th>PENGGILINGAN UTAMA</th><th>SKALA</th><th>TELEPON</th><th>SAMPEL PENGGANTI</th><th>AKSI</th></tr>
+      box.innerHTML=`<table class="tbl"><tr><th>NO</th><th>KAB</th><th>PENGGILINGAN UTAMA</th><th>SKALA</th><th>TELEPON</th><th>SAMPEL PENGGANTI</th><th>AKSI</th></tr>
       ${f.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.kab)}</td><td>${esc(r.nama)}</td><td>${esc(r.skala)}</td><td>${esc(r.telp||'-')}</td>
       <td><select id="mg${i}" class="sel" style="padding:4px 8px"><option value="">-- Pilih Pengganti (Cadangan) --</option>${cad.filter(c=>c.kab===r.kab).map(c=>`<option value="${esc(c.nama)}">${esc(c.nama)}</option>`).join('')}</select></td>
       <td><button class="btn g" style="padding:5px 10px" onclick="saveMG('${esc(r.nama)}',${i})">Simpan</button></td></tr>`).join('')}</table>`;
@@ -431,7 +504,7 @@ async function pgPengeringan(tahap){
     <div class="fld"><label>ID SUBSEGMEN</label><select id="p_id" class="sel" ${!jenis?'disabled':''}>${!jenis?'<option>-- Pilih Jenis Sampel dahulu --</option>':'<option value="">-- Pilih ID --</option>'+ids.slice(0,400).map(r=>`<option>${esc(r.idsub)}</option>`).join('')||'<option>Data ID SUBSEGMEN tidak ditemukan</option>'}</select></div>
     <div class="fld"><label>207. HASIL PENCACAHAN</label><select id="p_h" class="sel" onchange="pengCond(${tahap})"><option value="">-- Pilih --</option>${CONST.hasilPencacahan.map(o=>`<option>${o}</option>`).join('')}</select></div>
     <div class="fld" id="p_c1" style="display:none"><label>${isT1?'TANGGAL KUNJUNGAN PERTAMA (SAAT PANEN)':'TANGGAL KUNJUNGAN KEDUA SAAT (PENGERINGAN)'}</label><input id="p_tgl" type="date" class="sel" style="width:100%"></div>
-    <div class="fld" id="p_c2" style="display:none"><label>${isT1?'LOKASI (PANEN)':'400. LOKASI (PENGERINGAN)'}</label><div style="display:flex;gap:6px"><input id="p_lok" class="sel" placeholder="Lat,Long" style="flex:1"><button class="btn w" onclick="gpsFill('p_lok')">📍</button></div></div>
+    <div class="fld" id="p_c2" style="display:none"><label>${isT1?'LOKASI (PANEN)':'400. LOKASI (PENGERINGAN)'}</label><div style="display:flex;gap:6px"><input id="p_lok" class="sel" placeholder="Lat,Long" style="flex:1"><button type="button" class="btn w" aria-label="Isi lokasi dari GPS" onclick="gpsFill('p_lok')">📍</button></div></div>
     <div class="fld" id="p_c3" style="display:none"><label>${isT1?'305.A':'401.A'}. BERAT WADAH</label><input id="p_a" type="number" class="sel" style="width:100%"></div>
     <div class="fld" id="p_c4" style="display:none"><label>${isT1?'305.B':'401.B'}. BERAT GABAH DAN WADAH</label><input id="p_b" type="number" class="sel" style="width:100%"></div>
     <div class="fld" id="p_c5" style="display:none"><label>${isT1?'305.C':'401.C'}. RATA-RATA KADAR AIR</label><input id="p_cc" type="number" step="0.1" class="sel" style="width:100%"></div>
@@ -449,9 +522,12 @@ async function pgPengeringan(tahap){
     const cols=kering.header;
     html+=`<div class="card"><div style="display:flex;gap:10px;margin-bottom:10px"><input id="qkr" class="sel" placeholder="Cari…" oninput="drawKR()"><button class="btn w" onclick="render()">⟳ Refresh</button>${expBtns('KERING1',cols,rows)}</div><div id="krbox" style="overflow-x:auto;max-height:460px;overflow-y:auto"></div></div>`;
     window.drawKR=()=>{
-      const q=(qkr.value||'').toLowerCase();
+      const input=document.getElementById('qkr'), box=document.getElementById('krbox');
+      if(!input||!box) return;
+      const q=(input.value||'').toLowerCase();
       const f=rows.filter(r=>!q||JSON.stringify(r).toLowerCase().includes(q)).slice(0,150);
-      document.getElementById('krbox').innerHTML=`<table class="tbl"><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>${f.map((r,i)=>`<tr><td>${i+1}</td>${cols.slice(1).map(c=>`<td>${esc(r[{0:'kab',1:'petugas',2:'jenis',3:'id',4:'hasil',5:'tgl1',6:'lok1',7:'w305a',8:'w305b',9:'w305c'}[cols.indexOf(c)]]||'')}</td>`).join('')}</tr>`).join('')}</table><div style="font-size:11px;color:#64748b;margin-top:6px">Menampilkan ${f.length} dari ${fmt(rows.length)} data</div>`;
+      const colKey=['kab','petugas','jenis','id','hasil','tgl1','lok1','w305a','w305b','w305c'];
+      box.innerHTML=`<table class="tbl"><tr><th>NO</th>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>${f.map((r,i)=>`<tr><td>${i+1}</td>${cols.map((c,ci)=>`<td>${esc(r[colKey[ci]]||'')}</td>`).join('')}</tr>`).join('')}</table><div style="font-size:11px;color:#64748b;margin-top:6px">Menampilkan ${f.length} dari ${fmt(rows.length)} data</div>`;
     };
     setTimeout(drawKR,30);
   }
@@ -470,9 +546,11 @@ async function pgDirektori(){
   <input id="qd" class="sel" placeholder="Cari…" oninput="drawDir()"><button class="btn w" onclick="render()">⟳</button>${expBtns('Direktori_Penggilingan',cols,rows)}</div>
   <div id="dirbox" style="overflow-x:auto;max-height:480px;overflow-y:auto"></div></div>`;
   window.drawDir=()=>{
-    const q=(qd.value||'').toLowerCase();
+    const input=document.getElementById('qd'), box=document.getElementById('dirbox');
+    if(!input||!box) return;
+    const q=(input.value||'').toLowerCase();
     const f=rows.filter(r=>!q||JSON.stringify(r).toLowerCase().includes(q)).slice(0,150);
-    document.getElementById('dirbox').innerHTML=`<table class="tbl"><tr><th>NO</th><th>KABUPATEN/KOTA</th><th>JENIS</th><th>NAMA PENGGILINGAN</th><th>TELEPON</th><th>SKALA</th><th>AKSI</th></tr>
+    box.innerHTML=`<table class="tbl"><tr><th>NO</th><th>KABUPATEN/KOTA</th><th>JENIS</th><th>NAMA PENGGILINGAN</th><th>TELEPON</th><th>SKALA</th><th>AKSI</th></tr>
     ${f.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.kab)}</td><td><span class="badge ${r.jenis==='UTAMA'?'b-g':'b-o'}">${esc(r.jenis)}</span></td><td>${esc(r.nama)}</td><td>${esc(r.telp||'-')}</td><td>${esc(r.skala)}</td><td>${waBtn(r.telp)}</td></tr>`).join('')}</table>`;
   };
   setTimeout(drawDir,30);
@@ -497,7 +575,7 @@ async function pgGilingInput(){
     <div class="fld"><label>NAMA PENGGILINGAN</label><select id="g_np" class="sel" ${!jenis?'disabled':''} onchange="S.tab.gpeng=this.value;render()">${!jenis?'<option>-- Pilih Jenis dahulu --</option>':'<option value="">-- Pilih --</option>'+namaP.map(r=>`<option ${r.nama===selP?'selected':''}>${esc(r.nama)}</option>`).join('')}</select></div>
     <div class="fld"><label>SKALA (OTOMATIS)</label><input class="sel" disabled value="${info?esc(info.skala):(selP?'':'-')}"></div>
     <div class="fld"><label>TANGGAL PENDATAAN</label><input id="g_tgl" type="date" class="sel" style="width:100%"></div>
-    <div class="fld"><label>LOKASI PENGGILINGAN</label><div style="display:flex;gap:6px"><input id="g_lok" class="sel" placeholder="Lat,Long" style="flex:1"><button class="btn w" onclick="gpsFill('g_lok')">📍</button></div></div>
+    <div class="fld"><label>LOKASI PENGGILINGAN</label><div style="display:flex;gap:6px"><input id="g_lok" class="sel" placeholder="Lat,Long" style="flex:1"><button type="button" class="btn w" aria-label="Isi lokasi dari GPS" onclick="gpsFill('g_lok')">📍</button></div></div>
     <div class="fld"><label>115. HASIL PENCACAHAN</label><select id="g_h" class="sel" onchange="gCond()"><option value="">-- Pilih --</option>${CONST.hasilPencacahan.map(o=>`<option>${o}</option>`).join('')}</select></div>
     <div id="gwrap" style="display:none;grid-column:1/-1"><div class="grid2">
     <div class="fld"><label>401.A. BERAT WADAH (GKG)</label><input id="g_a" type="number" class="sel" style="width:100%"></div>
@@ -531,8 +609,8 @@ async function pgAnomali(jenis){
   const rows=(isK?data.data.filter(r=>r.hasil!==H):data.data.filter(r=>r.hasil!==H));
   let html=`<h1>ANOMALI ${isK?'KERING':'GILING'}</h1><div class="sub">Daftar pencacahan ${isK?'pengeringan tahap 1':'penggilingan'} yang gagal/anomali (hasil ≠ 1. Berhasil diwawancarai).</div>
   <div class="card"><div style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><div style="background:#ffedd5;border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:10px"><span style="font-size:22px">⚠️</span><div><div style="font-size:9px;letter-spacing:1px;font-weight:800;color:#9a3412">TOTAL ANOMALI</div><div style="font-size:22px;font-weight:900;color:#9a3412">${fmt(rows.length)}</div></div></div><button class="btn w" onclick="render()">⟳ Refresh</button></div>
-  <div style="overflow-x:auto;max-height:460px;overflow-y:auto"><table class="tbl"><tr><th>NO</th><th>KAB</th><th>PETUGAS</th><th>JENIS SAMPEL</th><th>ID SUBSEGMEN</th><th>HASIL PENCACAHAN</th></tr>
-  ${rows.slice(0,100).map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.kab)}</td><td>${esc(r.petugas)}</td><td>${esc(r.jenis)}</td><td><b>${esc(r.id)}</b></td><td><span class="badge b-r">${esc(r.hasil)}</span></td></tr>`).join('')||'<tr><td colspan="6" style="color:#16a34a;padding:20px">✓ Tidak ada anomali</td></tr>'}</table></div></div>`;
+  <div style="overflow-x:auto;max-height:460px;overflow-y:auto"><table class="tbl"><tr><th>NO</th><th>KAB</th><th>PETUGAS</th><th>JENIS SAMPEL</th><th>${isK?'ID SUBSEGMEN':'NAMA PENGGILINGAN'}</th><th>HASIL PENCACAHAN</th></tr>
+  ${rows.slice(0,100).map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.kab)}</td><td>${esc(r.petugas)}</td><td>${esc(r.jenis)}</td><td><b>${esc(isK?r.id:(r.peng||r.id||''))}</b></td><td><span class="badge b-r">${esc(r.hasil)}</span></td></tr>`).join('')||'<tr><td colspan="6" style="color:#16a34a;padding:20px">✓ Tidak ada anomali</td></tr>'}</table></div></div>`;
   return html;
 }
 
@@ -550,16 +628,19 @@ async function pgPengaturan(){
 }
 
 async function pgGSheets(bidang){
-  const cfg=(await api('/api/gsheets')).sheets.filter(x=>x.bidang===bidang);
+  const cfg=((await api('/api/gsheets')).sheets||[]).filter(x=>x.bidang===bidang);
   const B={tp:'STATISTIK TANAMAN PANGAN',inpek:'STATISTIK INPEK',horti:'STATISTIK HORTI, PERKEBUNAN, PETERNAKAN & PERIKANAN'}[bidang];
+  if(!cfg.length) return `<h1>MONITORING SURVEI</h1><div class="sub">${esc(B||bidang)}</div><div class="card"><div class="err">Konfigurasi Google Sheet untuk bidang ini kosong.</div></div>`;
   const surv=[...new Set(cfg.map(c=>c.survei))];
-  const cur=S.tab['gs'+bidang]||surv[0];
+  const cur=surv.includes(S.tab['gs'+bidang])?S.tab['gs'+bidang]:surv[0];
   const sheets=cfg.filter(c=>c.survei===cur);
-  const sid=sheets[0].sid,gid=sheets[0].gid;
+  let idx=+(S.tab['gssid'+bidang]||0);
+  if(!Number.isInteger(idx)||idx<0||idx>=sheets.length) idx=0;
+  const sid=sheets[idx].sid,gid=sheets[idx].gid;
   let dataRows=null,err=null;
   try{const j=await api('/api/gsheet?sid='+encodeURIComponent(sid)+'&gid='+encodeURIComponent(gid));dataRows=j.rows}catch(e){err=e.message}
   let html=`<h1>MONITORING SURVEI</h1><div class="sub">${B} — data LIVE dari Google Sheets resmi BPS Kebumen (monitoringproduksi3305). <span class="badge b-g">LIVE DATA</span></div>
-  <div class="tabs">${surv.map(sv=>`<button class="${sv===cur?'on':''}" onclick="S.tab['gs${bidang}']='${sv.replace(/'/g,'')}';render()">${esc(sv)}</button>`).join('')}</div>`;
+  <div class="tabs">${surv.map(sv=>`<button class="${sv===cur?'on':''}" onclick="S.tab['gs${bidang}']='${sv.replace(/'/g,'')}';S.tab['gssid${bidang}']=0;render()">${esc(sv)}</button>`).join('')}</div>`;
   html+=`<div class="card"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
   ${sheets.length>1?`<select id="gssel" class="sel" onchange="S.tab['gssid${bidang}']=this.value;render()">${sheets.map((c,i)=>`<option value="${i}" ${i==(+(S.tab['gssid'+bidang]||0))?'selected':''}>${esc(c.label)}</option>`).join('')}</select>`:`<b>${esc(sheets[0].label)}</b>`}
   <a class="btn n" target="_blank" href="https://docs.google.com/spreadsheets/d/${sid}/edit?gid=${gid}#gid=${gid}">↗ Buka Sheet Asli</a>
@@ -609,7 +690,21 @@ async function render(){
   }
 }
 window.go=go;window.logout=logout;window.S=S;window.toggleDark=toggleDark;
-render();
+let bootRedirect=false;
+(function(){
+  const path=location.pathname.replace(/^\/+|\/+$/g,'').replace(/\.html$/,'');
+  if(path&&path!=='index'&&ROUTES.some(r=>r[0]===path)&&!location.hash){
+    bootRedirect=true;location.replace('/#'+path);return;
+  }
+  const h=(location.hash||'').replace(/^#/,'');
+  if(h&&ROUTES.some(r=>r[0]===h)) S.route=h;
+})();
+window.addEventListener('hashchange',()=>{
+  const r=(location.hash||'#dashboard').slice(1);
+  if(!ROUTES.some(x=>x[0]===r)) return;
+  S.route=r;render();window.scrollTo(0,0);
+});
+if(!bootRedirect) render();
 </script>
 </body>
 </html>

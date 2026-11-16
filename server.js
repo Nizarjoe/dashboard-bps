@@ -76,6 +76,36 @@ function seed(){
 }
 function loadDB(){ try{ return JSON.parse(fs.readFileSync(DB,'utf8')); }catch(e){ const d=seed(); fs.writeFileSync(DB,JSON.stringify(d)); return d; } }
 let db=loadDB();
+const GSHEETS=require('./data/gsheets.json');
+const gsCache=new Map(); // sid:gid → {t,data}
+async function fetchGSheet(sid,gid){
+  const key=sid+':'+gid;
+  const c=gsCache.get(key);
+  if(c&&Date.now()-c.t<5*60*1000) return c.data;
+  const url=`https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${gid}`;
+  const resp=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0'}});
+  if(!resp.ok) throw new Error('GSheet fetch '+resp.status);
+  const csv=await resp.text();
+  // parse CSV sederhana (tangani kutip)
+  const rows=[];let row=[],cell='',inq=false;
+  for(let i=0;i<csv.length;i++){const ch=csv[i];
+    if(inq){ if(ch==='"'&&csv[i+1]==='"'){cell+='"';i++;} else if(ch==='"'){inq=false;} else cell+=ch; }
+    else if(ch==='"') inq=true;
+    else if(ch===','){row.push(cell);cell='';}
+    else if(ch===String.fromCharCode(13)){continue;}
+    else if(ch===String.fromCharCode(10)){row.push(cell);rows.push(row);row=[];cell='';}
+    else cell+=ch;}
+  if(cell||row.length){row.push(cell);rows.push(row);}
+  // buang baris & kolom kosong di tepi
+  const data=rows.filter(r=>r.some(v=>String(v).trim()!==''));
+  const maxLen=Math.max(...data.map(r=>r.length));
+  // trim trailing empty columns
+  let lastCol=0;
+  data.forEach(r=>r.forEach((v,ci)=>{if(String(v).trim()!=='')lastCol=Math.max(lastCol,ci)}));
+  const out=data.map(r=>r.slice(0,lastCol+1));
+  gsCache.set(key,{t:Date.now(),data:out});
+  return out;
+}
 const saveDB=()=>fs.writeFileSync(DB,JSON.stringify(db));
 
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json','.geojson':'application/json'};
@@ -187,6 +217,18 @@ const server=http.createServer(async(req,res)=>{
       saveDB(); return J(res,200,{success:true});
     }
     return J(res,400,{error:'Unknown action'});
+  }
+
+  /* ---- GOOGLE SHEETS REAL DATA ---- */
+  if(p==='/api/gsheets'&&req.method==='GET'){
+    return J(res,200,{sheets:GSHEETS.map(([bidang,survei,label,sid,gid])=>({bidang,survei,label,sid,gid}))});
+  }
+  if(p==='/api/gsheet'&&req.method==='GET'){
+    const sid=url.searchParams.get('sid'),gid=url.searchParams.get('gid')||'0';
+    try{
+      const rows=await fetchGSheet(sid,gid);
+      return J(res,200,{rows});
+    }catch(e){return J(res,502,{error:'Gagal memuat sheet: '+String(e.message||e)})}
   }
 
   /* ---- REKAP KSA ---- */

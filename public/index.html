@@ -110,7 +110,7 @@ const toast=m=>{const t=$(`<div class="toast">${esc(m)}</div>`);document.body.ap
 async function api(p,opt={}){
   const r=await fetch(p,{...opt,headers:{'Content-Type':'application/json',...(S.user?{Authorization:'Bearer '+S.user.token}:{}) ,...(opt.headers||{})}});
   const j=await r.json().catch(()=>({}));
-  if(r.status===401&&p!=='/api/login'){logout();throw new Error('Sesi habis, login ulang');}
+  if(r.status===401&&p!=='/api/login'){localStorage.removeItem('sp_user');S.user=null;throw new Error('Sesi habis, login ulang');}
   return j;
 }
 const sheet=n=>api('/api/sheet/'+n);
@@ -124,7 +124,7 @@ const ROUTES=[
  ['peng-t1','▸ Pengeringan Kunjungan 1','💧',''],['peng-t2','▸ Pengeringan Kunjungan 2','💧',''],
  ['gil-dir','▸ Direktori Penggilingan','📞',''],['gil-in','▸ Input Hasil Observasi','⚙️',''],
  ['anom-k','▸ Anomali Kering','⚠️',''],['anom-g','▸ Anomali Giling','⚠️',''],
- ['monitoring','Monitoring GC','📊',''],['pengaturan','Pengaturan','⚙️','admin']
+ ['monitoring','Monitoring GC','📊',''],['gs-tp','▸ Mon. Tanaman Pangan','📈','gs'],['gs-inpek','▸ Mon. INPEK','📈','gs'],['gs-horti','▸ Mon. Horti/Per/Pet/Perikanan','📈','gs'],['pengaturan','Pengaturan','⚙️','admin']
 ];
 function go(r){S.route=r;render();window.scrollTo(0,0)}
 
@@ -549,6 +549,34 @@ async function pgPengaturan(){
   return html;
 }
 
+async function pgGSheets(bidang){
+  const cfg=(await api('/api/gsheets')).sheets.filter(x=>x.bidang===bidang);
+  const B={tp:'STATISTIK TANAMAN PANGAN',inpek:'STATISTIK INPEK',horti:'STATISTIK HORTI, PERKEBUNAN, PETERNAKAN & PERIKANAN'}[bidang];
+  const surv=[...new Set(cfg.map(c=>c.survei))];
+  const cur=S.tab['gs'+bidang]||surv[0];
+  const sheets=cfg.filter(c=>c.survei===cur);
+  const sid=sheets[0].sid,gid=sheets[0].gid;
+  let dataRows=null,err=null;
+  try{const j=await api('/api/gsheet?sid='+encodeURIComponent(sid)+'&gid='+encodeURIComponent(gid));dataRows=j.rows}catch(e){err=e.message}
+  let html=`<h1>MONITORING SURVEI</h1><div class="sub">${B} — data LIVE dari Google Sheets resmi BPS Kebumen (monitoringproduksi3305). <span class="badge b-g">LIVE DATA</span></div>
+  <div class="tabs">${surv.map(sv=>`<button class="${sv===cur?'on':''}" onclick="S.tab['gs${bidang}']='${sv.replace(/'/g,'')}';render()">${esc(sv)}</button>`).join('')}</div>`;
+  html+=`<div class="card"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+  ${sheets.length>1?`<select id="gssel" class="sel" onchange="S.tab['gssid${bidang}']=this.value;render()">${sheets.map((c,i)=>`<option value="${i}" ${i==(+(S.tab['gssid'+bidang]||0))?'selected':''}>${esc(c.label)}</option>`).join('')}</select>`:`<b>${esc(sheets[0].label)}</b>`}
+  <a class="btn n" target="_blank" href="https://docs.google.com/spreadsheets/d/${sid}/edit?gid=${gid}#gid=${gid}">↗ Buka Sheet Asli</a>
+  ${dataRows?expBtns('Monitoring_'+cur,dataRows[0]||[],dataRows.slice(1).map(r=>Object.fromEntries((dataRows[0]||[]).map((h,i)=>[h,r[i]])))):''}
+  </div>`;
+  if(err){html+=`<div class="err">⚠️ Gagal memuat: ${esc(err)} — coba Refresh</div>`}
+  else if(dataRows){
+    const head=dataRows[0],rows=dataRows.slice(1);
+    html+=`<div style="font-size:11px;color:#16a34a;margin-bottom:8px">● ${fmt(rows.length)} baris data real • sumber: Google Sheets BPS • diperbarui tiap 5 menit</div>
+    <div style="overflow-x:auto;max-height:520px;overflow-y:auto"><table class="tbl"><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>
+    ${rows.slice(0,300).map((r,ri)=>`<tr>${head.map((h,ci)=>`<td>${esc(r[ci])}</td>`).join('')}</tr>`).join('')}</table></div>
+    <div style="font-size:11px;color:#64748b;margin-top:6px">Menampilkan ${Math.min(300,rows.length)} dari ${fmt(rows.length)} baris.</div>`;
+  }
+  html+='</div>';
+  return html;
+}
+
 /* ====== ROUTER ====== */
 const PAGES={
   dashboard:pgDashboard,peta:pgPeta,identifikasi:pgIdentifikasi,
@@ -557,7 +585,7 @@ const PAGES={
   'peng-t1':()=>pgPengeringan(1),'peng-t2':()=>pgPengeringan(2),
   'gil-dir':pgDirektori,'gil-in':pgGilingInput,
   'anom-k':()=>pgAnomali('k'),'anom-g':()=>pgAnomali('g'),
-  monitoring:pgIdentifikasi,pengaturan:pgPengaturan
+  monitoring:pgIdentifikasi,'gs-tp':()=>pgGSheets('tp'),'gs-inpek':()=>pgGSheets('inpek'),'gs-horti':()=>pgGSheets('horti'),pengaturan:pgPengaturan
 };
 async function render(){
   const app=document.getElementById('app');
@@ -565,7 +593,7 @@ async function render(){
     const saved=localStorage.getItem('sp_user');
     if(saved){S.user=JSON.parse(saved);/* validate */}
     if(!S.user)return renderLogin();
-    try{const j=await api('/api/me');S.user={...S.user,...j.user}}catch(e){return}
+    try{const j=await api('/api/me');S.user={...S.user,...j.user}}catch(e){S.user=null;return renderLogin()}
   }
   if(!CONST)CONST=await api('/api/constants');
   if(S.route==='monitoring'){S.tab.ident='gc'}
@@ -574,7 +602,11 @@ async function render(){
     app.innerHTML=html;return;
   }
   const page=PAGES[S.route]||pgDashboard;
-  app.innerHTML=layout(await page());
+  try{app.innerHTML=layout(await page());}
+  catch(e){
+    if(!S.user) return renderLogin();
+    app.innerHTML=layout('<div class="card"><h1>⚠️ Gagal memuat halaman</h1><div class="sub">'+esc(e.message||e)+'</div><button class="btn g" onclick="render()">⟳ Coba Lagi</button></div>');
+  }
 }
 window.go=go;window.logout=logout;window.S=S;window.toggleDark=toggleDark;
 render();

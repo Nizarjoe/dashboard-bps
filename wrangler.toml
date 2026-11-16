@@ -1,0 +1,22 @@
+# Cloudflare Pages — frontend statis SINTA PADI.
+# Bukan Worker Next.js dan bukan @opennextjs/cloudflare.
+# server.js tetap di host Node terpisah. Jangan unggah data/ atau uploads/.
+#
+# Dashboard Pages:
+#   Framework preset : None
+#   Build command    : npm run build
+#   Output directory : dist
+#   Root directory   : /
+#   Node.js version  : 20
+#
+# Variabel runtime (Pages → Settings → Environment variables):
+#   API_ORIGIN = origin publik server Node, tanpa slash akhir
+# Variabel build, opsional:
+#   API_BASE   = kosong
+#
+# Folder functions/ di root repo dipakai Git integration.
+# wrangler pages deploy dijalankan dari root repo ini, bukan dari dalam dist/.
+
+name = "dashboard-bps"
+compatibility_date = "2026-11-16"
+pages_build_output_dir = "./dist"

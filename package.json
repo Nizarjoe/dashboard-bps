@@ -1,0 +1,12 @@
+{
+  "name": "dashboard-bps",
+  "private": true,
+  "description": "SINTA PADI — build statis frontend untuk Cloudflare Pages",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build-frontend.mjs",
+    "test": "node scripts/smoke-frontend.mjs"
+  }
+}

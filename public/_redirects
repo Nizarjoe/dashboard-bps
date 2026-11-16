@@ -1,0 +1,5 @@
+# Cloudflare Pages — fallback SPA.
+# Berkas yang benar-benar ada (index.html, admin.html, mitra.html) tetap dilayani.
+# Path lain, misalnya /peta, mengembalikan index.html agar router klien bisa
+# memindahkan /peta ke /#peta.
+/*    /index.html   200

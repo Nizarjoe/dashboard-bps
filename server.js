@@ -1,502 +1,230 @@
-// Dashboard Monitoring Produksi 3305 — BPS Kabupaten Kebumen
-// Node http murni, tanpa dependensi. Jalankan: node server.js
+// SINTA PADI — Sistem Informasi SKGB Jawa Tengah (clone spesifikasi)
+// Node http murni, tanpa dependensi. Jalankan: node server.js  → port 8200
 'use strict';
-const http=require('http'),fs=require('fs'),path=require('path'),crypto=require('crypto'),zlib=require('zlib');
+const http=require('http'),fs=require('fs'),path=require('path'),crypto=require('crypto');
 
 const PORT=process.env.PORT||8200;
-const ROOT=__dirname, PUB=path.join(ROOT,'public'), DATA=path.join(ROOT,'data'), UPL=path.join(ROOT,'uploads');
+const ROOT=__dirname, PUB=path.join(ROOT,'public'), DATA=path.join(ROOT,'data');
 const DB=path.join(DATA,'db.json');
-for(const d of [DATA,UPL]) if(!fs.existsSync(d)) fs.mkdirSync(d,{recursive:true});
+if(!fs.existsSync(DATA)) fs.mkdirSync(DATA,{recursive:true});
 
-/* ================= SEED ================= */
-const PROGRAM_SEED=[
- ['tp','Survei Kerangka Sampel Area (KSA) 2026',2026,900],
- ['tp','Survei Ubinan Padi Subround 1 2026',2026,144],
- ['tp','Survei Ubinan Padi Subround 2 2026',2026,144],
- ['tp','Survei Ubinan Palawija 2026',2026,120],
- ['tp','Survei Konversi Jagung (SKJG) 2026',2026,96],
- ['tp','Survei Konversi Gabah ke Beras 2026',2026,64],
- ['inpek','Survei IMK Tahunan 2026',2026,420],
- ['inpek','Survei IMK Triwulanan 2026',2026,126],
- ['inpek','Survei DPA, STPIM dan IBSTR 2026',2026,88],
- ['inpek','Survei Galian URT 2026',2026,72],
- ['inpek','Updating Direktori Perusahaan PE 2026',2026,310],
- ['inpek','Survei Konstruksi 2026',2026,58],
- ['horti','Survei Pertanian Terintegrasi (SPT) 2026',2026,520],
- ['horti','Survei Kesejahteraan Petani (SKP) 2026',2026,180],
- ['horti','Survei Komstrat 2026',2026,240],
- ['horti','Survei VIP Hortikultura 2026',2026,165],
- ['horti','Survei DPP DUTL 2026',2026,132]
-];
-const MITRA_SEED=[
- ['Ahmad Fauzi','mitra1','Kebumen'],
- ['Siti Nurhaliza','mitra2','Gombong'],
- ['Budi Santoso','mitra3','Kutowinangun'],
- ['Dewi Lestari','mitra4','Prembun'],
- ['Rizki Ramadhan','mitra5','Karanganyar'],
- ['Nur Aisyah','mitra6','Alian']
-];
-const BIDANG=[
- {id:'tp',nama:'Statistik Tanaman Pangan',ikon:'🌾'},
- {id:'inpek',nama:'Statistik INPEK',ikon:'🏭'},
- {id:'horti',nama:'Statistik Horti, Perkebunan, Peternakan & Perikanan',ikon:'🐄'}
-];
+/* ============ KONSTANTA ============ */
+const KABUPATEN=[["3301","CILACAP"],["3302","BANYUMAS"],["3303","PURBALINGGA"],["3304","BANJARNEGARA"],["3305","KEBUMEN"],["3306","PURWOREJO"],["3307","WONOSOBO"],["3308","MAGELANG"],["3309","BOYOLALI"],["3310","KLATEN"],["3311","SUKOHARJO"],["3312","WONOGIRI"],["3313","KARANGANYAR"],["3314","SRAGEN"],["3315","GROBOGAN"],["3316","BLORA"],["3317","REMBANG"],["3318","PATI"],["3319","KUDUS"],["3320","JEPARA"],["3321","DEMAK"],["3322","SEMARANG"],["3323","TEMANGGUNG"],["3324","KENDAL"],["3325","BATANG"],["3326","PEKALONGAN"],["3327","PEMALANG"],["3328","TEGAL"],["3329","BREBES"],["3371","KOTA MAGELANG"],["3372","KOTA SURAKARTA"],["3373","KOTA SALATIGA"],["3374","KOTA SEMARANG"],["3375","KOTA PEKALONGAN"],["3376","KOTA TEGAL"]];
+const PETUGAS_SKGB=["Ignatius Sigit Unggul Prajanto","Bayu Indra Cahyadi","Danang Suprayogi Tugiono","Pujo Susilo","Tulus Yulianto","Arif Nurochman","Fendy Hermawan","Hari Wijoseno","M. Arif Nuryadi","Nur Khamid Tohir","Sodikun","Ulil Ludin","Sigit Setiawan","Supriyadi","Badrun Mustofa"];
+const PETUGAS_GILING=["Septiawan Nur Hidayat","Mohamad Mahfud","Sukma Hanggana Putra"];
+const HASIL_PENCACAHAN=["1. Berhasil diwawancarai","2. Tidak bersedia diwawancarai","3. Tidak dapat diwawancarai sampai batas akhir pencacahan","4. Belum panen sampai batas waktu pendataan","5. Lewat panen","6. Gagal panen","7. Tidak diwawancarai dengan alasan lainnya"];
+const KSA_PETAK_LAIN=["--","Tidak Ada","Ya, Fase V2","Ya, Fase G1","Ya, Fase G2","Ya, Fase G3"];
+const FASE_OPSI=["1. Vegetatif Awal","2. Vegetatif Akhir","3. Generatif - 3.1 Generatif 1 (G1)","3. Generatif - 3.2 Generatif 2 (G2)","3. Generatif - 3.3 Generatif 3 (G3)","4. Panen"];
+const JENIS_PEMANENAN=["1. Dipanen sendiri (tidak ditebaskan)","2. Ditebaskan, penebas bisa dijangkau","3. Ditebaskan, penebas tidak bisa dijangkau"];
 
-function build(){
-  const d={users:[
-      {u:'superadmin',p:'bps3305',role:'superadmin',n:'Super Admin BPS Kebumen',wilayah:'Kebumen',hp:'',email:''},
-      {u:'admin',p:'bps3305',role:'admin',n:'Admin Statistik Produksi',wilayah:'Kebumen',hp:'',email:''}
-    ],
-    bidang:BIDANG, programs:[], assignments:[], laporan:[], foto:[], aktivitas:[], meta:{
-      instansi:'BPS Kabupaten Kebumen', unit:'Tim Statistik Produksi 3305', tahun:2026
-    }};
-  MITRA_SEED.forEach(([n,u,w])=>{
-    d.users.push({u,p:'mitra3305',role:'mitra',n,wilayah:w,hp:'',email:''});
-  });
-  let pi=1;
-  for(const [bid,nama,tahun,target] of PROGRAM_SEED){
-    d.programs.push({
-      id:'PRG-'+String(pi++).padStart(3,'0'), nama, bidang:bid, tahun, target,
-      unit:'sampel/BS', deskripsi:'Monitoring pelaksanaan pendataan lapangan oleh mitra statistik.',
-      mulai:tahun+'-02-01', deadline:tahun+'-11-30',
-      status:'Berjalan', wajibFoto:true,
-      fields:[{key:'jumlah',label:'Jumlah sampel/BS selesai',tipe:'number',wajib:true},
-              {key:'catatan',label:'Catatan kendala lapangan',tipe:'text',wajib:false}]
-    });
+/* ============ SEED DATA (dummy realistik, pola realisasi snapshot) ============ */
+function seed(){
+  const d={users:{},panen:[],panen33:[],utker:[],utgil:[],ksaMei:[],ksaJuni:[],kering1:[],direktori:[],penggantiGiling:[],gilingInput:[],target:{}};
+  // users: kode kab, password = kode. superadmin = 9999. admin prov = 0000.
+  for(const [kode,nama] of KABUPATEN) d.users[kode]={p:kode,nama,role:'kab'};
+  d.users['0000']={p:'0000',nama:'Admin Provinsi',role:'admin'};
+  d.users['9999']={p:'9999',nama:'Superadmin',role:'superadmin'};
+  // target & realisasi per kab
+  const tgK={3301:128,3302:96,3303:88,3304:72,3305:140,3306:64,3307:100,3308:90,3309:110,3310:84,3311:76,3312:68,3313:92,3314:70,3315:118,3316:66,3317:60,3318:74,3319:56,3320:82,3321:64,3322:58,3323:52,3324:70,3325:48,3326:44,3327:62,3328:56,3329:90,3371:20,3372:24,3373:14,3374:30,3375:16,3376:18};
+  const tgG={3301:35,3302:28,3303:22,3304:18,3305:24,3306:20,3307:16,3308:22,3309:26,3310:24,3311:20,3312:18,3313:22,3314:16,3315:28,3316:14,3317:12,3318:18,3319:16,3320:14,3321:16,3322:12,3323:10,3324:14,3325:10,3326:10,3327:12,3328:12,3329:20,3371:6,3372:8,3373:4,3374:10,3375:4,3376:6};
+  const rlK={3301:54,3302:40,3303:35,3304:30,3305:67,3306:28,3307:44,3308:39,3309:50,3310:36,3311:33,3312:30,3313:41,3314:31,3315:52,3316:29,3317:26,3318:33,3319:25,3320:37,3321:29,3322:26,3323:23,3324:31,3325:21,3326:20,3327:28,3328:25,3329:40,3371:9,3372:11,3373:7,3374:13,3375:8,3376:8};
+  const rlK2={};const rlG={};
+  for(const k in tgK){rlK2[k]=Math.max(0,rlK[k]-Math.round(rlK[k]*0.13));rlG[k]=(+k>=3371)?tgG[k]:Math.round(tgG[k]*(0.4+((+k*7)%50)/100));}
+  d.target={kering:{},kering2:{},giling:{}};
+  for(const k in tgK) d.target.kering[k]={t:tgK[k],r:rlK[k]},d.target.kering2[k]={t:tgK[k],r:rlK2[k]},d.target.giling[k]={t:tgG[k],r:rlG[k]};
+  // sampel per kab: utama & cadangan (deterministik)
+  let seq=1;
+  for(const [kode,nama] of KABUPATEN){
+    const nU=Math.max(4,tgK[kode]||40), nC=Math.round(nU*0.6);
+    const mk=(jenis,i,id)=>({id,kdkab:kode,jenis,april:FASE_OPSI[i%6],mei:FASE_OPSI[(i+2)%6],juni:FASE_OPSI[(i+4)%6],pengganti:'',utp:['H ROSYID','SUTARNO','WAGIMAN','SLAMET R','PARMAN'][i%5],hp:i%3===0?'08123456'+String(1000+i):'-'});
+    for(let i=0;i<nU;i++){const id=kode+'01'+String(100+seq)+'U'+(i+1);d.utker.push({kdkab:kode,idsub:id,status:'Eligible',probable:'',pengganti:''});d.panen.push(mk('Utama',seq,id));seq++;}
+    for(let i=0;i<nC;i++){const id=kode+'02'+String(100+seq)+'C'+(i+1);const s={kdkab:kode,idsub:id,status:i%4===0?'Non Eligible':'Eligible',probable:'',pengganti:''};d.utker.push(s);d.panen.push(mk('Cadangan',seq,id));seq++;}
+    const nG=Math.max(2,tgG[kode]||8);
+    for(let i=0;i<nG;i++){const id=kode+'03'+String(100+seq)+'G'+(i+1);d.utgil.push({kdkab:kode,idsub:id,jenis:'Utama',status:'Eligible',pengganti:''});seq++;}
   }
-  [['Survei Ubinan Padi Subround 1 2025','tp',144],['Survei Ubinan Padi Subround 2 2025','tp',144],
-   ['Survei IMK Triwulan 3 2025','inpek',126],['Survei Galian BH 2025','inpek',38]]
-   .forEach(([nama,bid,target])=>{
-     d.programs.push({id:'PRG-'+String(pi++).padStart(3,'0'),nama,bidang:bid,tahun:2025,target,
-       unit:'sampel/BS',deskripsi:'Arsip pelaksanaan tahun 2025.',mulai:'2025-01-10',deadline:'2025-12-15',
-       status:'Selesai',wajibFoto:false,fields:[{key:'jumlah',label:'Jumlah selesai',tipe:'number',wajib:true}]});
-   });
-  const aktif=d.programs.filter(p=>p.tahun===2026);
-  const mitra=d.users.filter(u=>u.role==='mitra');
-  let ai=1;
-  for(const p of aktif){
-    for(const m of mitra){
-      const share=Math.round(p.target/mitra.length);
-      d.assignments.push({id:'ASG-'+String(ai++).padStart(4,'0'),programId:p.id,mitraU:m.u,
-        target:share,selesai:0,status:'Belum Mulai',updatedAt:Date.now()});
+  // KSA Mei/Juni subset (500 baris) — kolom sesuai spec
+  for(const bulan of ['Mei','Juni']){
+    const arr=d['ksa'+bulan];
+    for(let i=0;i<d.panen.length;i++){
+      const s=d.panen[i];
+      arr.push({idseg:'3305010'+String(100+i%80),subseg:'B'+(1+i%9),id_subsegmen:s.id,nama:['Sawah Ladang','Sawah Pasang Surut','Sawah Lebak','Tegalan'][i%4],feb:['3.1','3.2','4','5','1','6'][i%6],mar:['3.1','3.2','4','5','1','6'][(i+2)%6],april:['3.1','3.2','4','5','1','6'][(i+3)%6],[bulan.toLowerCase()]:FASE_OPSI[i%6],petak:KSA_PETAK_LAIN[i%6]});
     }
   }
-  const seedLap=[['mitra1','PRG-001',42],['mitra1','PRG-002',18],['mitra2','PRG-001',36],
-    ['mitra2','PRG-004',12],['mitra3','PRG-001',28],['mitra3','PRG-007',22],['mitra4','PRG-001',20],
-    ['mitra4','PRG-013',35],['mitra5','PRG-002',14],['mitra5','PRG-009',9],['mitra6','PRG-001',16],
-    ['mitra6','PRG-015',25]];
-  let li=1;
-  for(const [mu,pid,jml] of seedLap){
-    const a=d.assignments.find(x=>x.programId===pid&&x.mitraU===mu); if(!a) continue;
-    const mitraN=d.users.find(u=>u.u===mu).n;
-    a.selesai=Math.min(a.target,jml);
-    a.status=a.selesai>=a.target?'Selesai':'Berjalan';
-    d.laporan.unshift({id:'LPR-'+String(li++).padStart(4,'0'),programId:pid,mitraU:mu,mitraN,
-      jumlah:jml,catatan:'Pendataan lapangan selesai sesuai jadwal.',foto:[],t:Date.now()-li*3600*1000,
-      verified:li%3!==0,verifiedBy:li%3!==0?'Admin Statistik Produksi':'',verifiedAt:li%3!==0?Date.now():0});
+  // direktori penggilingan 1206 baris distributed; 48 for 3305
+  const skala=['Besar','Menengah','Kecil'];
+  let dseq=0;
+  for(const [kode,nama] of KABUPATEN){
+    const n=(kode==='3305')?48:Math.max(2,Math.round((1206-48)/34));
+    for(let i=0;i<n;i++){dseq++;d.direktori.push({kab:kode,jenis:i%4===0?'CADANGAN':'UTAMA',nama:'Penggilingan '+nama+' '+String.fromCharCode(65+i%26)+(i+1),telp:i%3===0?'0813'+String(20000000+dseq):'',skala:skala[i%3]});}
   }
-  d.aktivitas.push({t:Date.now(),oleh:'Sistem',aksi:'Dashboard disiapkan',detail:'17 program 2026 · '+mitra.length+' mitra statistik'});
+  // KERING1: realisasi kering tahap1 per kab → baris
+  for(const [kode,nama] of KABUPATEN){
+    const n=d.target.kering[kode].r;
+    for(let i=0;i<n;i++){
+      const s=d.panen.find(p=>p.kdkab===kode&&p.jenis==='Utama'&&p.id.endsWith(String((i+1))))||d.panen.find(p=>p.kdkab===kode);
+      const anom=(i%9===5); // ~1/9 anomali
+      d.kering1.push({kab:kode,petugas:PETUGAS_SKGB[i%15],jenis:'Utama',id:s?s.id:kode+'X'+i,hasil:anom?HASIL_PENCACAHAN[1+(i%6)]:HASIL_PENCACAHAN[0],tgl1:'2026-05-'+String(5+i%25).padStart(2,'0'),lok1:'-7.7'+(i%9)+', 109.6'+(i%9),w305a:12+i%7,w305b:120+i%90,w305c:14+(i%40)/10});
+    }
+  }
+  // Panen33 identifikasi: 68 baris utk Kebumen snapshot-like
+  const km=d.panen.filter(p=>p.kdkab==='3305').slice(0,68);
+  km.forEach((s,i)=>{
+    const sudah=(i%3!==0);
+    d.panen33.push({kab:'3305',petugas:PETUGAS_SKGB[i%15],jenis:s.jenis,id:s.id,hasil:sudah?'2. Sudah Panen':'1. Belum Panen',petak:sudah?(i%2?'1. Ya':'2. Tidak'):'',perk:sudah&&i%2?'2026-05-'+String(10+i%18):'',pemanen:sudah&&i%2?JENIS_PEMANENAN[i%3]:'',hp2:sudah&&i%2?'0812'+String(34567890+i):'',lok:sudah&&i%2?'-7.6'+(i%9)+', 109.6'+(i%9):'',cat:''});
+  });
   return d;
 }
-function load(){
-  if(!fs.existsSync(DB)){const d=build();fs.writeFileSync(DB,JSON.stringify(d,null,1));return d;}
-  try{return JSON.parse(fs.readFileSync(DB,'utf8'));}catch(e){const d=build();fs.writeFileSync(DB,JSON.stringify(d,null,1));return d;}
-}
-const save=d=>fs.writeFileSync(DB,JSON.stringify(d,null,1));
+function loadDB(){ try{ return JSON.parse(fs.readFileSync(DB,'utf8')); }catch(e){ const d=seed(); fs.writeFileSync(DB,JSON.stringify(d)); return d; } }
+let db=loadDB();
+const saveDB=()=>fs.writeFileSync(DB,JSON.stringify(db));
 
-/* ================= AUTH ================= */
-const SESS=new Map();
-const tok=()=>crypto.randomBytes(24).toString('hex');
-function me(req){
-  const h=req.headers.authorization||'';
-  return SESS.get(h.startsWith('Bearer ')?h.slice(7):'')||null;
-}
+const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json','.geojson':'application/json'};
 
-/* ================= HELPERS ================= */
-const MIME={'.html':'text/html;charset=utf-8','.js':'text/javascript;charset=utf-8','.css':'text/css;charset=utf-8',
-'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.svg':'image/svg+xml',
-'.ico':'image/x-icon','.json':'application/json;charset=utf-8'};
-const J=(res,c,o)=>{res.writeHead(c,{'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(o));};
-const R=(req,limit=12*1024*1024)=>new Promise((rs,rj)=>{let n=0,ch=[];req.on('data',c=>{n+=c.length;if(n>limit)return rj(new Error('terlalu besar'));ch.push(c);});req.on('end',()=>rs(Buffer.concat(ch)));req.on('error',rj);});
-const log=(d,oleh,aksi,detail)=>d.aktivitas.unshift({t:Date.now(),oleh,aksi,detail:detail||''});
-function magicOk(b){
-  if(!b||b.length<12)return null;
-  if(b[0]===0x89&&b[1]===0x50&&b[2]===0x4E&&b[3]===0x47)return 'png';
-  if(b[0]===0xFF&&b[1]===0xD8&&b[2]===0xFF)return 'jpg';
-  if(b.slice(0,4).toString()==='RIFF'&&b.slice(8,12).toString()==='WEBP')return 'webp';
-  if(b.slice(0,3).toString()==='GIF')return 'gif';
-  const s=b.slice(0,300).toString().trim();
-  if(s.startsWith('<svg')||s.startsWith('<?xml'))return 'svg';
-  return null;
-}
-function pct(a){ return a.target?Math.min(100,Math.round(a.selesai/a.target*100)):0; }
-function syncStatus(a){
-  a.selesai=Math.max(0,a.selesai);
-  a.status = a.selesai<=0 ? 'Belum Mulai' : (a.target&&a.selesai>=a.target?'Selesai':'Berjalan');
-}
+/* ============ AUTH ============ */
+const sessions=new Map();
+const token=()=>crypto.randomBytes(24).toString('hex');
 
-/* ================= XLSX (baca & tulis, tanpa dependensi) ================= */
-let TBL=null;
-function crcTable(){ if(TBL) return TBL; TBL=new Int32Array(256);
-  for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);TBL[n]=c;} return TBL;}
-function crc32(buf){const t=crcTable();let c=0xFFFFFFFF;for(let i=0;i<buf.length;i++)c=t[(c^buf[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
-function unzip(buf){
-  let eo=-1;
-  for(let i=buf.length-22;i>=0&&i>buf.length-70000;i--){ if(buf.readUInt32LE(i)===0x06054b50){eo=i;break;} }
-  if(eo<0) throw new Error('bukan berkas Excel (.xlsx)');
-  const count=buf.readUInt16LE(eo+10); let p=buf.readUInt32LE(eo+16); const out={};
-  for(let k=0;k<count;k++){
-    if(buf.length<p+46||buf.readUInt32LE(p)!==0x02014b50) break;
-    const method=buf.readUInt16LE(p+10), csize=buf.readUInt32LE(p+20);
-    const nl=buf.readUInt16LE(p+28), el=buf.readUInt16LE(p+30), cl=buf.readUInt16LE(p+32);
-    const lho=buf.readUInt32LE(p+42);
-    const name=buf.slice(p+46,p+46+nl).toString('utf8');
-    const lnl=buf.readUInt16LE(lho+26), lel=buf.readUInt16LE(lho+28);
-    const start=lho+30+lnl+lel, data=buf.slice(start,start+csize);
-    if(method===0) out[name]=data;
-    else { try{ out[name]=zlib.inflateRawSync(data); }catch(e){ try{ out[name]=zlib.inflateSync(data);}catch(e2){} } }
-    p+=46+nl+el+cl;
-  }
-  return out;
-}
-const un=(s)=>String(s).replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
-const colIdx=(c)=>{let n=0;for(const ch of c)n=n*26+(ch.charCodeAt(0)-64);return n-1;};
-function xlsxRows(buf){
-  const f=unzip(buf);
-  const sheetKey=Object.keys(f).find(n=>/^xl\/worksheets\/sheet1\.xml$/i.test(n))||Object.keys(f).find(n=>/^xl\/worksheets\/.*\.xml$/i.test(n));
-  if(!sheetKey) throw new Error('sheet tidak ditemukan');
-  let shared=[];
-  const sk=Object.keys(f).find(n=>n==='xl/sharedStrings.xml');
-  if(sk){ const s=f[sk].toString('utf8');
-    shared=[...s.matchAll(/<si>([\s\S]*?)<\/si>/g)].map(m=>[...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x=>un(x[1])).join('')); }
-  const sx=f[sheetKey].toString('utf8'), rows=[];
-  for(const rm of sx.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)){
-    const row=[];
-    for(const cm of rm[1].matchAll(/<c r="([A-Z]+)\d+"([^>]*)>([\s\S]*?)<\/c>/g)){
-      const attrs=cm[2], inner=cm[3]; let v='';
-      const vm=inner.match(/<v>([\s\S]*?)<\/v>/);
-      if(/t="s"/.test(attrs)) v = vm ? (shared[+vm[1]]||'') : '';
-      else if(/t="inlineStr"/.test(attrs)) v=[...inner.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x=>un(x[1])).join('');
-      else v = vm ? un(vm[1]) : '';
-      if(v!=='') row[colIdx(cm[1])]=v;
-    }
-    rows.push(row);
-  }
-  return rows;
-}
-function zipMake(files){
-  const loc=[],cen=[]; let off=0;
-  for(const f of files){
-    const name=Buffer.from(f.name,'utf8'), data=f.data, crc=crc32(data), sz=data.length;
-    const lh=Buffer.alloc(30);
-    lh.writeUInt32LE(0x04034b50,0); lh.writeUInt16LE(20,4); lh.writeUInt32LE(crc,14);
-    lh.writeUInt32LE(sz,18); lh.writeUInt32LE(sz,22); lh.writeUInt16LE(name.length,26);
-    loc.push(lh,name,data);
-    const ch=Buffer.alloc(46);
-    ch.writeUInt32LE(0x02014b50,0); ch.writeUInt16LE(20,4); ch.writeUInt16LE(20,6);
-    ch.writeUInt32LE(crc,16); ch.writeUInt32LE(sz,20); ch.writeUInt32LE(sz,24);
-    ch.writeUInt16LE(name.length,28); ch.writeUInt32LE(off,42);
-    cen.push(ch,name);
-    off+=30+name.length+sz;
-  }
-  const cd=Buffer.concat(cen), eo=Buffer.alloc(22);
-  eo.writeUInt32LE(0x06054b50,0); eo.writeUInt16LE(files.length,8); eo.writeUInt16LE(files.length,10);
-  eo.writeUInt32LE(cd.length,12); eo.writeUInt32LE(off,16);
-  return Buffer.concat([...loc,cd,eo]);
-}
-const escX=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-function xlsxMake(headers,rows){
-  const cell=(v,r,c)=>{
-    const ref=String.fromCharCode(65+c)+r;
-    return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${escX(v==null?'':v)}</t></is></c>`;
-  };
-  const head=`<row r="1">${headers.map((h,i)=>cell(h,1,i)).join('')}</row>`;
-  const body=rows.map((row,i)=>`<row r="${i+2}">${row.map((v,c)=>cell(v,i+2,c)).join('')}</row>`).join('');
-  const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${headers.map((h,i)=>`<col min="${i+1}" max="${i+1}" width="${Math.max(14,Math.min(34,h.length+6))}" customWidth="1"/>`).join('')}</cols><sheetData>${head}${body}</sheetData></worksheet>`;
-  return zipMake([
-    {name:'[Content_Types].xml',data:Buffer.from(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`)},
-    {name:'_rels/.rels',data:Buffer.from(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`)},
-    {name:'xl/workbook.xml',data:Buffer.from(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Mitra" sheetId="1" r:id="rId1"/></sheets></workbook>`)},
-    {name:'xl/_rels/workbook.xml.rels',data:Buffer.from(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`)},
-    {name:'xl/worksheets/sheet1.xml',data:Buffer.from(sheet)}
-  ]);
-}
+/* ============ HELPERS ============ */
+const J=(res,code,obj)=>{const b=JSON.stringify(obj);res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Content-Length':Buffer.byteLength(b)});res.end(b);};
+const readBody=(req)=>new Promise(r=>{let c='';req.on('data',d=>c+=d);req.on('end',()=>{try{r(JSON.parse(c||'{}'))}catch(e){r({})}});});
+const userOf=(req)=>{const t=(req.headers.authorization||'').replace('Bearer ','');return sessions.get(t);};
 
-/* ================= SERVER ================= */
-const server=http.createServer(async (req,res)=>{
-  const u=new URL(req.url,'http://'+(req.headers.host||'x'));
-  const p=u.pathname;
+/* ============ ROUTES API ============ */
+const server=http.createServer(async(req,res)=>{
+  const url=new URL(req.url,'http://x');
+  const p=url.pathname;
   try{
-    /* ---- AUTH ---- */
-    if(p==='/api/login'&&req.method==='POST'){
-      const j=JSON.parse((await R(req)).toString()||'{}');
-      const d=load();
-      const us=d.users.find(x=>x.u===String(j.u||'').trim().toLowerCase()&&x.p===j.p);
-      if(!us) return J(res,401,{ok:false,msg:'Username atau password salah'});
-      const t=tok(); SESS.set(t,{u:us.u,role:us.role,n:us.n,wilayah:us.wilayah||''});
-      log(d,us.n,'Masuk aplikasi',us.role); save(d);
-      return J(res,200,{ok:true,token:t,user:{u:us.u,role:us.role,n:us.n,wilayah:us.wilayah||''}});
+  /* ---- AUTH ---- */
+  if(p==='/api/login'&&req.method==='POST'){
+    const b=await readBody(req);
+    const u=db.users[String(b.username||'').trim()];
+    if(u&&u.p===String(b.password||'').trim()){
+      const t=token();sessions.set(t,{kode:String(b.username).trim(),nama:u.nama,role:u.role});
+      return J(res,200,{ok:true,token:t,user:{kode:String(b.username).trim(),nama:u.nama,role:u.role}});
     }
-    if(p==='/api/me'){ const m=me(req); return m?J(res,200,{ok:true,user:m}):J(res,401,{ok:false}); }
-    if(p==='/api/logout'){ const h=(req.headers.authorization||'').slice(7); SESS.delete(h); return J(res,200,{ok:true}); }
+    return J(res,401,{ok:false,error:'Username atau password salah. Hubungi Admin BPS Provinsi Jawa Tengah jika lupa.'});
+  }
+  /* ---- STATIC (non-API) ---- */
+  if(!p.startsWith('/api/')){
+    let fp=path.join(PUB,p==='/'?'index.html':p);
+    if(!fp.startsWith(PUB)) return J(res,403,{error:'Forbidden'});
+    if(!fs.existsSync(fp)) fp=path.join(PUB,'index.html');
+    if(!fs.existsSync(fp)){res.writeHead(404);return res.end('index.html belum ada');}
+    const ext=path.extname(fp).toLowerCase();
+    res.writeHead(200,{'Content-Type':MIME[ext]||'application/octet-stream','Cache-Control':'no-store'});
+    return res.end(fs.readFileSync(fp));
+  }
+  const me=userOf(req);
+  if(p==='/api/me'&&me) return J(res,200,{user:{kode:me.kode,nama:me.nama,role:me.role}});
 
-    /* ---- DATA ---- */
-    if(p==='/api/data'){
-      const m=me(req); const d=load();
-      const out={ok:true,meta:d.meta,bidang:d.bidang};
-      if(!m){ out.programs=d.programs.filter(x=>x.tahun===d.meta.tahun).map(x=>({id:x.id,nama:x.nama,bidang:x.bidang,tahun:x.tahun,status:x.status})); return J(res,200,out); }
-      if(m.role==='mitra'){
-        out.programs=d.programs.filter(x=>x.tahun===d.meta.tahun);
-        out.assignments=d.assignments.filter(a=>a.mitraU===m.u);
-        out.laporan=d.laporan.filter(l=>l.mitraU===m.u).slice(0,80);
-        out.foto=d.foto.filter(f=>f.mitraU===m.u).slice(0,120);
-        out.aktivitas=d.aktivitas.filter(a=>a.oleh===m.n).slice(0,20);
-      }else{
-        out.programs=d.programs; out.assignments=d.assignments; out.laporan=d.laporan.slice(0,200);
-        out.foto=d.foto.slice(0,300); out.aktivitas=d.aktivitas.slice(0,40);
-        out.users=d.users.map(x=>({u:x.u,n:x.n,role:x.role,wilayah:x.wilayah||'',hp:x.hp||'',email:x.email||''}));
-      }
-      return J(res,200,out);
-    }
+  /* ---- KONSTANTA ---- */
+  if(p==='/api/constants') return J(res,200,{kabupaten:KABUPATEN,petugas:PETUGAS_SKGB,petugasGiling:PETUGAS_GILING,hasilPencacahan:HASIL_PENCACAHAN,ksaPetakLain:KSA_PETAK_LAIN,faseOpsi:FASE_OPSI,jenisPemanenan:JENIS_PEMANENAN});
 
-    /* ---- PROGRAM ---- */
-    if(p==='/api/program'&&req.method==='POST'){
-      const m=me(req); if(!m||m.role==='mitra') return J(res,403,{ok:false,msg:'Akses ditolak'});
-      const j=JSON.parse((await R(req)).toString()); const d=load();
-      if(j.del){
-        if(m.role!=='superadmin') return J(res,403,{ok:false,msg:'Hanya superadmin dapat menghapus program'});
-        d.programs=d.programs.filter(x=>x.id!==j.del);
-        d.assignments=d.assignments.filter(a=>a.programId!==j.del);
-        d.laporan=d.laporan.filter(l=>l.programId!==j.del);
-        log(d,m.n,'Hapus program',j.del); save(d); return J(res,200,{ok:true});
-      }
-      if(j.id){
-        const pr=d.programs.find(x=>x.id===j.id); if(!pr) return J(res,404,{ok:false});
-        if(m.role==='admin'){
-          pr.status=j.status??pr.status; pr.catatanAdmin=j.catatanAdmin??pr.catatanAdmin;
-        }else{
-          Object.assign(pr,{nama:j.nama??pr.nama,bidang:j.bidang??pr.bidang,tahun:+(j.tahun??pr.tahun),
-            target:+(j.target??pr.target),unit:j.unit??pr.unit,deskripsi:j.deskripsi??pr.deskripsi,
-            mulai:j.mulai??pr.mulai,deadline:j.deadline??pr.deadline,status:j.status??pr.status,
-            wajibFoto:j.wajibFoto!==undefined?!!j.wajibFoto:pr.wajibFoto,
-            fields:Array.isArray(j.fields)?j.fields:pr.fields});
-        }
-        log(d,m.n,'Perbarui program',pr.nama); save(d); return J(res,200,{ok:true,program:pr});
-      }
-      if(m.role!=='superadmin') return J(res,403,{ok:false,msg:'Hanya superadmin dapat menambah program'});
-      if(!j.nama) return J(res,400,{ok:false,msg:'Nama program wajib diisi'});
-      const n={id:'PRG-'+String(d.programs.length+1).padStart(3,'0'),nama:j.nama,bidang:j.bidang||'tp',
-        tahun:+(j.tahun||d.meta.tahun),target:+(j.target||0),unit:j.unit||'sampel/BS',
-        deskripsi:j.deskripsi||'',mulai:j.mulai||'',deadline:j.deadline||'',
-        status:j.status||'Berjalan',wajibFoto:j.wajibFoto!==false,
-        fields:Array.isArray(j.fields)&&j.fields.length?j.fields:[{key:'jumlah',label:'Jumlah selesai',tipe:'number',wajib:true}]};
-      d.programs.push(n); log(d,m.n,'Tambah program',n.nama); save(d);
-      return J(res,200,{ok:true,program:n});
-    }
+  if(!me) return J(res,401,{error:'Belum login'});
 
-    /* ---- PENUGASAN ---- */
-    if(p==='/api/assign'&&req.method==='POST'){
-      const m=me(req); if(!m||m.role==='mitra') return J(res,403,{ok:false});
-      const j=JSON.parse((await R(req)).toString()); const d=load();
-      if(j.del){ d.assignments=d.assignments.filter(a=>a.id!==j.del); save(d); return J(res,200,{ok:true}); }
-      const pr=d.programs.find(x=>x.id===j.programId);
-      if(!pr) return J(res,404,{ok:false,msg:'Program tidak ditemukan'});
-      let a=d.assignments.find(x=>x.programId===j.programId&&x.mitraU===j.mitraU);
-      if(a){ a.target=+(j.target??a.target); syncStatus(a); a.updatedAt=Date.now(); }
-      else{ a={id:'ASG-'+String(d.assignments.length+1).padStart(4,'0'),programId:j.programId,mitraU:j.mitraU,
-        target:+(j.target||0),selesai:0,status:'Belum Mulai',updatedAt:Date.now()}; d.assignments.push(a); }
-      const mu=d.users.find(x=>x.u===j.mitraU);
-      log(d,m.n,'Tugaskan mitra',(mu?mu.n:j.mitraU)+' → '+pr.nama); save(d);
-      return J(res,200,{ok:true,assignment:a});
-    }
+  /* ---- DASHBOARD / REALISASI ---- */
+  if(p==='/api/realisasi'&&req.method==='GET'){
+    const rows=KABUPATEN.map(([kode,nama])=>({kode,nama,tK:db.target.kering[kode].t,rK:db.target.kering[kode].r,tK2:db.target.kering2[kode].r,rK2:db.target.kering2[kode].r,tG:db.target.giling[kode].t,rG:db.target.giling[kode].r}));
+    const tot=rows.reduce((a,r)=>({tK:a.tK+r.tK,rK:a.rK+r.rK,tK2:a.tK2+r.tK2,rK2:a.rK2+r.rK2,tG:a.tG+r.tG,rG:a.rG+r.rG}),{tK:0,rK:0,tK2:0,rK2:0,tG:0,rG:0});
+    return J(res,200,{rows,total:tot});
+  }
+  if(p==='/api/kpi'&&req.method==='GET'){
+    const elU=db.utker.filter(s=>s.jenis!=='Cadangan'&&s.status==='Eligible').length;
+    const elC=db.utker.filter(s=>s.jenis==='Cadangan'&&s.status==='Eligible').length;
+    const elGU=db.utgil.filter(s=>s.status==='Eligible').length;
+    // fallback: utker has no jenis; derive from id pattern C
+    const elU2=db.utker.filter(s=>!/-?C\d+$|C\d+$/.test(s.idsub)&&s.status==='Eligible').length;
+    const elC2=db.utker.filter(s=>/-?C\d+$|C\d+$/.test(s.idsub)&&s.status==='Eligible').length;
+    const r1=db.kering1.filter(k=>k.hasil===HASIL_PENCACAHAN[0]).length;
+    return J(res,200,{utamaKering:elU2||elU,cadanganKering:elC2||elC,utamaGiling:elGU,cadanganGiling:0,keringT1:r1});
+  }
 
-    /* ---- LAPORAN ---- */
-    if(p==='/api/laporan'&&req.method==='POST'){
-      const m=me(req); if(!m) return J(res,401,{ok:false});
-      const j=JSON.parse((await R(req)).toString()); const d=load();
-      if(j.verify){
-        if(m.role==='mitra') return J(res,403,{ok:false});
-        const l=d.laporan.find(x=>x.id===j.verify); if(!l) return J(res,404,{ok:false});
-        l.verified=!!j.verified; l.verifiedBy=m.n; l.verifiedAt=Date.now();
-        log(d,m.n,j.verified?'Verifikasi laporan':'Tolak laporan',l.id); save(d); return J(res,200,{ok:true});
-      }
-      if(j.del){ const l=d.laporan.find(x=>x.id===j.del); if(!l) return J(res,404,{ok:false});
-        if(m.role==='mitra'&&l.mitraU!==m.u) return J(res,403,{ok:false});
-        d.laporan=d.laporan.filter(x=>x.id!==j.del);
-        const a=d.assignments.find(x=>x.programId===l.programId&&x.mitraU===l.mitraU);
-        if(a){ a.selesai=Math.max(0,d.laporan.filter(x=>x.programId===l.programId&&x.mitraU===l.mitraU).reduce((s,x)=>s+ +x.jumlah,0)); syncStatus(a); }
-        log(d,m.n,'Hapus laporan',l.id); save(d); return J(res,200,{ok:true}); }
-      const mitraU = m.role==='mitra' ? m.u : (j.mitraU||m.u);
-      const pr=d.programs.find(x=>x.id===j.programId);
-      if(!pr) return J(res,404,{ok:false,msg:'Program tidak ada'});
-      const jml=+(j.jumlah||0);
-      if(!(jml>0)) return J(res,400,{ok:false,msg:'Jumlah selesai harus lebih dari 0'});
-      const mitraN=(d.users.find(x=>x.u===mitraU)||{}).n||mitraU;
-      let a=d.assignments.find(x=>x.programId===j.programId&&x.mitraU===mitraU);
-      if(!a){ a={id:'ASG-'+String(d.assignments.length+1).padStart(4,'0'),programId:j.programId,mitraU,
-        target:+(j.target||pr.target||0),selesai:0,status:'Belum Mulai',updatedAt:Date.now()}; d.assignments.push(a); }
-      const lap={id:'LPR-'+String(d.laporan.length+1).padStart(4,'0'),programId:pr.id,mitraU,mitraN,
-        jumlah:jml,catatan:j.catatan||'',tgl:j.tgl||new Date().toISOString().slice(0,10),
-        foto:Array.isArray(j.foto)?j.foto:[],t:Date.now(),verified:m.role!=='mitra',verifiedBy:m.role!=='mitra'?m.n:'',verifiedAt:m.role!=='mitra'?Date.now():0};
-      d.laporan.unshift(lap);
-      a.selesai=d.laporan.filter(x=>x.programId===pr.id&&x.mitraU===mitraU).reduce((s,x)=>s+ +x.jumlah,0);
-      syncStatus(a); a.updatedAt=Date.now();
-      log(d,m.n,'Kirim laporan',pr.nama+' · '+jml+' '+pr.unit); save(d);
-      return J(res,200,{ok:true,laporan:lap,assignment:a});
+  /* ---- SHEETS (read / append / updateCell — gaya Apps Script) ---- */
+  const SHEETS={panen:()=>db.panen,panen33:()=>db.panen33,utker:()=>db.utker,utgil:()=>db.utgil,'ksa-mei':()=>db.ksaMei,'ksa-juni':()=>db.ksaJuni,kering1:()=>db.kering1,direktori:()=>db.direktori,penggantigiling:()=>db.penggantiGiling,giling:()=>db.gilingInput};
+  const HEADERS={panen:['ID SUBSEGMEN','KDKAB','JENIS SAMPEL','BULAN APRIL','AMATAN MEI','AMATAN JUNI','SAMPEL PENGGANTI','NAMA PENGELOLA UTP','NO HP','STATUS ELIGIBLE'],
+    panen33:['KABUPATEN/KOTA','NAMA PETUGAS','JENIS SAMPEL','ID SAMPEL','HASIL IDENTIFIKASI TITIK AMATAN SUBSEGMEN','APAKAH ADA PETAK LAIN DALAM SUBSEGMEN TERPILIH YANG AKAN PANEN?','PERKIRAAN PANEN','JENIS PEMANENAN','APAKAH HASIL PANEN BISA LEBIH DARI 200 KG DI PETAK TERSEBUT?','NO HP PETANI/PENEBAS','LOKASI SAWAH','CATATAN','TIMESTAMP'],
+    utker:['KDKAB','IDSUBSEGMEN','STATUS ELIGIBLE','STATUS PROBABLE','SAMPEL PENGGANTI'],
+    utgil:['KDKAB','IDSUBSEGMEN','JENIS SAMPEL','STATUS ELIGIBLE','SAMPEL PENGGANTI'],
+    'ksa-mei':['ID SEGMEN','SUBSEGMEN','ID_SUBSEGMEN','NAMA','FEB','MAR','APRIL','MEI','APAKAH DI SEKITAR TITIK AMATAN SUBSEGMEN TERSEBUT ADA PETAK LAIN YANG AKAN ATAU SIAP PANEN (V2, G1, G2 DAN G3)'],
+    'ksa-juni':['ID SEGMEN','SUBSEGMEN','ID_SUBSEGMEN','NAMA','FEB','MAR','APRIL','MEI','JUNI','APAKAH DI SEKITAR TITIK AMATAN SUBSEGMEN TERSEBUT ADA PETAK LAIN YANG AKAN ATAU SIAP PANEN (V2, G1, G2 DAN G3)'],
+    kering1:['KABUPATEN/KOTA','NAMA PETUGAS SKGB','JENIS SAMPEL','ID SUBSEGMEN','207. HASIL PENCACAHAN','TANGGAL KUNJUNGAN PERTAMA (SAAT PANEN)','LOKASI (PANEN)','305.A. BERAT WADAH (PANEN)','305.B. BERAT GABAH DAN WADAH (PANEN)','305.C. RATA-RATA KADAR AIR (PANEN)'],
+    direktori:['KABUPATEN/KOTA','JENIS','NAMA PENGGILINGAN','TELEPON','SKALA'],
+    penggantigiling:['KAB','PENGGILINGAN UTAMA','SAMPEL PENGGANTI','TIMESTAMP'],
+    giling:['KABUPATEN/KOTA','NAMA PETUGAS SKGB GILING','JENIS SAMPEL','NAMA PENGGILINGAN','SKALA','TANGGAL PENDATAAN','LOKASI PENGGILINGAN','115. HASIL PENCACAHAN','401.A. BERAT WADAH (GKG)','401.B. BERAT GABAH (GKG) + WADAH','401.C. RATA-RATA KADAR AIR (GKG)','403.A. BERAT WADAH (BERAS)','403.B. BERAT BERAS + WADAH','403.C. RATA-RATA KADAR AIR BERAS']};
+  if(p.startsWith('/api/sheet/')&&req.method==='GET'){
+    const name=p.split('/')[3], f=SHEETS[name];
+    if(!f) return J(res,404,{error:'Sheet not found'});
+    let rows=f().map(r=>({...r}));
+    const kab=url.searchParams.get('kab');
+    const effKab=(me.role==='kab')?me.kode:kab;
+    if(effKab) rows=rows.filter(r=>(r.kdkab||r.kab||r.KABUPATEN_SLUG||String(r.id||r.idsub||r.id_subsegmen||'').slice(0,4))===effKab);
+    return J(res,200,{header:HEADERS[name]||Object.keys(rows[0]||{}),data:rows});
+  }
+  if(p.startsWith('/api/sheet/')&&req.method==='POST'){
+    const name=p.split('/')[3], f=SHEETS[name];
+    if(!f) return J(res,404,{error:'Sheet not found'});
+    if(me.role==='kab'){ /* kab boleh append & updateCell sendiri */ }
+    const b=await readBody(req);
+    if(b.action==='submit'){
+      const row=b.data||{};
+      if(name==='panen33'){db.panen33.push({kab:row.kab||me.kode,petugas:row.petugas,jenis:row.jenis,id:row.id,hasil:row.hasil,petak:row.petak||'',perk:row.perk||'',pemanen:row.pemanen||'',hp2:row.hp2||'',lok:row.lok||'',cat:row.cat||'',ts:new Date().toISOString()});}
+      else if(name==='kering1'){db.kering1.push({kab:row.kab||me.kode,petugas:row.petugas,jenis:row.jenis,id:row.id,hasil:row.hasil,tgl1:row.tgl1||'',lok1:row.lok1||'',w305a:row.w305a||'',w305b:row.w305b||'',w305c:row.w305c||''});}
+      else if(name==='giling'){db.gilingInput.push({kab:row.kab||me.kode,petugas:row.petugas,jenis:row.jenis,peng:row.peng,skala:row.skala,tgl:row.tgl,lok:row.lok||'',hasil:row.hasil,gA:row.gA||'',gB:row.gB||'',gC:row.gC||'',bA:row.bA||'',bB:row.bB||'',bC:row.bC||''});}
+      else if(name==='penggantigiling'){db.penggantiGiling.push({kab:row.kab||me.kode,pengUtama:row.pengUtama,pengganti:row.pengganti,ts:new Date().toISOString()});}
+      else return J(res,400,{error:'Submit tidak didukung ke sheet ini'});
+      saveDB(); return J(res,200,{success:true});
     }
+    if(b.action==='updateCell'){
+      const arr=f(); const key=b.matchValue;
+      let hit=null;
+      for(const r of arr){ if(r.id===key||r.idsub===key||r.id_subsegmen===key||r.ID_SUBSEGMEN===key){hit=r;break;} }
+      if(!hit) return J(res,404,{success:false,message:'Row not found'});
+      const col=b.targetColumn;
+      if(col==='petak'||col==='APAKAH DI SEKITAR TITIK AMATAN SUBSEGMEN TERSEBUT ADA PETAK LAIN YANG AKAN ATAU SIAP PANEN (V2, G1, G2 DAN G3)') hit.petak=b.value;
+      else if(col==='pengganti'||col==='SAMPEL PENGGANTI') hit.pengganti=b.value;
+      else if(hit[col]!==undefined) hit[col]=b.value;
+      else return J(res,400,{success:false,message:'Column not found'});
+      saveDB(); return J(res,200,{success:true});
+    }
+    return J(res,400,{error:'Unknown action'});
+  }
 
-    /* ---- UPLOAD FOTO (per mitra) ---- */
-    if(p==='/api/upload'&&req.method==='POST'){
-      const m=me(req); if(!m) return J(res,401,{ok:false});
-      const buf=await R(req); const ext=magicOk(buf);
-      if(!ext) return J(res,400,{ok:false,msg:'Hanya gambar PNG/JPG/WEBP/GIF/SVG'});
-      if(buf.length>5*1024*1024) return J(res,400,{ok:false,msg:'Maksimal 5 MB'});
-      const dnow=load();
-      const mitraU = m.role==='mitra' ? m.u : (u.searchParams.get('mitraU')||m.u);
-      const mitraN=((dnow.users.find(x=>x.u===mitraU)||{}).n)||m.n;
-      const slug=mitraU.replace(/[^a-z0-9]/gi,'');
-      const file='foto_'+slug+'_'+Date.now()+'_'+crypto.randomBytes(3).toString('hex')+'.'+ext;
-      fs.writeFileSync(path.join(UPL,file),buf);
-      const d=load();
-      const meta={file,judul:u.searchParams.get('judul')||'Dokumentasi kegiatan',
-        programId:u.searchParams.get('programId')||'',mitraU,mitraN,oleh:m.n,role:m.role,t:Date.now(),size:buf.length};
-      d.foto.unshift(meta); log(d,m.n,'Unggah foto',meta.judul+' · '+mitraN); save(d);
-      return J(res,200,{ok:true,foto:meta,url:'/uploads/'+file});
-    }
-    if(p==='/api/foto/delete'&&req.method==='POST'){
-      const m=me(req); if(!m) return J(res,401,{ok:false});
-      const j=JSON.parse((await R(req)).toString()); const d=load();
-      const f=d.foto.find(x=>x.file===j.file); if(!f) return J(res,404,{ok:false});
-      if(m.role==='mitra'&&f.mitraU!==m.u) return J(res,403,{ok:false,msg:'Bukan foto Anda'});
-      try{fs.unlinkSync(path.join(UPL,f.file));}catch(e){}
-      d.foto=d.foto.filter(x=>x.file!==j.file); log(d,m.n,'Hapus foto',f.judul); save(d);
-      return J(res,200,{ok:true});
-    }
+  /* ---- REKAP KSA ---- */
+  if(p==='/api/ksa-rekap'&&req.method==='GET'){
+    const bulan=url.searchParams.get('bulan')||'Mei';
+    const arr=bulan==='Juni'?db.ksaJuni:db.ksaMei;
+    const re={};
+    for(const r of arr){const kab=String(r.id_subsegmen).slice(0,4);re[kab]=re[kab]||{kab,target:0,tdk:0,v2:0,g1:0,g2:0,g3:0};
+      if(r.petak==='Tidak Ada')re[kab].tdk++;else if(r.petak==='Ya, Fase V2')re[kab].v2++;else if(r.petak==='Ya, Fase G1')re[kab].g1++;else if(r.petak==='Ya, Fase G2')re[kab].g2++;else if(r.petak==='Ya, Fase G3')re[kab].g3++;}
+    const rows=KABUPATEN.filter(([k])=>me.role==='kab'?k===me.kode:true).map(([k,n])=>({kab:k,nama:n,target:(re[k]?re[k].tdk+re[k].v2+re[k].g1+re[k].g2+re[k].g3:0)||0,tdk:re[k]?re[k].tdk:0,v2:re[k]?re[k].v2:0,g1:re[k]?re[k].g1:0,g2:re[k]?re[k].g2:0,g3:re[k]?re[k].g3:0}));
+    return J(res,200,{rows});
+  }
 
-    /* ---- PENGGUNA ---- */
-    if(p==='/api/users'&&req.method==='POST'){
-      const m=me(req); if(!m||m.role==='mitra') return J(res,403,{ok:false});
-      const j=JSON.parse((await R(req)).toString()); const d=load();
-      if(j.del){ const target=d.users.find(x=>x.u===j.del);
-        if(!target) return J(res,404,{ok:false});
-        if(target.role==='superadmin') return J(res,403,{ok:false,msg:'Akun superadmin tidak bisa dihapus'});
-        if(m.role==='admin'&&target.role==='admin') return J(res,403,{ok:false,msg:'Hanya superadmin dapat menghapus admin'});
-        d.users=d.users.filter(x=>x.u!==j.del);
-        d.assignments=d.assignments.filter(a=>a.mitraU!==j.del);
-        log(d,m.n,'Hapus pengguna',j.del); save(d); return J(res,200,{ok:true}); }
-      const uu=String(j.u||'').trim().toLowerCase();
-      if(!uu||!j.p) return J(res,400,{ok:false,msg:'Username dan password wajib diisi'});
-      if(d.users.some(x=>x.u===uu)) return J(res,400,{ok:false,msg:'Username sudah dipakai'});
-      const role=j.role==='admin'?'admin':'mitra';
-      if(role==='admin'&&m.role!=='superadmin') return J(res,403,{ok:false,msg:'Hanya superadmin dapat menambah admin'});
-      d.users.push({u:uu,p:j.p,role,n:j.n||uu,wilayah:j.wilayah||'',hp:j.hp||'',email:j.email||''});
-      log(d,m.n,'Tambah pengguna',(j.n||uu)+' ('+role+')'); save(d);
-      return J(res,200,{ok:true});
-    }
+  /* ---- MONITORING GC ---- */
+  if(p==='/api/monitoring-gc'&&req.method==='GET'){
+    const jenis=url.searchParams.get('jenis')||'Utama';
+    const rows=db.panen33.filter(r=>r.jenis===jenis);
+    const agg={};
+    for(const r of rows){const kab=r.kab;agg[kab]=agg[kab]||{belum:0,sudah:0,ya:0,tdk:0,sendiri:0,tj:0,ttj:0};
+      if(r.hasil==='1. Belum Panen')agg[kab].belum++;else if(r.hasil==='2. Sudah Panen')agg[kab].sudah++;
+      if(r.petak==='1. Ya')agg[kab].ya++;else if(r.petak==='2. Tidak')agg[kab].tdk++;
+      if(r.pemanen===JENIS_PEMANENAN[0])agg[kab].sendiri++;else if(r.pemanen===JENIS_PEMANENAN[1])agg[kab].tj++;else if(r.pemanen===JENIS_PEMANENAN[2])agg[kab].ttj++;}
+    const out=KABUPATEN.map(([k,n])=>({kode:k,nama:n,...(agg[k]||{belum:0,sudah:0,ya:0,tdk:0,sendiri:0,tj:0,ttj:0})})).map(r=>({...r,total:r.belum+r.sudah}));
+    const tot=out.reduce((a,r)=>({belum:a.belum+r.belum,sudah:a.sudah+r.sudah,ya:a.ya+r.ya,tdk:a.tdk+r.tdk,sendiri:a.sendiri+r.sendiri,tj:a.tj+r.tj,ttj:a.ttj+r.ttj,total:a.total+r.total}),{belum:0,sudah:0,ya:0,tdk:0,sendiri:0,tj:0,ttj:0,total:0});
+    return J(res,200,{rows:out,total:tot});
+  }
 
-    /* ---- IMPORT EXCEL MITRA ---- */
-    if(p==='/api/import'&&req.method==='POST'){
-      const m=me(req); if(!m||m.role==='mitra') return J(res,403,{ok:false});
-      const buf=await R(req);
-      let rows;
-      const isZip=buf.length>4&&buf.readUInt32LE(0)===0x04034b50;
-      try{
-        if(isZip) rows=xlsxRows(buf);
-        else rows=buf.toString('utf8').split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(/[;,\t]/).map(c=>c.trim().replace(/^"|"$/g,'')));
-      }catch(e){ return J(res,400,{ok:false,msg:'Berkas tidak dikenali: '+e.message}); }
-      if(!rows.length) return J(res,400,{ok:false,msg:'Berkas kosong'});
-      const hdr=(rows[0]||[]).map(h=>String(h||'').toLowerCase().trim());
-      const find=(names)=>hdr.findIndex(h=>names.some(n=>h===n||h.includes(n)));
-      const iNama=find(['nama','nama lengkap']), iU=find(['username','user']), iP=find(['password','sandi']),
-            iW=find(['wilayah','kecamatan','desa']), iHp=find(['hp','telepon','telp','wa']), iE=find(['email']),
-            iPrg=find(['program','survei']), iTgt=find(['target']);
-      if(iNama<0||iU<0) return J(res,400,{ok:false,msg:'Kolom Nama dan Username wajib ada di baris pertama'});
-      const d=load(); let baru=0,gagal=0,tugas=0; const pesan=[];
-      for(let r=1;r<rows.length;r++){
-        const row=rows[r]||[];
-        const nama=String(row[iNama]||'').trim(); let uname=String(row[iU]||'').trim().toLowerCase();
-        if(!nama&&!uname) continue;
-        if(!uname) uname=nama.toLowerCase().replace(/[^a-z0-9]+/g,'.').replace(/^\.|\.$/g,'');
-        if(!nama){ gagal++; pesan.push('Baris '+(r+1)+': nama kosong'); continue; }
-        if(!uname){ gagal++; continue; }
-        const pw=String(row[iP]||'').trim()||'mitra3305';
-        let us=d.users.find(x=>x.u===uname);
-        if(!us){
-          d.users.push({u:uname,p:pw,role:'mitra',n:nama,wilayah:String(row[iW]||'').trim(),
-            hp:String(row[iHp]||'').trim(),email:String(row[iE]||'').trim()});
-          us=d.users[d.users.length-1]; baru++;
-        }
-        const pname=iPrg>=0?String(row[iPrg]||'').trim():'';
-        if(pname){
-          const prg=d.programs.find(x=>x.id===pname)||d.programs.find(x=>x.nama.toLowerCase()===pname.toLowerCase())
-            ||d.programs.find(x=>x.nama.toLowerCase().includes(pname.toLowerCase()));
-          if(prg){
-            const target=iTgt>=0?+(row[iTgt]||0):0;
-            let a=d.assignments.find(x=>x.programId===prg.id&&x.mitraU===us.u);
-            if(a){ if(target>0){a.target=target;syncStatus(a);} tugas++; }
-            else{ d.assignments.push({id:'ASG-'+String(d.assignments.length+1).padStart(4,'0'),programId:prg.id,
-              mitraU:us.u,target:target>0?target:Math.round(prg.target/Math.max(1,d.users.filter(x=>x.role==='mitra').length)),
-              selesai:0,status:'Belum Mulai',updatedAt:Date.now()}); tugas++; }
-          } else { pesan.push('Baris '+(r+1)+': program "'+pname+'" tidak ditemukan — mitra tetap ditambahkan'); }
-        }
-      }
-      log(d,m.n,'Impor mitra',baru+' baru · '+tugas+' penugasan'); save(d);
-      return J(res,200,{ok:true,baru,gagal,tugas,pesan:pesan.slice(0,12)});
-    }
-    if(p==='/api/template.xlsx'){
-      const m=me(req); if(!m||m.role==='mitra') return J(res,403,{ok:false});
-      const d=load();
-      const buf=xlsxMake(
-        ['Nama','Username','Password','Wilayah','NoHP','Email','Program','Target'],
-        [['Contoh: Ahmad Fauzi','mitra7','mitra3305','Kebumen','081234567890','ahmad@contoh.id',d.programs[0]?d.programs[0].nama:'',60]]
-      );
-      res.writeHead(200,{'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition':'attachment; filename="template-impor-mitra.xlsx"'});
-      return res.end(buf);
-    }
+  /* ---- ADMIN: user management (superadmin) ---- */
+  if(p==='/api/users'&&req.method==='GET'&&me.role==='superadmin'){return J(res,200,{users:Object.entries(db.users).map(([k,v])=>({kode:k,nama:v.nama,role:v.role}))});}
+  if(p==='/api/users'&&req.method==='POST'&&me.role==='superadmin'){
+    const b=await readBody(req);const kode=String(b.kode||'').trim();
+    if(!kode||db.users[kode]) return J(res,400,{error:'Kode tidak valid / sudah ada'});
+    db.users[kode]={p:kode,nama:b.nama||kode,role:b.role||'kab'};saveDB();return J(res,200,{ok:true});
+  }
 
-    /* ---- META ---- */
-    if(p==='/api/meta'&&req.method==='POST'){
-      const m=me(req); if(!m||m.role==='mitra') return J(res,403,{ok:false});
-      const j=JSON.parse((await R(req)).toString()); const d=load();
-      d.meta.instansi=j.instansi??d.meta.instansi; d.meta.unit=j.unit??d.meta.unit; d.meta.tahun=+(j.tahun??d.meta.tahun);
-      log(d,m.n,'Ubah pengaturan',''); save(d); return J(res,200,{ok:true,meta:d.meta});
-    }
-
-    /* ---- EXPORT ---- */
-    if(p==='/api/export'){
-      const m=me(req); if(!m) return J(res,401,{ok:false});
-      const d=load(); const rows=[['Mitra','Wilayah','Program','Bidang','Target','Selesai','Persen','Status']];
-      for(const a of d.assignments){
-        const mu=d.users.find(x=>x.u===a.mitraU)||{}, pr=d.programs.find(x=>x.id===a.programId)||{};
-        const b=d.bidang.find(x=>x.id===pr.bidang)||{};
-        rows.push([mu.n||a.mitraU,mu.wilayah||'',pr.nama||'',b.nama||'',a.target,a.selesai,pct(a)+'%',a.status]);
-      }
-      if(m.role==='mitra'){ const own=rows.filter((r,i)=>i===0||r[0]===m.n);
-        return csvOut(res,own,'rekap-'+m.u+'.csv'); }
-      return csvOut(res,rows,'rekap-monitoring-3305.csv');
-    }
-
-    /* ---- STATIC ---- */
-    if(p.startsWith('/uploads/')){
-      const f=path.join(UPL,path.basename(p));
-      if(fs.existsSync(f)){ res.writeHead(200,{'Content-Type':MIME[path.extname(f)]||'application/octet-stream','Cache-Control':'public,max-age=86400'}); return res.end(fs.readFileSync(f)); }
-      return J(res,404,{ok:false});
-    }
-    let f=path.join(PUB,p==='/'?'index.html':p);
-    if(!fs.existsSync(f)||fs.statSync(f).isDirectory()) f=path.join(PUB,'index.html');
-    res.writeHead(200,{'Content-Type':MIME[path.extname(f)]||'text/html;charset=utf-8','Cache-Control':'no-cache'});
-    return res.end(fs.readFileSync(f));
-  }catch(e){ try{J(res,500,{ok:false,msg:e.message});}catch(_){} }
+  return J(res,404,{error:'Not found'});  }catch(e){return J(res,500,{error:String(e&&e.message||e)});}
 });
-function csvOut(res,rows,name){
-  const csv=rows.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
-  res.writeHead(200,{'Content-Type':'text/csv;charset=utf-8','Content-Disposition':'attachment;filename="'+name+'"'});
-  return res.end('\uFEFF'+csv);
-}
-server.listen(PORT,()=>{ load(); console.log('Dashboard BPS 3305 → http://localhost:'+PORT); });
+
+/* ============ STATIC ============ */
+server.on('clientError',(err,socket)=>socket.end('HTTP/1.1 400 Bad Request\r\n\r\n'));
+server.listen(PORT,()=>console.log('SINTA PADI running on http://localhost:'+PORT));

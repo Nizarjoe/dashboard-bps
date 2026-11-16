@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Monitoring Produksi 3305 — BPS Kebumen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0E3A66;--navy2:#164C82;--blue:#1D6FE0;--blue2:#3D8AF7;--sky:#EAF2FF;--ink:#15202E;--mut:#5B6B7E;
+--line:#E3E9F1;--ok:#12855C;--okbg:#E5F5EE;--warn:#B7791F;--warnbg:#FBF3E0;--bad:#C0392B;--badbg:#FDECEA;
+--org:#E8762C;--pur:#6B4FBB;--bg:#F4F7FB;--r:12px;--sh:0 1px 3px rgba(14,58,102,.08),0 8px 24px rgba(14,58,102,.07)}
+*{margin:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);font-size:14px}
+a{color:var(--blue);text-decoration:none}
+button{font-family:inherit}
+/* ===== LOGIN ===== */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0A2C50 0%,var(--navy) 45%,var(--navy2) 80%,#1D6FE0 140%);padding:20px}
+.lbox{background:#fff;border-radius:18px;padding:44px 40px;width:100%;max-width:410px;box-shadow:0 30px 80px rgba(4,18,45,.5)}
+.lbox .crest{width:66px;height:66px;border-radius:50%;background:var(--sky);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px}
+.lbox h1{font-size:19px;text-align:center;color:var(--navy)}
+.lbox .sub{text-align:center;color:var(--mut);font-size:12.5px;margin:6px 0 26px;line-height:1.55}
+.lbox label{font-size:11.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px}
+.lbox input{width:100%;padding:13px 15px;border:1.5px solid var(--line);border-radius:10px;font-size:15px;margin:6px 0 16px;outline:none}
+.lbox input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,111,224,.12)}
+.lbox button{width:100%;padding:14px;border:0;border-radius:10px;background:var(--navy);color:#fff;font-weight:700;font-size:15px;cursor:pointer}
+.lbox button:hover{background:var(--navy2)}
+#lerr{display:none;background:var(--badbg);color:var(--bad);padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:14px}
+.lhint{margin-top:20px;font-size:11.5px;color:var(--mut);text-align:center;line-height:1.8;background:#F7FAFF;border-radius:10px;padding:12px}
+.lhint b{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--navy)}
+/* ===== LAYOUT ===== */
+#app{display:none}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:232px;background:var(--navy);color:#fff;display:flex;flex-direction:column;z-index:60;transition:transform .2s}
+.sidebar .brand{display:flex;align-items:center;gap:11px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar .brand .logo{width:38px;height:38px;border-radius:50%;background:#fff;color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12.5px;flex-shrink:0}
+.sidebar .brand b{font-size:14px;line-height:1.25;display:block}
+.sidebar .brand small{font-size:10.5px;opacity:.7;font-weight:500}
+.snav{flex:1;padding:12px 10px;overflow-y:auto}
+.snav button{display:flex;align-items:center;gap:11px;width:100%;background:none;border:0;color:#B9CCE8;padding:11px 14px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;text-align:left;margin-bottom:2px}
+.snav button:hover{background:rgba(255,255,255,.08);color:#fff}
+.snav button.on{background:var(--blue);color:#fff}
+.snav .sec{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);padding:14px 14px 6px;font-weight:700}
+.snav [data-admin]{display:none}
+.sfoot{padding:14px 16px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+.sfoot .ava{width:34px;height:34px;border-radius:50%;background:#3D8AF7;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+.sfoot .nm{font-size:12.5px;font-weight:700;line-height:1.2}
+.sfoot .rl{font-size:10.5px;opacity:.7}
+.sfoot button{margin-left:auto;background:rgba(255,255,255,.12);border:0;color:#fff;padding:6px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-weight:600}
+.main{margin-left:232px;min-height:100vh}
+.topbar{background:#fff;border-bottom:1px solid var(--line);padding:0 26px;height:58px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:16.5px;color:var(--navy)}
+.topbar .sub{font-size:11.5px;color:var(--mut)}
+.topbar .sp{flex:1}
+.topbar input.q{padding:8px 14px;border:1.5px solid var(--line);border-radius:20px;font-size:13px;width:210px;outline:none}
+.topbar input.q:focus{border-color:var(--blue)}
+.burger{display:none;background:none;border:0;font-size:20px;color:var(--navy);cursor:pointer}
+.content{padding:22px 26px 60px;max-width:1220px}
+.page{display:none}.page.on{display:block}
+h2.pt{font-size:20px;color:var(--navy);margin-bottom:3px}
+p.ps{color:var(--mut);font-size:13px;margin-bottom:20px}
+/* ===== HERO (kayak referensi) ===== */
+.hero{background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 60%,#1B62B8 120%);border-radius:16px;color:#fff;padding:26px 28px;margin-bottom:20px;box-shadow:0 12px 34px rgba(14,58,102,.28)}
+.hero .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hero h2{font-size:23px}
+.hero .chip{background:rgba(255,255,255,.18);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600}
+.hero p{opacity:.85;font-size:13.5px;margin-top:6px}
+.hero .btns{margin-left:auto;display:flex;gap:10px}
+.hero .btns button,.hero .btns a{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;padding:9px 16px;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer}
+.hero .btns button:hover,.hero .btns a:hover{background:rgba(255,255,255,.26)}
+/* KPI dalam hero */
+.hkpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:20px}
+.hkpi{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:14px 16px}
+.hkpi .ic{font-size:19px}
+.hkpi .t{font-size:11px;opacity:.85;margin-top:4px}
+.hkpi .v{font-size:22px;font-weight:800;margin-top:2px}
+.hkpi .s{font-size:10.5px;opacity:.75;margin-top:2px}
+/* KPI card */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-bottom:20px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh)}
+.kpi .top{display:flex;justify-content:space-between;align-items:flex-start}
+.kpi .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.kpi .trend{font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px}
+.kpi .trend.up{background:var(--okbg);color:var(--ok)}
+.kpi .v{font-size:24px;font-weight:800;color:var(--navy);margin-top:10px}
+.kpi .t{font-size:12.5px;color:var(--mut);margin-top:2px}
+.kpi .pg{margin-top:10px}
+.kpi .pg .lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-bottom:4px}
+.bar{height:7px;background:#E8EEF6;border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--blue),var(--blue2))}
+.bar i.full{background:var(--ok)}.bar i.org{background:linear-gradient(90deg,#F59E0B,var(--org))}.bar i.pur{background:linear-gradient(90deg,#8B6EF0,var(--pur))}
+/* panel */
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh);margin-bottom:18px}
+.panel h3{font-size:15px;color:var(--navy)}
+.panel .pd{font-size:12px;color:var(--mut);margin:2px 0 14px}
+.grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+.grid2e{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ph{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);padding:9px 10px;border-bottom:2px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:hover td{background:#F8FAFE}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.b-ok{background:var(--okbg);color:var(--ok)}.b-warn{background:var(--warnbg);color:var(--warn)}
+.b-bad{background:var(--badbg);color:var(--bad)}.b-gry{background:#EEF2F7;color:var(--mut)}.b-blu{background:var(--sky);color:var(--blue)}.b-org{background:#FDEEE0;color:var(--org)}.b-pur{background:#EFEBFB;color:var(--pur)}
+.pct{font-weight:800;font-size:12px;color:var(--navy);font-family:'JetBrains Mono',monospace}
+.btn{background:var(--navy);color:#fff;border:0;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer}
+.btn:hover{background:var(--navy2)}
+.btn.sec{background:var(--sky);color:var(--navy)}.btn.sec:hover{background:#DCE9FB}
+.btn.dgr{background:var(--badbg);color:var(--bad)}
+.btn.org{background:var(--org);color:#fff}.btn.org:hover{background:#D4691F}
+.btn.pur{background:var(--pur);color:#fff}
+.btn.sm{padding:6px 12px;font-size:11.5px;border-radius:7px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;font-size:13.5px;outline:none;font-family:inherit;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+label.f{display:block;font-size:11px;font-weight:700;color:var(--mut);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.4px}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--sh);cursor:pointer;transition:transform .12s}
+.pcard:hover{transform:translateY(-2px)}
+.pcard h4{color:var(--navy);font-size:14.5px;margin:8px 0 4px;line-height:1.35}
+.pcard .meta{font-size:11.5px;color:var(--mut)}
+.pcard .mini{margin-top:12px;display:flex;align-items:center;gap:8px}
+/* aktivitas */
+.act{list-style:none;padding:0}
+.act li{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px;align-items:flex-start}
+.act .dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.act .tm{color:var(--mut);font-size:11px;white-space:nowrap}
+/* quick actions */
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qa{border-radius:12px;padding:16px;color:#fff;cursor:pointer;border:0;text-align:left}
+.qa b{display:block;font-size:14px}
+.qa small{opacity:.85;font-size:11px}
+.qa.b1{background:linear-gradient(135deg,#1D6FE0,#3D8AF7)}.qa.b2{background:linear-gradient(135deg,#12855C,#1AA96F)}
+.qa.b3{background:linear-gradient(135deg,#E8762C,#F59E0B)}.qa.b4{background:linear-gradient(135deg,#6B4FBB,#8B6EF0)}
+/* foto */
+.fotogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+.fim{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#EEF2F7;aspect-ratio:4/3}
+.fim img{width:100%;height:100%;object-fit:cover;display:block}
+.fim .cap{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(4,18,45,.88));color:#fff;font-size:10px;padding:16px 8px 7px;line-height:1.4}
+.fim .x{position:absolute;top:5px;right:5px;background:#fff;border:0;border-radius:50%;width:24px;height:24px;cursor:pointer;font-weight:800;color:var(--bad);font-size:12px}
+.empty{text-align:center;color:var(--mut);padding:30px;font-size:13px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 10px 30px rgba(4,18,45,.4);opacity:0;transition:.25s;z-index:99;max-width:92vw}
+.toast.show{opacity:1}
+.mono{font-family:'JetBrains Mono',monospace}
+/* ===== MOBILE ===== */
+.mtabbar{display:none}
+@media(max-width:920px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .burger{display:block}
+  .grid2,.grid2e{grid-template-columns:1fr}
+  .topbar{padding:0 14px}.topbar input.q{display:none}
+  .content{padding:16px 14px 80px}
+  .mtabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:55;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  .mtabbar button{flex:1;background:none;border:0;font-size:10px;font-weight:700;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:8px;cursor:pointer}
+  .mtabbar button .mi{font-size:17px}
+  .mtabbar button.on{color:var(--blue);background:var(--sky)}
+  .mtabbar [data-admin]{display:none}
+  .hero{padding:20px 16px}.hero h2{font-size:19px}
+  .hkpis{grid-template-columns:1fr 1fr}
+  .kpis{grid-template-columns:1fr 1fr;gap:10px}
+  .kpi{padding:14px}
+  .hero .btns{margin-left:0;width:100%}
+}
+@media(max-width:920px){.desk-only{display:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="login">
+  <div class="lbox">
+    <div class="crest">🏛️</div>
+    <h1>Monitoring Produksi 3305</h1>
+    <div class="sub">BPS Kabupaten Kebumen<br>Tim Statistik Produksi</div>
+    <div id="lerr">⚠️ Username atau password salah</div>
+    <label>Username</label>
+    <input id="lgU" placeholder="username" autocomplete="username">
+    <label>Password</label>
+    <input id="lgP" type="password" placeholder="••••••••" autocomplete="current-password">
+    <button onclick="doLogin()">Masuk Dashboard</button>
+    <div class="lhint">
+      <b>superadmin</b> · <b>admin</b> — pengelola tim<br>
+      <b>mitra1</b> … <b>mitra6</b> — mitra statistik (pw: <b>mitra3305</b>)
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><div class="logo">BPS</div><div><b>Monitoring 3305</b><small>BPS Kabupaten Kebumen</small></div></div>
+  <nav class="snav" id="snav">
+    <button data-p="dash" class="on">🏠 Dashboard</button>
+    <button data-p="prog">📋 Program & Progres</button>
+    <button data-p="lapor">📝 Lapor Progres</button>
+    <button data-p="foto">📷 Dokumentasi</button>
+    <div class="sec">Pengelolaan</div>
+    <button data-p="mitra" data-admin>👥 Mitra & Progres</button>
+    <button data-p="verif" data-admin>✅ Verifikasi Laporan</button>
+    <button data-p="users" data-admin>🧑‍💼 Pengguna</button>
+    <button data-p="program" data-admin>➕ Kelola Program</button>
+    <button data-p="set" data-admin>⚙️ Pengaturan</button>
+  </nav>
+  <div class="sfoot"><div class="ava" id="sfAva"></div><div><div class="nm" id="sfNm"></div><div class="rl" id="sfRl"></div></div><button onclick="logout()">Keluar</button></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <button class="burger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+    <div><h1 id="tbTitle">Dashboard</h1><div class="sub" id="tbSub"></div></div>
+    <div class="sp"></div>
+    <input class="q desk-only" id="qTop" placeholder="🔍 Cari program / mitra…" oninput="topSearch()">
+  </div>
+  <div class="content">
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="page on" id="pg-dash">
+    <div class="hero">
+      <div class="row"><h2 id="heroTitle">Selamat datang 👋</h2><span class="chip" id="heroDate"></span>
+        <div class="btns"><a class="desk-only" href="/api/export" target="_blank">⬇ Unduh Rekap</a></div></div>
+      <p id="heroSub">Ringkasan pelaksanaan survei statistik produksi.</p>
+      <div class="hkpis" id="hkpis"></div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="ph"><div><h3>📈 Progres per Program</h3><div class="pd">Pemantauan capaian seluruh program tahun aktif</div></div>
+        <span class="badge b-blu" id="progYear"></span></div>
+        <div id="perProgram"></div>
+      </div>
+      <div class="panel">
+        <h3>🔔 Aktivitas Terbaru</h3><div class="pd">Pembaruan dari mitra & pengelola</div>
+        <ul class="act" id="actDash"></ul>
+      </div>
+    </div>
+    <div class="grid2e">
+      <div class="panel"><h3>⚡ Aksi Cepat</h3><div class="pd">Tugas yang sering dilakukan</div>
+        <div class="qgrid" id="quickActs"></div></div>
+      <div class="panel"><h3>🏅 Peringkat Mitra</h3><div class="pd">Progres terbaik antar mitra</div>
+        <div id="topMitra"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== PROGRAM (mitra + admin lihat; admin kelola penugasan) ===== -->
+  <div class="page" id="pg-prog">
+    <h2 class="pt">Program & Progres</h2>
+    <p class="ps">Semua program survei beserta capaian real-time. Pilih program untuk melihat/atur penugasan mitra.</p>
+    <div class="panel" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <input id="qProg" placeholder="🔍 Cari program…" style="flex:1;min-width:180px" oninput="drawProg()">
+      <select id="fBidang" onchange="drawProg()"><option value="">Semua Bidang</option></select>
+      <select id="fTahun" onchange="drawProg()"><option value="">Semua Tahun</option></select>
+    </div>
+    <div class="cardgrid" id="progCards"></div>
+    <div class="panel" id="asgPanel" style="display:none">
+      <div class="ph"><div><h3 id="asgTitle"></h3><div class="pd">Penugasan mitra pada program ini</div></div>
+        <div id="asgAdminBtns" style="display:none"></div></div>
+      <div id="asgList"></div>
+    </div>
+  </div>
+
+  <!-- ===== LAPOR (mitra utama; admin pilih mitra) ===== -->
+  <div class="page" id="pg-lapor">
+    <h2 class="pt">Lapor Progres</h2>
+    <p class="ps" id="laporSub">Laporkan hasil pendataan lapangan langsung di sini — tanpa Google Form.</p>
+    <div class="panel">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0 16px">
+        <div id="laporMitraWrap" style="display:none"><label class="f">Pilih Mitra</label><select id="lpMitra" style="width:100%"></select></div>
+        <div><label class="f">Program</label><select id="lpProg" style="width:100%"></select></div>
+        <div><label class="f">Tanggal Kegiatan</label><input id="lpTgl" type="date" style="width:100%"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0 16px">
+        <div><label class="f" id="lpJmlLbl">Jumlah Selesai</label><input id="lpJml" type="number" min="1" style="width:100%"></div>
+      </div>
+      <label class="f">Catatan / Kendala Lapangan</label>
+      <textarea id="lpCatatan" rows="3" style="width:100%" placeholder="Contoh: 2 responden tidak ditemukan, akan dijadwalkan ulang…"></textarea>
+      <label class="f">Foto Dokumentasi (bisa beberapa)</label>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <label class="btn sec" style="cursor:pointer">📷 Tambah Foto<input type="file" id="lpFoto" accept="image/*" multiple style="display:none" onchange="lpAddFoto(this)"></label>
+        <span id="lpFotoStat" style="font-size:12px;color:var(--mut)">maks 5 MB/foto</span>
+      </div>
+      <div id="lpFotoPrev" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"></div>
+      <button class="btn" style="margin-top:16px" onclick="kirimLaporan()">🚀 Kirim Laporan</button>
+    </div>
+    <div class="panel"><h3>📜 Riwayat Laporan Saya</h3><div class="pd">Semua laporan yang pernah dikirim</div>
+      <div style="overflow-x:auto"><table id="tLapSaya"></table></div></div>
+  </div>
+
+  <!-- ===== FOTO ===== -->
+  <div class="page" id="pg-foto">
+    <h2 class="pt">Dokumentasi Kegiatan</h2>
+    <p class="ps">Foto dokumentasi tersimpan per nama mitra — filter menurut mitra & program.</p>
+    <div class="panel" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <select id="fFotoMitra" onchange="drawFoto()" style="min-width:200px"><option value="">Semua Mitra</option></select>
+      <select id="fFotoProg" onchange="drawFoto()" style="min-width:220px"><option value="">Semua Program</option></select>
+      <span id="fotoCount" style="font-size:12.5px;color:var(--mut)"></span>
+    </div>
+    <div class="panel"><div class="fotogrid" id="fotogrid"></div></div>
+  </div>
+
+  <!-- ===== MITRA & PROGRES (admin) ===== -->
+  <div class="page" id="pg-mitra">
+    <h2 class="pt">Mitra & Progres</h2>
+    <p class="ps">Progres setiap mitra di setiap program + impor Excel.</p>
+    <div class="panel">
+      <div class="ph"><div><h3>📥 Impor Mitra dari Excel</h3><div class="pd">Kolom: Nama, Username, Password, Wilayah, NoHP, Email, Program, Target — mitra baru langsung bisa login & dilakukan penugasan otomatis</div></div>
+        <div style="display:flex;gap:8px"><a class="btn sec sm" href="/api/template.xlsx">⬇ Template</a></div></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px">
+        <label class="btn org" style="cursor:pointer">📊 Pilih File Excel / CSV<input type="file" id="impFile" accept=".xlsx,.csv" style="display:none" onchange="importExcel(this)"></label>
+        <span id="impStat" style="font-size:12.5px;color:var(--mut)"></span>
+      </div>
+    </div>
+    <div class="panel" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <input id="qMitra" placeholder="🔍 Cari mitra…" style="flex:1;min-width:180px" oninput="drawMitraProg()">
+      <select id="fMitraProg" onchange="drawMitraProg()"><option value="">Semua Program</option></select>
+    </div>
+    <div class="panel" style="padding:0;overflow-x:auto"><table id="tMitraProg"></table></div>
+  </div>
+
+  <!-- ===== VERIFIKASI (admin) ===== -->
+  <div class="page" id="pg-verif">
+    <h2 class="pt">Verifikasi Laporan</h2>
+    <p class="ps">Periksa laporan mitra sebelum dihitung resmi.</p>
+    <div class="panel" style="padding:0;overflow-x:auto"><table id="tVerif"></table></div>
+  </div>
+
+  <!-- ===== PENGGUNA (admin) ===== -->
+  <div class="page" id="pg-users">
+    <h2 class="pt">Pengguna</h2>
+    <p class="ps">Kelola akun admin & mitra BPS.</p>
+    <div class="panel">
+      <h3>➕ Tambah Manual</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0 14px">
+        <div><label class="f">Nama</label><input id="nuN" style="width:100%"></div>
+        <div><label class="f">Username</label><input id="nuU" style="width:100%"></div>
+        <div><label class="f">Password</label><input id="nuP" style="width:100%"></div>
+        <div><label class="f">Wilayah</label><input id="nuW" style="width:100%"></div>
+        <div><label class="f">Role</label><select id="nuR" style="width:100%"><option value="mitra">Mitra BPS</option><option value="admin">Admin</option></select></div>
+      </div>
+      <button class="btn" style="margin-top:14px" onclick="addUser()">+ Tambah</button>
+    </div>
+    <div class="panel" style="padding:0;overflow-x:auto"><table id="tUsers"></table></div>
+  </div>
+
+  <!-- ===== KELOLA PROGRAM (superadmin) ===== -->
+  <div class="page" id="pg-program">
+    <h2 class="pt">Kelola Program</h2>
+    <p class="ps">Superadmin: tambah program beserta seluruh pengaturan yang dibutuhkan admin.</p>
+    <div class="panel" id="pForm">
+      <h3 id="pfTitle">➕ Program Baru</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 16px">
+        <div><label class="f">Nama Program</label><input id="pfNama" style="width:100%" placeholder="Survei … 2026"></div>
+        <div><label class="f">Bidang</label><select id="pfBidang" style="width:100%"></select></div>
+        <div><label class="f">Tahun</label><input id="pfTahun" type="number" style="width:100%"></div>
+        <div><label class="f">Target Total</label><input id="pfTarget" type="number" style="width:100%"></div>
+        <div><label class="f">Satuan</label><input id="pfUnit" style="width:100%" placeholder="sampel/BS"></div>
+        <div><label class="f">Status</label><select id="pfStatus" style="width:100%"><option>Berjalan</option><option>Belum Mulai</option><option>Selesai</option></select></div>
+        <div><label class="f">Mulai</label><input id="pfMulai" type="date" style="width:100%"></div>
+        <div><label class="f">Tenggat</label><input id="pfDeadline" type="date" style="width:100%"></div>
+      </div>
+      <label class="f">Deskripsi</label><textarea id="pfDesc" rows="2" style="width:100%"></textarea>
+      <div style="display:flex;gap:16px;align-items:center;margin-top:12px;flex-wrap:wrap">
+        <div class="badge b-blu">📋 Wajib foto dokumentasi <select id="pfWajibFoto" style="margin-left:6px;padding:4px 8px;font-size:12px"><option value="1">Ya</option><option value="0">Tidak</option></select></div>
+        <span style="font-size:12px;color:var(--mut)">Setelah program dibuat, tugaskan mitra di tab <b>Program & Progres</b> atau impor via Excel.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px"><button class="btn" onclick="saveProgram()">💾 Simpan Program</button>
+        <button class="btn sec" onclick="resetPForm()">Batal</button></div>
+    </div>
+    <div class="panel" style="padding:0;overflow-x:auto"><table id="tPrograms"></table></div>
+  </div>
+
+  <!-- ===== PENGATURAN ===== -->
+  <div class="page" id="pg-set">
+    <h2 class="pt">Pengaturan</h2>
+    <p class="ps">Identitas instansi & tahun aktif dashboard.</p>
+    <div class="panel">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 16px">
+        <div><label class="f">Nama Instansi</label><input id="setInst" style="width:100%"></div>
+        <div><label class="f">Unit / Tim</label><input id="setUnit" style="width:100%"></div>
+        <div><label class="f">Tahun Aktif</label><input id="setTahun" type="number" style="width:100%"></div>
+      </div>
+      <button class="btn" style="margin-top:14px" onclick="saveMeta()">💾 Simpan</button>
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<!-- mobile bottom nav -->
+<nav class="mtabbar" id="mtab">
+  <button data-p="dash" class="on"><span class="mi">🏠</span>Utama</button>
+  <button data-p="prog"><span class="mi">📋</span>Program</button>
+  <button data-p="lapor"><span class="mi">📝</span>Lapor</button>
+  <button data-p="foto"><span class="mi">📷</span>Foto</button>
+  <button data-p="mitra" data-admin><span class="mi">👥</span>Mitra</button>
+</nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let TOKEN=localStorage.getItem('bps_token')||'', ME=null, D=null, lpFotos=[], editPid=null;
+const rp=n=>(+n||0).toLocaleString('id-ID');
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),3200);}
+async function api(path,opts={}){
+  opts.headers=Object.assign({'Authorization':'Bearer '+TOKEN},opts.headers||{});
+  if(opts.body&&typeof opts.body==='string')opts.headers['Content-Type']='application/json';
+  const r=await fetch(path,opts);
+  if(r.status===401&&path!=='/api/login'){logout();throw new Error('sesi habis');}
+  return r.json();
+}
+const pct=a=>a.target?Math.min(100,Math.round(a.selesai/a.target*100)):0;
+const sBadge=s=>({'Selesai':'b-ok','Berjalan':'b-blu','Belum Mulai':'b-gry'})[s]||'b-gry';
+const fmtT=t=>new Date(t).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const hariIni=()=>new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+/* ===== AUTH ===== */
+async function doLogin(){
+  const u=document.getElementById('lgU').value.trim(), p=document.getElementById('lgP').value;
+  try{
+    const j=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({u,p})}).then(r=>r.json());
+    if(!j.ok){document.getElementById('lerr').style.display='block';return;}
+    TOKEN=j.token;localStorage.setItem('bps_token',TOKEN);ME=j.user;boot();
+  }catch(e){document.getElementById('lerr').style.display='block';}
+}
+document.getElementById('lgP').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('lgU').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('lgP').focus()});
+function logout(){TOKEN='';localStorage.removeItem('bps_token');location.reload();}
+
+/* ===== BOOT ===== */
+async function boot(){
+  const me=await api('/api/me'); ME=me.user;
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='block';
+  const admin=ME.role!=='mitra', sa=ME.role==='superadmin';
+  document.querySelectorAll('[data-admin]').forEach(b=>b.style.display=admin?'':'none');
+  document.getElementById('sfAva').textContent=ME.n.slice(0,1).toUpperCase();
+  document.getElementById('sfNm').textContent=ME.n;
+  document.getElementById('sfRl').textContent=(ME.role==='superadmin'?'Superadmin':ME.role==='admin'?'Admin':'Mitra BPS')+(ME.wilayah?' · '+ME.wilayah:'');
+  D=await api('/api/data');
+  document.getElementById('heroDate').textContent=hariIni();
+  document.getElementById('heroTitle').textContent='Selamat datang, '+ME.n.split(' ')[0]+' 👋';
+  document.getElementById('heroSub').textContent = ME.role==='mitra'
+    ? 'Pantau penugasan Anda, kirim laporan progres, dan unggah dokumentasi kegiatan.'
+    : 'Kelola program survei, mitra statistik, dan verifikasi laporan lapangan.';
+  // tahun filter & selects
+  const tahun=[...new Set(D.programs.map(p=>p.tahun))].sort((a,b)=>b-a);
+  document.getElementById('fTahun').innerHTML='<option value="">Semua Tahun</option>'+tahun.map(t=>`<option ${t===D.meta.tahun?'selected':''}>${t}</option>`).join('');
+  document.getElementById('fBidang').innerHTML='<option value="">Semua Bidang</option>'+D.bidang.map(b=>`<option value="${b.id}">${b.ikon} ${b.nama}</option>`).join('');
+  document.getElementById('pfBidang').innerHTML=D.bidang.map(b=>`<option value="${b.id}">${b.nama}</option>`).join('');
+  const mitras=(D.users||[]).filter(x=>x.role==='mitra');
+  document.getElementById('fMitraProg').innerHTML='<option value="">Semua Program</option>'+D.programs.filter(p=>p.tahun===D.meta.tahun).map(p=>`<option value="${p.id}">${p.nama}</option>`).join('');
+  document.getElementById('fFotoProg').innerHTML='<option value="">Semua Program</option>'+D.programs.map(p=>`<option value="${p.id}">${p.nama}</option>`).join('');
+  document.getElementById('fFotoMitra').innerHTML='<option value="">Semua Mitra</option>'+(admin?mitras.map(m=>`<option value="${m.u}">${m.n}</option>`).join(''):`<option value="${ME.u}" selected>${ME.n}</option>`);
+  if(admin){document.getElementById('lpMitra').innerHTML=mitras.map(m=>`<option value="${m.u}">${m.n} — ${m.wilayah||''}</option>`).join('');document.getElementById('lpMitraWrap').style.display='';}
+  document.getElementById('lpProg').innerHTML=D.programs.filter(p=>p.tahun===D.meta.tahun).map(p=>`<option value="${p.id}">${p.nama}</option>`).join('');
+  document.getElementById('lpTgl').value=new Date().toISOString().slice(0,10);
+  document.getElementById('setInst').value=D.meta.instansi||'';document.getElementById('setUnit').value=D.meta.unit||'';document.getElementById('setTahun').value=D.meta.tahun||2026;
+  document.getElementById('progYear').textContent='Tahun '+D.meta.tahun;
+  drawAll();
+}
+function drawAll(){drawDash();drawProg();drawLapSaya();drawFoto();if(ME.role!=='mitra'){drawMitraProg();drawVerif();drawUsers();drawPrograms();}}
+
+/* ===== NAV ===== */
+const TITLES={dash:['Dashboard','Ringkasan penting saja'],prog:['Program & Progres','Capaian tiap program'],lapor:['Lapor Progres','Kirim hasil pendataan'],foto:['Dokumentasi','Foto kegiatan per mitra'],mitra:['Mitra & Progres','Pemantauan & impor Excel'],verif:['Verifikasi Laporan','Periksa laporan mitra'],users:['Pengguna','Akun dashboard'],program:['Kelola Program','Tambah & ubah program'],set:['Pengaturan','Identitas instansi']};
+function nav(p){
+  document.querySelectorAll('.snav button,.mtabbar button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  document.getElementById('pg-'+p).classList.add('on');
+  const t=TITLES[p]||['',''];
+  document.getElementById('tbTitle').textContent=t[0];document.getElementById('tbSub').textContent=t[1];
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo({top:0});
+}
+document.querySelectorAll('.snav button,.mtabbar button').forEach(b=>b.onclick=()=>nav(b.dataset.p));
+function topSearch(){const v=document.getElementById('qTop').value;
+  if(['dash','mitra','program','set','users','verif'].includes(curPage()))return;
+  document.getElementById('qProg').value=v;nav('prog');drawProg();}
+function curPage(){return document.querySelector('.page.on').id.replace('pg-','');}
+
+/* ===== DASHBOARD ===== */
+function drawDash(){
+  const tahun=D.meta.tahun, ps=D.programs.filter(p=>p.tahun===tahun);
+  const asg=D.assignments.filter(a=>ps.some(p=>p.id===a.programId));
+  const done=asg.filter(a=>a.status==='Selesai').length;
+  const totA=asg.reduce((s,a)=>s+a.target,0), finA=asg.reduce((s,a)=>s+a.selesai,0);
+  const avg=totA?Math.round(finA/totA*100):0;
+  const unv=(D.laporan||[]).filter(l=>!l.verified).length;
+  // hero KPI
+  document.getElementById('hkpis').innerHTML= ME.role==='mitra'
+    ? `<div class="hkpi"><div class="ic">📋</div><div class="t">Penugasan Saya</div><div class="v">${D.assignments.length}</div><div class="s">program tahun ${tahun}</div></div>
+       <div class="hkpi"><div class="ic">✅</div><div class="t">Tuntas</div><div class="v">${D.assignments.filter(a=>a.status==='Selesai').length}</div><div class="s">penugasan selesai</div></div>
+       <div class="hkpi"><div class="ic">📈</div><div class="t">Progres Saya</div><div class="v">${(()=>{const t=D.assignments.reduce((s,a)=>s+a.target,0),f=D.assignments.reduce((s,a)=>s+a.selesai,0);return (t?Math.round(f/t*100):0)+'%';})()}</div><div class="s">rata-rata capaian</div></div>
+       <div class="hkpi"><div class="ic">📷</div><div class="t">Foto Saya</div><div class="v">${D.foto.length}</div><div class="s">dokumentasi terkumpul</div></div>`
+    : `<div class="hkpi"><div class="ic">📋</div><div class="t">Program ${tahun}</div><div class="v">${ps.length}</div><div class="s">survei berjalan</div></div>
+       <div class="hkpi"><div class="ic">👥</div><div class="t">Mitra Aktif</div><div class="v">${(D.users||[]).filter(u=>u.role==='mitra').length}</div><div class="s">mitra statistik</div></div>
+       <div class="hkpi"><div class="ic">📈</div><div class="t">Progres Total</div><div class="v">${avg}%</div><div class="s">${rp(finA)}/${rp(totA)} ${ps[0]?ps[0].unit:''}</div></div>
+       <div class="hkpi"><div class="ic">⏳</div><div class="t">Menunggu Verifikasi</div><div class="v">${unv}</div><div class="s">laporan mitra</div></div>`;
+  // kpi cards dengan progress bar (kayak referensi)
+  const mitraN=(D.users||[]).filter(u=>u.role==='mitra').length;
+  const fotoN=(D.foto||[]).length;
+  const lapN=(D.laporan||[]).length;
+  const bar=(p,cls)=>`<div class="pg"><div class="lbl"><span>Progres</span><span>${p}%</span></div><div class="bar"><i class="${cls}" style="width:${p}%"></i></div></div>`;
+  document.getElementById('kpis').innerHTML= ME.role==='mitra'
+    ? `<div class="kpi"><div class="top"><div class="ic" style="background:var(--sky)">📋</div><span class="trend up">${done} tuntas</span></div><div class="v">${D.assignments.length}</div><div class="t">Penugasan Program</div>${bar(avg,'')}</div>
+       <div class="kpi"><div class="top"><div class="ic" style="background:#FDEEE0">📝</div><span class="trend up">${lapN} laporan</span></div><div class="v">${lapN}</div><div class="t">Laporan Terkirim</div></div>
+       <div class="kpi"><div class="top"><div class="ic" style="background:#EFEBFB">📷</div></div><div class="v">${fotoN}</div><div class="t">Foto Dokumentasi</div></div>
+       <div class="kpi"><div class="top"><div class="ic" style="background:var(--okbg)">✅</div></div><div class="v">${(D.laporan||[]).filter(l=>l.verified).length}</div><div class="t">Laporan Terverifikasi</div></div>`
+    : `<div class="kpi"><div class="top"><div class="ic" style="background:var(--sky)">👥</div><span class="trend up">aktif</span></div><div class="v">${mitraN}</div><div class="t">Mitra Statistik</div></div>
+       <div class="kpi"><div class="top"><div class="ic" style="background:#FDEEE0">📋</div><span class="trend up">${ps.length} program</span></div><div class="v">${avg}%</div><div class="t">Progres Keseluruhan</div>${bar(avg,'org')}</div>
+       <div class="kpi"><div class="top"><div class="ic" style="background:#EFEBFB">📝</div></div><div class="v">${lapN}</div><div class="t">Laporan Masuk</div>${bar(totA?Math.min(100,Math.round(done/asg.length*100)):0,'pur')}</div>
+       <div class="kpi"><div class="top"><div class="ic" style="background:var(--okbg)">📷</div></div><div class="v">${fotoN}</div><div class="t">Foto Dokumentasi</div></div>`;
+  // per program
+  document.getElementById('perProgram').innerHTML=ps.map(p=>{
+    const as=D.assignments.filter(a=>a.programId===p.id);
+    const t=as.reduce((s,a)=>s+a.target,0), f=as.reduce((s,a)=>s+a.selesai,0);
+    const pp=t?Math.round(f/t*100):0;
+    const b=D.bidang.find(x=>x.id===p.bidang);
+    return `<div style="margin-bottom:15px"><div style="display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:13px;flex-wrap:wrap"><span>${b?b.ikon+' ':''}${p.nama}</span><span class="pct">${pp}%</span></div>
+      <div class="bar" style="margin-top:7px"><i class="${pp>=100?'full':''}" style="width:${pp}%"></i></div>
+      <div style="font-size:11.5px;color:var(--mut);margin-top:4px">${as.length} mitra ditugaskan · ${rp(f)}/${rp(t)} ${p.unit}</div></div>`;
+  }).join('')||'<div class="empty">Belum ada program tahun '+tahun+'</div>';
+  // aktivitas
+  document.getElementById('actDash').innerHTML=(D.aktivitas||[]).slice(0,8).map(a=>`<li><span class="dot" style="background:${a.aksi.includes('laporan')?'var(--org)':a.aksi.includes('foto')?'var(--pur)':'var(--blue)'}"></span><span style="flex:1"><b>${a.oleh}</b> — ${a.aksi}${a.detail?` <span style="color:var(--mut)">· ${a.detail}</span>`:''}</span><span class="tm">${fmtT(a.t)}</span></li>`).join('')||'<div class="empty">Belum ada aktivitas</div>';
+  // quick actions
+  document.getElementById('quickActs').innerHTML = ME.role==='mitra'
+    ? `<button class="qa b1" onclick="nav('lapor')">📝<b style="margin-top:6px">Lapor Progres</b><small>Kirim hasil pendataan</small></button>
+       <button class="qa b2" onclick="nav('foto')">📷<b style="margin-top:6px">Unggah Foto</b><small>Dokumentasi kegiatan</small></button>
+       <button class="qa b3" onclick="nav('prog')">📋<b style="margin-top:6px">Lihat Penugasan</b><small>Target & capaian saya</small></button>
+       <button class="qa b4" onclick="nav('dash')">📊<b style="margin-top:6px">Ringkasan Saya</b><small>Pantau capaian</small></button>`
+    : `<button class="qa b1" onclick="nav('program')">➕<b style="margin-top:6px">Program Baru</b><small>Buat program survei</small></button>
+       <button class="qa b2" onclick="nav('mitra')">📊<b style="margin-top:6px">Impor Mitra</b><small>Dari Excel</small></button>
+       <button class="qa b3" onclick="nav('verif')">✅<b style="margin-top:6px">Verifikasi</b><small>Periksa laporan</small></button>
+       <button class="qa b4" onclick="nav('prog')">📋<b style="margin-top:6px">Penugasan</b><small>Atur mitra per program</small></button>`;
+  // top mitra
+  const rank={};
+  asg.forEach(a=>{rank[a.mitraU]=rank[a.mitraU]||{t:0,f:0};rank[a.mitraU].t+=a.target;rank[a.mitraU].f+=a.selesai;});
+  const arr=Object.entries(rank).map(([u,v])=>({u,p:v.t?Math.round(v.f/v.t*100):0,f:v.f,t:v.t,n:(D.users||[]).find(x=>x.u===u)?.n||u}));
+  arr.sort((a,b)=>b.p-a.p);
+  document.getElementById('topMitra').innerHTML=arr.slice(0,6).map((m,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)">
+    <span style="width:24px;height:24px;border-radius:50%;background:${i===0?'#F5B301':i===1?'#9FB3C8':'#C77B3F'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">${i+1}</span>
+    <div style="flex:1;min-width:0"><b style="font-size:13px">${m.n}</b><div style="font-size:11px;color:var(--mut)">${rp(m.f)}/${rp(m.t)} tuntas</div></div>
+    <span class="pct">${m.p}%</span></div>`).join('')||'<div class="empty">Belum ada penugasan</div>';
+}
+
+/* ===== PROGRAM ===== */
+function drawProg(){
+  const q=(document.getElementById('qProg').value||'').toLowerCase();
+  const fb=document.getElementById('fBidang').value, ft=document.getElementById('fTahun').value;
+  const admin=ME.role!=='mitra';
+  const list=D.programs.filter(p=>(!q||p.nama.toLowerCase().includes(q))&&(!fb||p.bidang===fb)&&(!ft||p.tahun==ft));
+  document.getElementById('progCards').innerHTML=list.map(p=>{
+    const as=D.assignments.filter(a=>a.programId===p.id);
+    const t=as.reduce((s,a)=>s+a.target,0),f=as.reduce((s,a)=>s+a.selesai,0);
+    const pp=t?Math.round(f/t*100):0;
+    const b=D.bidang.find(x=>x.id===p.bidang);
+    return `<div class="pcard" onclick="openAsg('${p.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start"><span class="badge ${sBadge(p.status)}">${p.status}</span><span style="font-size:19px">${b?b.ikon:''}</span></div>
+      <h4>${p.nama}</h4><div class="meta">${b?b.nama.split(',')[0]:''} · ${p.tahun} · target ${rp(p.target)} ${p.unit}</div>
+      <div class="mini"><div class="bar" style="flex:1"><i class="${pp>=100?'full':''}" style="width:${pp}%"></i></div><span class="pct">${pp}%</span></div>
+      <div class="mini" style="font-size:11.5px;color:var(--mut)"><span>👥 ${as.length} mitra</span><span>·</span><span>${rp(f)}/${rp(t)} tuntas</span><span style="margin-left:auto;color:var(--blue);font-weight:700">Kelola ›</span></div></div>`;
+  }).join('')||'<div class="empty" style="grid-column:1/-1">Tidak ada program cocok</div>';
+  document.getElementById('asgPanel').style.display='none';
+}
+function openAsg(pid){
+  const p=D.programs.find(x=>x.id===pid); if(!p)return;
+  const admin=ME.role!=='mitra';
+  document.getElementById('asgTitle').textContent='👥 '+p.nama;
+  const btns=document.getElementById('asgAdminBtns');
+  if(admin){
+    btns.style.display='flex';btns.style.gap='8px';
+    const mitras=(D.users||[]).filter(x=>x.role==='mitra');
+    btns.innerHTML=`<select id="asgMitra" style="min-width:190px">${mitras.map(m=>`<option value="${m.u}">${m.n}</option>`).join('')}</select>
+      <input id="asgTarget" type="number" placeholder="Target" style="width:110px" value="${Math.round(p.target/Math.max(1,mitras.length))}">
+      <button class="btn sm" onclick="tugaskan('${p.id}')">+ Tugaskan</button>`;
+  }else btns.style.display='none';
+  document.getElementById('asgPanel').style.display='block';
+  const as=D.assignments.filter(a=>a.programId===pid);
+  document.getElementById('asgList').innerHTML=`<div style="overflow-x:auto"><table><tr><th>Mitra</th><th>Target</th><th>Selesai</th><th>Progres</th><th>Status</th>${admin?'<th></th>':''}</tr>`+
+   (as.length?as.map(a=>{const mu=(D.users||[]).find(x=>x.u===a.mitraU)||{};
+     return `<tr><td><b>${mu.n||a.mitraU}</b><div style="font-size:11px;color:var(--mut)">${mu.wilayah||''}</div></td>
+     <td class="mono">${rp(a.target)}</td><td class="mono"><b>${rp(a.selesai)}</b></td>
+     <td><div style="display:flex;align-items:center;gap:8px;min-width:130px"><div class="bar"><i class="${pct(a)>=100?'full':''}" style="width:${pct(a)}%"></i></div><span class="pct">${pct(a)}%</span></div></td>
+     <td><span class="badge ${sBadge(a.status)}">${a.status}</span></td>
+     <td>${admin?`<button class="btn dgr sm" onclick="batalkanAsg('${a.id}')">Lepas</button>`:''}</td></tr>`;}).join('')
+   :'<tr><td colspan="6" class="empty">Belum ada mitra ditugaskan'+(admin?' — tambahkan di atas':'')+'</td></tr>')+'</table></div>';
+  document.getElementById('asgPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function tugaskan(pid){
+  const mu=document.getElementById('asgMitra').value, tg=+document.getElementById('asgTarget').value||0;
+  const r=await api('/api/assign',{method:'POST',body:JSON.stringify({programId:pid,mitraU:mu,target:tg})});
+  if(!r.ok){toast('❌ '+(r.msg||'gagal'));return;}
+  D=await api('/api/data');drawAll();openAsg(pid);toast('✅ Mitra ditugaskan');
+}
+async function batalkanAsg(id){
+  if(!confirm('Lepas penugasan ini?'))return;
+  await api('/api/assign',{method:'POST',body:JSON.stringify({del:id})});
+  D=await api('/api/data');drawAll();toast('Penugasan dilepas');
+}
+
+/* ===== LAPOR ===== */
+function lpAddFoto(inp){
+  for(const f of inp.files){
+    if(f.size>5*1024*1024){toast('⛔ '+f.name+' melebihi 5 MB');continue;}
+    lpFotos.push(f);
+  }
+  inp.value='';
+  document.getElementById('lpFotoStat').textContent=lpFotos.length+' foto siap diunggah';
+  document.getElementById('lpFotoPrev').innerHTML=lpFotos.map((f,i)=>`<span style="position:relative"><img src="${URL.createObjectURL(f)}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:1.5px solid var(--line)"><button onclick="lpFotos.splice(${i},1);lpRefreshPrev()" style="position:absolute;top:-5px;right:-5px;border:0;background:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;color:var(--bad);font-weight:800">✕</button></span>`).join('');
+}
+function lpRefreshPrev(){document.getElementById('lpFotoStat').textContent=lpFotos.length?lpFotos.length+' foto siap diunggah':'maks 5 MB/foto';
+  document.getElementById('lpFotoPrev').innerHTML=lpFotos.map((f,i)=>`<span style="position:relative"><img src="${URL.createObjectURL(f)}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:1.5px solid var(--line)"><button onclick="lpFotos.splice(${i},1);lpRefreshPrev()" style="position:absolute;top:-5px;right:-5px;border:0;background:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;color:var(--bad);font-weight:800">✕</button></span>`).join('');}
+async function kirimLaporan(){
+  const programId=document.getElementById('lpProg').value;
+  const jml=+document.getElementById('lpJml').value||0;
+  if(!programId){toast('⚠️ Pilih program');return;}
+  if(jml<=0){toast('⚠️ Isi jumlah selesai');return;}
+  const mitraU = ME.role==='mitra' ? ME.u : (document.getElementById('lpMitra')||{}).value;
+  // unggah foto dulu
+  const fotoUrls=[];
+  for(const f of lpFotos){
+    const buf=await f.arrayBuffer();
+    const prId=programId;
+    const r=await api('/api/upload?judul='+encodeURIComponent('Laporan '+document.getElementById('lpProg').selectedOptions[0].text)+'&programId='+prId,{method:'POST',body:buf});
+    if(r.ok)fotoUrls.push(r.url);
+  }
+  const r=await api('/api/laporan',{method:'POST',body:JSON.stringify({programId,mitraU,jumlah:jml,
+    catatan:document.getElementById('lpCatatan').value.trim(),tgl:document.getElementById('lpTgl').value,foto:fotoUrls})});
+  if(!r.ok){toast('❌ '+(r.msg||'gagal'));return;}
+  D=await api('/api/data');
+  lpFotos=[];lpRefreshPrev();document.getElementById('lpJml').value='';document.getElementById('lpCatatan').value='';
+  drawAll();
+  toast('🎉 Laporan terkirim! Progres program diperbarui otomatis');
+}
+function drawLapSaya(){
+  const t=document.getElementById('tLapSaya');
+  const list=(D.laporan||[]).slice(0,40);
+  t.innerHTML='<tr><th>Tanggal</th><th>Program</th><th>Jumlah</th><th>Catatan</th><th>Status Verifikasi</th></tr>'+
+   (list.length?list.map(l=>{const p=D.programs.find(x=>x.id===l.programId)||{};
+     return `<tr><td>${l.tgl||fmtT(l.t)}</td><td><b>${p.nama||'—'}</b></td><td class="mono"><b>${rp(l.jumlah)}</b></td>
+     <td style="max-width:220px;font-size:12px;color:var(--mut)">${l.catatan||'—'}</td>
+     <td>${l.verified?'<span class="badge b-ok">✓ Terverifikasi</span>':'<span class="badge b-warn">⏳ Menunggu</span>'}</td></tr>`;}).join('')
+   :'<tr><td colspan="5" class="empty">Belum ada laporan — kirim yang pertama 🚀</td></tr>');
+}
+
+/* ===== FOTO ===== */
+function drawFoto(){
+  const fm=document.getElementById('fFotoMitra').value, fp=document.getElementById('fFotoProg').value;
+  const list=(D.foto||[]).filter(f=>(!fm||f.mitraU===fm)&&(!fp||f.programId===fp));
+  const admin=ME.role!=='mitra';
+  document.getElementById('fotoCount').textContent=list.length+' foto';
+  document.getElementById('fotogrid').innerHTML=list.length?list.map(f=>`<div class="fim"><img src="${f.url||'/uploads/'+f.file}" loading="lazy" alt="${f.judul}">
+    ${admin||f.mitraU===ME.u?`<button class="x" onclick="delFoto('${f.file}')">✕</button>`:''}
+    <div class="cap"><b>${f.judul}</b><br>👤 ${f.mitraN||f.oleh} · ${fmtT(f.t)}</div></div>`).join('')
+   :'<div class="empty" style="grid-column:1/-1">Belum ada foto pada filter ini</div>';
+}
+async function delFoto(file){if(!confirm('Hapus foto ini?'))return;
+  await api('/api/foto/delete',{method:'POST',body:JSON.stringify({file})});
+  D=await api('/api/data');drawAll();toast('🗑 Foto dihapus');}
+
+/* ===== MITRA & PROGRES (admin) ===== */
+function drawMitraProg(){
+  if(!D.users)return;
+  const q=(document.getElementById('qMitra').value||'').toLowerCase();
+  const fp=document.getElementById('fMitraProg').value;
+  const mitras=D.users.filter(x=>x.role==='mitra'&&(!q||x.n.toLowerCase().includes(q)||(x.wilayah||'').toLowerCase().includes(q)));
+  const t=document.getElementById('tMitraProg');
+  let rows='<tr><th>Mitra</th><th>Wilayah</th><th>Program</th><th>Target</th><th>Selesai</th><th>Progres</th><th>Status</th><th></th></tr>';
+  let n=0;
+  for(const m of mitras){
+    const as=D.assignments.filter(a=>a.mitraU===m.u&&(!fp||a.programId===fp));
+    for(const a of as){
+      const p=D.programs.find(x=>x.id===a.programId)||{};
+      n++;
+      rows+=`<tr><td><b>${m.n}</b></td><td>${m.wilayah||'—'}</td><td style="max-width:240px">${p.nama||'—'}</td>
+        <td class="mono">${rp(a.target)}</td><td class="mono"><b>${rp(a.selesai)}</b></td>
+        <td><div style="display:flex;align-items:center;gap:8px;min-width:130px"><div class="bar"><i class="${pct(a)>=100?'full':''}" style="width:${pct(a)}%"></i></div><span class="pct">${pct(a)}%</span></div></td>
+        <td><span class="badge ${sBadge(a.status)}">${a.status}</span></td>
+        <td><button class="btn sec sm" onclick="openAsg('${a.programId}');nav('prog')">Kelola</button></td></tr>`;
+    }
+  }
+  t.innerHTML=rows+(n===0?'<tr><td colspan="8" class="empty">Tidak ada penugasan — impor Excel atau tugaskan manual di tab Program</td></tr>':'');
+}
+async function importExcel(inp){
+  const f=inp.files[0];if(!f)return;
+  document.getElementById('impStat').textContent='⏳ Mengimpor…';
+  const buf=await f.arrayBuffer();
+  const r=await api('/api/import',{method:'POST',body:buf});
+  if(!r.ok){document.getElementById('impStat').textContent='❌ '+(r.msg||'gagal');return;}
+  D=await api('/api/data');drawAll();
+  document.getElementById('impStat').textContent=`✅ ${r.baru} mitra baru · ${r.tugas} penugasan`+(r.gagal?` · ${r.gagal} gagal`:'');
+  if(r.pesan&&r.pesan.length)toast('ℹ️ '+r.pesan[0]);
+  toast(`🎉 Impor selesai: ${r.baru} mitra baru, ${r.tugas} penugasan`);
+  inp.value='';
+}
+
+/* ===== VERIFIKASI ===== */
+function drawVerif(){
+  const t=document.getElementById('tVerif');
+  const list=(D.laporan||[]).slice(0,60);
+  t.innerHTML='<tr><th>Tanggal</th><th>Mitra</th><th>Program</th><th>Jumlah</th><th>Catatan</th><th>Status</th><th></th></tr>'+
+   (list.length?list.map(l=>{const p=D.programs.find(x=>x.id===l.programId)||{};
+     return `<tr><td>${l.tgl||fmtT(l.t)}</td><td><b>${l.mitraN}</b></td><td style="max-width:200px">${p.nama||'—'}</td>
+     <td class="mono"><b>${rp(l.jumlah)}</b></td><td style="max-width:200px;font-size:12px;color:var(--mut)">${l.catatan||'—'}</td>
+     <td>${l.verified?'<span class="badge b-ok">✓ '+ (l.verifiedBy||'Terverifikasi')+'</span>':'<span class="badge b-warn">⏳ Menunggu</span>'}</td>
+     <td>${l.verified?`<button class="btn dgr sm" onclick="verifyLap('${l.id}',false)">Batalkan</button>`:`<button class="btn sm" onclick="verifyLap('${l.id}',true)">✓ Verifikasi</button>`}</td></tr>`;}).join('')
+   :'<tr><td colspan="7" class="empty">Belum ada laporan</td></tr>');
+}
+async function verifyLap(id,v){
+  const r=await api('/api/laporan',{method:'POST',body:JSON.stringify({verify:id,verified:v})});
+  if(!r.ok){toast('❌ gagal');return;}
+  D=await api('/api/data');drawAll();toast(v?'✅ Laporan terverifikasi':'Laporan dibatalkan verifikasinya');
+}
+
+/* ===== USERS ===== */
+function drawUsers(){
+  if(!D.users)return;
+  const t=document.getElementById('tUsers');
+  t.innerHTML='<tr><th>Username</th><th>Nama</th><th>Wilayah</th><th>Kontak</th><th>Role</th><th></th></tr>'+
+   D.users.map(x=>`<tr><td class="mono"><b>${x.u}</b></td><td>${x.n}</td><td>${x.wilayah||'—'}</td>
+   <td style="font-size:12px">${[x.hp,x.email].filter(Boolean).join('<br>')||'—'}</td>
+   <td><span class="badge ${x.role==='superadmin'?'b-blu':x.role==='admin'?'b-ok':'b-gry'}">${x.role}</span></td>
+   <td>${x.u!=='superadmin'?`<button class="btn dgr sm" onclick="delUser('${x.u}')">🗑</button>`:'<span style="color:var(--mut);font-size:11px">utama</span>'}</td></tr>`).join('');
+}
+async function addUser(){
+  const j=await api('/api/users',{method:'POST',body:JSON.stringify({
+    n:document.getElementById('nuN').value.trim(),u:document.getElementById('nuU').value.trim(),
+    p:document.getElementById('nuP').value,wilayah:document.getElementById('nuW').value.trim(),
+    role:document.getElementById('nuR').value})});
+  if(!j.ok){toast('❌ '+(j.msg||'gagal'));return;}
+  D=await api('/api/data');drawUsers();
+  ['nuN','nuU','nuP','nuW'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Pengguna ditambahkan');
+}
+async function delUser(u){if(!confirm('Hapus '+u+'? Penugasannya juga akan dilepas.'))return;
+  await api('/api/users',{method:'POST',body:JSON.stringify({del:u})});
+  D=await api('/api/data');drawAll();toast('🗑 Pengguna dihapus');}
+
+/* ===== PROGRAM (superadmin) ===== */
+function drawPrograms(){
+  if(!D.programs)return;
+  const t=document.getElementById('tPrograms');
+  t.innerHTML='<tr><th>Program</th><th>Bidang</th><th>Tahun</th><th>Target</th><th>Tenggat</th><th>Status</th><th></th></tr>'+
+   D.programs.map(p=>{const b=D.bidang.find(x=>x.id===p.bidang);
+     return `<tr><td><b>${p.nama}</b><div style="font-size:11px;color:var(--mut)">${p.id}</div></td>
+     <td>${b?b.ikon+' '+b.nama.split(',')[0]:''}</td><td class="mono">${p.tahun}</td>
+     <td class="mono">${rp(p.target)} ${p.unit}</td><td>${p.deadline||'—'}</td>
+     <td><span class="badge ${sBadge(p.status)}">${p.status}</span></td>
+     <td>${ME.role==='superadmin'?`<button class="btn sec sm" onclick="editProgram('${p.id}')">✏️</button><button class="btn dgr sm" onclick="delProgram('${p.id}')">🗑</button>`:''}</td></tr>`;}).join('');
+}
+function resetPForm(){editPid=null;document.getElementById('pfTitle').textContent='➕ Program Baru';
+  ['pfNama','pfTarget','pfUnit','pfDesc','pfMulai','pfDeadline'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pfTahun').value=D.meta.tahun;document.getElementById('pfStatus').value='Berjalan';document.getElementById('pfWajibFoto').value='1';}
+function editProgram(id){
+  const p=D.programs.find(x=>x.id===id);if(!p)return;
+  editPid=id;document.getElementById('pfTitle').textContent='✏️ '+p.nama;
+  document.getElementById('pfNama').value=p.nama;document.getElementById('pfBidang').value=p.bidang;
+  document.getElementById('pfTahun').value=p.tahun;document.getElementById('pfTarget').value=p.target;
+  document.getElementById('pfUnit').value=p.unit||'';document.getElementById('pfStatus').value=p.status;
+  document.getElementById('pfMulai').value=p.mulai||'';document.getElementById('pfDeadline').value=p.deadline||'';
+  document.getElementById('pfDesc').value=p.deskripsi||'';document.getElementById('pfWajibFoto').value=p.wajibFoto?'1':'0';
+  document.getElementById('pForm').scrollIntoView({behavior:'smooth'});
+}
+async function saveProgram(){
+  const j={nama:document.getElementById('pfNama').value.trim(),bidang:document.getElementById('pfBidang').value,
+    tahun:+document.getElementById('pfTahun').value,target:+document.getElementById('pfTarget').value||0,
+    unit:document.getElementById('pfUnit').value.trim()||'sampel/BS',status:document.getElementById('pfStatus').value,
+    mulai:document.getElementById('pfMulai').value,deadline:document.getElementById('pfDeadline').value,
+    deskripsi:document.getElementById('pfDesc').value.trim(),wajibFoto:document.getElementById('pfWajibFoto').value==='1'};
+  if(!j.nama){toast('⚠️ Nama program wajib diisi');return;}
+  if(editPid)j.id=editPid;
+  const r=await api('/api/program',{method:'POST',body:JSON.stringify(j)});
+  if(!r.ok){toast('❌ '+(r.msg||'gagal'));return;}
+  D=await api('/api/data');drawAll();resetPForm();
+  toast(editPid?'✅ Program diperbarui':'🎉 Program baru dibuat — tugaskan mitra di tab Program');
+}
+async function delProgram(id){const p=D.programs.find(x=>x.id===id);
+  if(!confirm('Hapus program "'+(p?p.nama:id)+'" beserta penugasan & laporannya?'))return;
+  const r=await api('/api/program',{method:'POST',body:JSON.stringify({del:id})});
+  if(!r.ok){toast('❌ '+(r.msg||'gagal'));return;}
+  D=await api('/api/data');drawAll();toast('🗑 Program dihapus');}
+
+/* ===== SETTINGS ===== */
+async function saveMeta(){
+  const r=await api('/api/meta',{method:'POST',body:JSON.stringify({
+    instansi:document.getElementById('setInst').value.trim(),unit:document.getElementById('setUnit').value.trim(),
+    tahun:+document.getElementById('setTahun').value})});
+  if(!r.ok){toast('❌ gagal');return;}
+  D=await api('/api/data');document.getElementById('progYear').textContent='Tahun '+D.meta.tahun;
+  drawAll();toast('✅ Tersimpan');
+}
+if(TOKEN)boot().catch(()=>{TOKEN='';localStorage.removeItem('bps_token');});
+</script>
+</body>
+</html>

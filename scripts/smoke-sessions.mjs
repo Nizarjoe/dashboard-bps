@@ -65,10 +65,12 @@ async function unit() {
 
   const constants = await (await mod.dispatch(req('https://pages.example/api/constants'), env)).json();
   if (!Array.isArray(constants.kabupaten) || constants.kabupaten.length !== 35) fail('constants tidak lengkap');
-  const pending = await mod.dispatch(req('https://pages.example/api/sheet/panen'), env);
+  const pending = await mod.dispatch(req('https://pages.example/api/sheet/panen', {
+    headers: { authorization: 'Bearer ' + session.token },
+  }), env);
   const pendingBody = await pending.json();
-  if (pending.status !== 501 || !String(pendingBody.error).includes('belum dipindahkan')) {
-    fail('rute belum dipindah harus 501, dapat ' + pending.status);
+  if (pending.status !== 503 || !/D1/i.test(String(pendingBody.error))) {
+    fail('tanpa D1 harus 503, dapat ' + pending.status + ' ' + JSON.stringify(pendingBody));
   }
 
   const d1 = {
@@ -188,7 +190,7 @@ async function pagesDev() {
     const constants = await (await fetch(base + '/api/constants')).json();
     if (constants.kabupaten?.length !== 35) fail('constants wrangler gagal');
     const pending = await fetch(base + '/api/realisasi', { headers: { authorization: 'Bearer ' + session.token } });
-    if (pending.status !== 501) fail('realisasi harus 501, dapat ' + pending.status + '\n' + child.trace());
+    if (pending.status !== 503) fail('realisasi tanpa migrasi harus 503, dapat ' + pending.status + '\n' + child.trace());
 
     await stop(child);
     child = startWrangler();

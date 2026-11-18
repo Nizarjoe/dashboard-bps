@@ -14,13 +14,16 @@ export async function lookupUser(env, kode) {
       const row = await env.DB.prepare(
         'SELECT kode, nama, role, password FROM users WHERE kode = ?1'
       ).bind(kode).first();
-      if (!row) return null;
-      return {
-        kode: String(row.kode),
-        nama: String(row.nama || row.kode),
-        role: String(row.role || 'kab'),
-        password: row.password == null ? kode : String(row.password),
-      };
+      if (row) {
+        return {
+          kode: String(row.kode),
+          nama: String(row.nama || row.kode),
+          role: String(row.role || 'kab'),
+          password: row.password == null ? kode : String(row.password),
+        };
+      }
+      const count = await env.DB.prepare('SELECT COUNT(*) AS n FROM users').first();
+      if (count && Number(count.n) > 0) return null;
     } catch (e) {
       const msg = String(e && e.message || e);
       if (!/no such table/i.test(msg)) throw e;

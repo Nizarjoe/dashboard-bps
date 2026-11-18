@@ -1,0 +1,40 @@
+{
+  "users": {
+    "3305": { "p": "3305", "nama": "KEBUMEN", "role": "kab" },
+    "3301": { "p": "3301", "nama": "CILACAP", "role": "kab" },
+    "0000": { "p": "0000", "nama": "Admin Provinsi", "role": "admin" },
+    "9999": { "p": "9999", "nama": "Superadmin", "role": "superadmin" }
+  },
+  "target": {
+    "kering": { "3301": { "t": 128, "r": 54 }, "3305": { "t": 10, "r": 4 } },
+    "kering2": { "3301": { "t": 128, "r": 47 }, "3305": { "t": 10, "r": 3 } },
+    "giling": { "3301": { "t": 35, "r": 16 }, "3305": { "t": 5, "r": 1 } }
+  },
+  "panen": [
+    { "id": "330501A1", "kdkab": "3305", "jenis": "Utama", "april": "1", "mei": "2", "juni": "3", "pengganti": "", "utp": "A", "hp": "-" },
+    { "id": "330101A1", "kdkab": "3301", "jenis": "Cadangan", "april": "1", "mei": "2", "juni": "3", "pengganti": "", "utp": "B", "hp": "-", "status": "Eligible" }
+  ],
+  "utker": [
+    { "kdkab": "3305", "idsub": "330501U1", "status": "Eligible", "probable": "", "pengganti": "" },
+    { "kdkab": "3305", "idsub": "330501C1", "status": "Eligible", "probable": "", "pengganti": "" },
+    { "kdkab": "3301", "idsub": "330101U1", "status": "Eligible", "probable": "", "pengganti": "" }
+  ],
+  "utgil": [
+    { "kdkab": "3305", "idsub": "G1", "jenis": "Utama", "status": "Eligible", "pengganti": "" }
+  ],
+  "ksaMei": [
+    { "idseg": "1", "subseg": "A", "id_subsegmen": "330501A1", "nama": "X", "feb": "1", "mar": "1", "april": "1", "mei": "1", "petak": "Tidak Ada" }
+  ],
+  "ksaJuni": [],
+  "kering1": [
+    { "kab": "3305", "petugas": "P", "jenis": "Utama", "id": "330501U1", "hasil": "1. Berhasil diwawancarai", "tgl1": "", "lok1": "", "w305a": "", "w305b": "", "w305c": "" }
+  ],
+  "panen33": [
+    { "kab": "3305", "petugas": "P", "jenis": "Utama", "id": "330501A1", "hasil": "2. Sudah Panen", "petak": "1. Ya", "perk": "", "pemanen": "1. Dipanen sendiri (tidak ditebaskan)", "hp2": "", "lok": "", "cat": "" }
+  ],
+  "direktori": [
+    { "kab": "3305", "jenis": "UTAMA", "nama": "Giling A", "telp": "081", "skala": "Kecil" }
+  ],
+  "penggantiGiling": [],
+  "gilingInput": []
+}

@@ -270,7 +270,7 @@ async function pgDashboard(){
 
 async function pgPeta(){
   const rl=await api('/api/realisasi');
-  const val=r=>({ku:r.rK,kc:r.rK,kt1:r.rK,kt2:r.rK2,kg:r.rG}[S.layer]||0);
+  const val=r=>({ku:r.ku??r.rK,kc:r.kc??r.rK,kt1:r.rK,kt2:r.rK2,kg:r.rG}[S.layer]||0);
   const max=Math.max(...rl.rows.map(val),1);
   const tot=rl.total;
   let html=`<h1>PETA JAWA TENGAH</h1><div class="sub">Choropleth gradasi hijau — sebaran data SKGB per kabupaten/kota. <span class="badge b-g">LIVE</span></div>
@@ -308,7 +308,7 @@ async function drawMap(){
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(S.map);
   let gj;try{gj=await loadJatengGeo()}catch(e){gj=null}
   const rl=await api('/api/realisasi');
-  const val=r=>({ku:r.rK,kc:r.rK,kt1:r.rK,kt2:r.rK2,kg:r.rG}[S.layer]||0);
+  const val=r=>({ku:r.ku??r.rK,kc:r.kc??r.rK,kt1:r.rK,kt2:r.rK2,kg:r.rG}[S.layer]||0);
   const max=Math.max(...rl.rows.map(val),1);
   if(gj&&gj.features&&gj.features.length){
     L.geoJSON(gj,{style:f=>{
@@ -491,12 +491,13 @@ async function pgMapping(jenis){ // jenis 'k' or 'g'
 }
 
 async function pgPengeringan(tahap){
-  const [kering,utker]=await Promise.all([sheet('kering1'),sheet('utker')]);
+  const sheetName=tahap===2?'kering2':'kering1';
+  const [kering,utker]=await Promise.all([sheet(sheetName),sheet('utker')]);
   const view=S.tab['peng'+tahap]||'form';
   const isT1=tahap===1;
   const judul=isT1?'PENGERINGAN — KUNJUNGAN 1 (SAAT PANEN)':'PENGERINGAN — KUNJUNGAN 2 (AKHIR)';
   let html=`<h1>PENGERINGAN</h1><div class="sub">Input data pengeringan tahap ${tahap} ${isT1?'(saat panen)':'(akhir)'}.</div>
-  <div class="tabs"><button class="${view==='form'?'on':''}" onclick="S.tab['peng${tahap}']='form';render()">ENTRY FORM</button><button class="${view==='tbl'?'on':''}" onclick="S.tab['peng${tahap}']='tbl';render()">LIHAT TABEL <span class="badge b-g" style="margin-left:4px">LIVE SYNC: KERING1</span></button></div>`;
+  <div class="tabs"><button class="${view==='form'?'on':''}" onclick="S.tab['peng${tahap}']='form';render()">ENTRY FORM</button><button class="${view==='tbl'?'on':''}" onclick="S.tab['peng${tahap}']='tbl';render()">LIHAT TABEL <span class="badge b-g" style="margin-left:4px">LIVE SYNC: ${sheetName.toUpperCase()}</span></button></div>`;
   if(view==='form'){
     const jenis=S.tab['js'+tahap]||'';
     const ids=utker.data.filter(r=>r.status==='Eligible'&&(!S.user.role||S.user.role!=='kab'||r.kdkab===S.user.kode));
@@ -517,8 +518,9 @@ async function pgPengeringan(tahap){
     window.submitKering=async t=>{
       if(!p_id.value||!p_h.value||!p_pt.value)return toast('Lengkapi field wajib');
       const ok=p_h.value===CONST.hasilPencacahan[0];
-      const j=await api('/api/sheet/kering1',{method:'POST',body:JSON.stringify({action:'submit',data:{kab:S.user.kode,petugas:p_pt.value,jenis:p_js.value,id:p_id.value,hasil:p_h.value,tgl1:ok?p_tgl.value:'',lok1:ok?p_lok.value:'',w305a:ok?p_a.value:'',w305b:ok?p_b.value:'',w305c:ok?p_cc.value:''}})});
-      if(j.success){toast('Terkirim ke KERING1 ✓');render()}else toast('Gagal: '+(j.error||j.message));
+      const name=t===2?'kering2':'kering1';
+      const j=await api('/api/sheet/'+name,{method:'POST',body:JSON.stringify({action:'submit',data:{kab:S.user.kode,petugas:p_pt.value,jenis:p_js.value,id:p_id.value,hasil:p_h.value,tgl1:ok?p_tgl.value:'',lok1:ok?p_lok.value:'',w305a:ok?p_a.value:'',w305b:ok?p_b.value:'',w305c:ok?p_cc.value:''}})});
+      if(j.success){toast('Terkirim ke '+name.toUpperCase()+' ✓');render()}else toast('Gagal: '+(j.error||j.message));
     };
   }else{
     const rows=kering.data.filter(r=>S.user.role==='kab'?r.kab===S.user.kode:true);

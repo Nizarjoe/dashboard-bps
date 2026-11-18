@@ -1,10 +1,10 @@
 # SINTA PADI — Sistem Informasi SKGB Jawa Tengah
 
-Dashboard kabupaten/kota se-Jawa Tengah. Frontend statis di `public/` (hasil build di `dist/`). API berjalan di Cloudflare Pages lewat `dist/_worker.js`, dengan sesi di KV.
+Dashboard kabupaten/kota se-Jawa Tengah. Halaman statis di `public/` dibangun ke `dist/`. API berjalan di Cloudflare Pages lewat `dist/_worker.js`.
 
 ## Login
 
-Password sama dengan kode pengguna. Tidak ada ubah password.
+Password sama dengan kode. Tidak ada ubah password.
 
 | Peran | Kode | Password |
 |---|---|---|
@@ -16,41 +16,69 @@ Password sama dengan kode pengguna. Tidak ada ubah password.
 
 ```bash
 npm run build          # dist/ statis saja
-npm run build:worker   # dist/ + dist/_worker.js (API dan halaman)
-npm test               # build frontend + server Node + proxy cadangan
-npm run test:sessions  # login KV lewat wrangler pages dev, termasuk restart proses
+npm run build:worker   # dist/ + dist/_worker.js
+npm test               # build frontend, server Node, proxy cadangan
+npm run test:sessions  # login KV, termasuk setelah proses baru
+npm run test:api       # D1, tulis/baca, kering2, unggah R2, unduh
+node server.js         # API lama di port 8200 (data/db.json). Env PORT mengubah port.
 ```
 
-`node server.js` (port 8200, ubah lewat `PORT`) masih melayani data dari `data/db.json` untuk pengembangan lokal. Jangan unggah `data/` atau `uploads/`.
+`node server.js` tetap ada untuk pengembangan lokal. Jangan menambah berkas baru di `data/` atau `uploads/` ke git.
 
-## Cloudflare
+## Binding
 
-Sumber daya yang dipakai milestone sesi:
-
-| Binding | Jenis | ID |
+| Binding | Jenis | Nilai |
 |---|---|---|
-| `SESSIONS` | KV | `3b0c0af482734b8ba8710a5f60412ae5` (preview, sudah terpasang) |
+| `SESSIONS` | Workers KV | `3b0c0af482734b8ba8710a5f60412ae5` (preview, sudah terpasang) |
+| `DB` | D1 | nama `sinta-padi`. `database_id` di `wrangler.toml` masih placeholder |
+| `UPLOADS` | R2 | bucket `sinta-padi-uploads` |
 
-Buat atau samakan binding production dengan nama **`SESSIONS`**. `wrangler pages dev` memakai KV lokal (Miniflare), bukan namespace remote.
+`wrangler pages dev` memakai simulasi lokal (Miniflare), bukan sumber daya remote.
 
-Langkah unggah advanced mode (satu berkas `_worker.js`, tanpa `wrangler login`):
+R2 di akun Cloudflare biasanya meminta metode pembayaran meskipun kuotanya gratis. Bila binding `UPLOADS` tidak ada, berkas sampai 200 KB disimpan di KV `SESSIONS` dengan awalan `up:`. Berkas yang lebih besar membalas 503 dan menjelaskan bahwa R2 belum terpasang.
 
-1. `npm run build:worker`
-2. Unggah isi `dist/` sebagai output Pages. Berkas `dist/_worker.js` mengambil alih semua permintaan. `/api/*` ditangani skrip itu. Selain itu diteruskan ke aset statis (`env.ASSETS`), termasuk fallback SPA di `_redirects`.
-3. Di Pages → Settings → Bindings, pasang KV `SESSIONS` pada production dan preview.
-4. Perintah build di Git, bila dipakai: `npm run build:worker`. Direktori output: `dist`.
+Cache Google Sheet (5 menit) memakai KV `SESSIONS` dengan awalan `gs:`.
 
-Bila binding `SESSIONS` tidak ada, `/api/*` kembali diteruskan ke variabel `API_ORIGIN` (server Node). Tanpa keduanya, responsnya 503.
+## Pasang di Pages
 
-Sesi disimpan di KV dengan kunci `sess:` + token Bearer (48 karakter hex) dan TTL 7 hari. Token yang sama tetap berlaku setelah proses atau deploy baru, sampai logout atau TTL habis. Logout frontend memanggil `POST /api/logout`.
+Perintah build: `npm run build:worker`. Direktori keluaran: `dist`. Node 20.
 
-`GET /api/constants` ikut tersedia karena layar pertama membutuhkannya dan datanya statis. Rute data lain yang ada di `server.js` membalas **501** dengan pesan `Endpoint ini belum dipindahkan ke Cloudflare Pages.` sampai pemindahan D1 selesai.
+`dist/_worker.js` adalah Pages advanced mode. Ia menangani `/api/*` dan meneruskan permintaan lain ke `env.ASSETS` (termasuk fallback SPA di `_redirects`). Folder `functions/` diabaikan selama `_worker.js` ada di keluaran.
 
-## Rute sesi
+1. Buat database: `npx wrangler d1 create sinta-padi`. Salin `database_id` ke `wrangler.toml` (binding `DB`).
+2. Terapkan skema ke remote: `npx wrangler d1 migrations apply sinta-padi --remote`.
+3. Impor data yang sudah ada:
 
-| Metode | Path | Auth | Hasil |
-|---|---|---|---|
-| POST | `/api/login` | tidak | `{ok, token, user}` atau 401 |
-| GET | `/api/me` | Bearer | `{user}` atau 401 `Belum login` |
-| POST atau DELETE | `/api/logout` | Bearer | `{ok:true}` lalu token dihapus dari KV |
-| GET | `/api/constants` | tidak | daftar kabupaten dan pilihan formulir |
+```bash
+node scripts/import-db-sql.mjs data/db.json > /tmp/sinta-padi.sql
+npx wrangler d1 execute sinta-padi --remote --file /tmp/sinta-padi.sql
+```
+
+Impor mengosongkan `users`, `target`, dan `sheet_row`, lalu mengisi ulang. Metadata unggahan tidak dihapus. Jangan meng-commit berkas SQL itu.
+
+4. Buat bucket R2 `sinta-padi-uploads` bila akun mengizinkan, lalu pasang binding `UPLOADS`.
+5. Di Pages → Settings → Bindings, pasang `SESSIONS`, `DB`, dan `UPLOADS` pada production dan preview. Nama binding harus persis.
+6. Unggah isi `dist/` (termasuk `_worker.js`).
+
+Lokal:
+
+```bash
+npx wrangler d1 migrations apply sinta-padi --local
+node scripts/import-db-sql.mjs data/db.json > /tmp/sinta-padi.sql
+npx wrangler d1 execute sinta-padi --local --file /tmp/sinta-padi.sql
+npx wrangler pages dev dist
+```
+
+Bila binding `SESSIONS` tidak ada, `/api/*` diteruskan ke `API_ORIGIN` (server Node). Tanpa keduanya, responsnya 503.
+
+## Sesi
+
+Token Bearer 48 karakter hex, kunci KV `sess:…`, TTL 7 hari. Token yang sama tetap berlaku setelah proses atau deploy baru, sampai logout atau TTL habis. Logout di halaman memanggil `POST /api/logout`.
+
+Pengguna dibaca dari tabel D1 `users` bila tabel itu berisi data. Bila tabel belum ada atau masih kosong, login memakai seed statis yang dihasilkan dari daftar di `server.js` (`npm run seed`).
+
+## Peta dan pengeringan tahap 2
+
+`GET /api/realisasi` tetap mengembalikan `tK`, `rK`, `tK2`, `rK2`, `tG`, `rG`. `tK2` sama dengan realisasi tahap 2, mengikuti `server.js`. Tiap baris kini juga punya `ku` dan `kc`: jumlah sampel kering eligible utama dan cadangan di kabupaten itu (pola id `C` + angka, sama seperti KPI). Peta memakai kedua angka itu. Parameter `?kab=3305` mempersempit baris dan total; UI peta belum punya dropdown filter.
+
+Kunjungan pengeringan ke-2 menulis dan membaca `/api/sheet/kering2`, terpisah dari `kering1`. Bentuk isiannya sama. Halaman anomali kering tetap membaca `kering1`.

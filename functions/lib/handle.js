@@ -1,24 +1,9 @@
 import { CONSTANTS } from './constants.js';
-import { json } from './http.js';
+import { json, bearer } from './http.js';
 import { proxyRequest } from './proxy.js';
 import { login, logout, me } from './auth.js';
-
-const UNPORTED = new Set([
-  'GET /api/realisasi',
-  'GET /api/kpi',
-  'GET /api/gsheets',
-  'GET /api/gsheet',
-  'GET /api/ksa-rekap',
-  'GET /api/monitoring-gc',
-  'GET /api/users',
-  'POST /api/users',
-]);
-
-function isUnported(method, path) {
-  if (UNPORTED.has(method + ' ' + path)) return true;
-  if ((method === 'GET' || method === 'POST') && /^\/api\/sheet\/[^/]+$/.test(path)) return true;
-  return false;
-}
+import { getSession } from './session.js';
+import { routeAuthed } from './routes.js';
 
 export async function handleApi(request, env) {
   const url = new URL(request.url);
@@ -30,18 +15,16 @@ export async function handleApi(request, env) {
     if (path === '/api/me' && method === 'GET') return await me(request, env);
     if (path === '/api/constants' && method === 'GET') return json(200, CONSTANTS);
     if (!path.startsWith('/api/')) return json(404, { error: 'Not found' });
-    if (isUnported(method, path)) {
-      return json(501, { error: 'Endpoint ini belum dipindahkan ke Cloudflare Pages.' });
-    }
-    return json(404, { error: 'Not found' });
+    const session = await getSession(env.SESSIONS, bearer(request));
+    if (!session) return json(401, { error: 'Belum login' });
+    return await routeAuthed(request, env, session, path, method, url);
   } catch (e) {
-    console.error(JSON.stringify({
-      level: 'error',
-      path,
-      method,
-      message: String(e && e.message || e),
-    }));
-    return json(500, { error: String(e && e.message || e) });
+    const message = String(e && e.message || e);
+    if (/no such table/i.test(message)) {
+      return json(503, { error: 'Tabel D1 belum ada. Terapkan migrasi di folder migrations/.' });
+    }
+    console.error(JSON.stringify({ level: 'error', path, method, message }));
+    return json(500, { error: message });
   }
 }
 

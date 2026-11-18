@@ -196,7 +196,10 @@ function renderLogin(){
 }
 
 /* ====== LAYOUT ====== */
-function logout(){localStorage.removeItem('sp_user');S.user=null;render()}
+async function logout(){
+  try{ if(S.user&&S.user.token) await api('/api/logout',{method:'POST',body:'{}'}); }catch(e){}
+  localStorage.removeItem('sp_user');S.user=null;render();
+}
 function layout(content){
   const u=S.user;
   return `<div class="sb ${S.sbmin?'min':''}" id="sb">

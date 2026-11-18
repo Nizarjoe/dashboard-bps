@@ -1,22 +1,38 @@
-# Cloudflare Pages — frontend statis SINTA PADI.
+# Cloudflare Pages — SINTA PADI.
 # Bukan Worker Next.js dan bukan @opennextjs/cloudflare.
-# server.js tetap di host Node terpisah. Jangan unggah data/ atau uploads/.
+#
+# Deploy advanced mode memakai dist/_worker.js (npm run build:worker).
+# Folder functions/ tetap ada untuk wrangler pages dev tanpa bundel,
+# dan diabaikan Pages bila dist/_worker.js ikut terunggah.
 #
 # Dashboard Pages:
 #   Framework preset : None
-#   Build command    : npm run build
+#   Build command    : npm run build:worker
 #   Output directory : dist
 #   Root directory   : /
 #   Node.js version  : 20
 #
-# Variabel runtime (Pages → Settings → Environment variables):
-#   API_ORIGIN = origin publik server Node, tanpa slash akhir
-# Variabel build, opsional:
-#   API_BASE   = kosong
-#
-# Folder functions/ di root repo dipakai Git integration.
-# wrangler pages deploy dijalankan dari root repo ini, bukan dari dalam dist/.
+# Binding (nama harus persis seperti ini):
+#   SESSIONS  KV   sesi login. Namespace preview yang sudah ada:
+#                  3b0c0af482734b8ba8710a5f60412ae5
+# Lokal `wrangler pages dev` memakai simulasi KV di .wrangler/state,
+# bukan namespace remote, kecuali remote = true.
 
 name = "dashboard-bps"
-compatibility_date = "2026-11-16"
+compatibility_date = "2026-11-18"
 pages_build_output_dir = "./dist"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 1
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "3b0c0af482734b8ba8710a5f60412ae5"

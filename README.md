@@ -1,44 +1,56 @@
-# Dashboard Monitoring Produksi 3305 — BPS Kebumen
+# SINTA PADI — Sistem Informasi SKGB Jawa Tengah
 
-Reinkarnasi profesional Google Sites "Monitoring Produksi 3305" (Tim Statistik Produksi, BPS Kabupaten Kebumen) menjadi dashboard web production-ready.
+Dashboard kabupaten/kota se-Jawa Tengah. Frontend statis di `public/` (hasil build di `dist/`). API berjalan di Cloudflare Pages lewat `dist/_worker.js`, dengan sesi di KV.
 
-## Menjalankan
+## Login
+
+Password sama dengan kode pengguna. Tidak ada ubah password.
+
+| Peran | Kode | Password |
+|---|---|---|
+| Kabupaten/kota | kode BPS, contoh `3305` | sama dengan kode |
+| Admin provinsi | `0000` | `0000` |
+| Superadmin | `9999` | `9999` |
+
+## Perintah
 
 ```bash
-node server.js        # port 8200 (env PORT untuk ubah)
+npm run build          # dist/ statis saja
+npm run build:worker   # dist/ + dist/_worker.js (API dan halaman)
+npm test               # build frontend + server Node + proxy cadangan
+npm run test:sessions  # login KV lewat wrangler pages dev, termasuk restart proses
 ```
 
-- Dashboard: http://localhost:8200
-- API: /api/login, /api/me, /api/data, /api/survei, /api/progress, /api/users, /api/upload, /api/foto/delete, /api/meta, /api/export (CSV)
+`node server.js` (port 8200, ubah lewat `PORT`) masih melayani data dari `data/db.json` untuk pengembangan lokal. Jangan unggah `data/` atau `uploads/`.
 
-## Login (ganti password di data/db.json untuk produksi)
+## Cloudflare
 
-| Role | Username | Password | Hak |
+Sumber daya yang dipakai milestone sesi:
+
+| Binding | Jenis | ID |
+|---|---|---|
+| `SESSIONS` | KV | `3b0c0af482734b8ba8710a5f60412ae5` (preview, sudah terpasang) |
+
+Buat atau samakan binding production dengan nama **`SESSIONS`**. `wrangler pages dev` memakai KV lokal (Miniflare), bukan namespace remote.
+
+Langkah unggah advanced mode (satu berkas `_worker.js`, tanpa `wrangler login`):
+
+1. `npm run build:worker`
+2. Unggah isi `dist/` sebagai output Pages. Berkas `dist/_worker.js` mengambil alih semua permintaan. `/api/*` ditangani skrip itu. Selain itu diteruskan ke aset statis (`env.ASSETS`), termasuk fallback SPA di `_redirects`.
+3. Di Pages → Settings → Bindings, pasang KV `SESSIONS` pada production dan preview.
+4. Perintah build di Git, bila dipakai: `npm run build:worker`. Direktori output: `dist`.
+
+Bila binding `SESSIONS` tidak ada, `/api/*` kembali diteruskan ke variabel `API_ORIGIN` (server Node). Tanpa keduanya, responsnya 503.
+
+Sesi disimpan di KV dengan kunci `sess:` + token Bearer (48 karakter hex) dan TTL 7 hari. Token yang sama tetap berlaku setelah proses atau deploy baru, sampai logout atau TTL habis. Logout frontend memanggil `POST /api/logout`.
+
+`GET /api/constants` ikut tersedia karena layar pertama membutuhkannya dan datanya statis. Rute data lain yang ada di `server.js` membalas **501** dengan pesan `Endpoint ini belum dipindahkan ke Cloudflare Pages.` sampai pemindahan D1 selesai.
+
+## Rute sesi
+
+| Metode | Path | Auth | Hasil |
 |---|---|---|---|
-| Superadmin | superadmin | bps3305 | Semua + kelola pengguna |
-| Admin | admin | bps3305 | Kelola survei, upload/hapus foto, aktivitas, pengaturan |
-| Mitra BPS | mitra | mitra3305 | Lihat dashboard + update progres + upload foto |
-
-## Fitur (mengikuti situs Google Sites asli)
-
-- 3 bidang: Statistik Tanaman Pangan, INPEK, Horti/Perkebunan/Peternakan/Perikanan — 27 survei seed (KSA, Ubinan SR1-3, SKJG, SKGB, IMK, DPA/STPIM/IBSTR, Galian URT/BH, Konstruksi, SPT, SKP, Komstrat, VIP Horti, DPP DUTL)
-- Progres real-time per survei (target vs selesai, persen, status Belum Mulai/Berjalan/Selesai)
-- Link Google Sheet monitoring & Google Form per survei (dikelola admin, persis seperti situs lama)
-- Upload foto dokumentasi survei (magic-byte validation, maks 5 MB) menggantikan Google Form upload foto
-- KPI dashboard: total survei, progres keseluruhan, perlu perhatian, dokumentasi
-- Log aktivitas, manajemen pengguna (superadmin), export CSV rekap, pengaturan instansi
-
-## Teknis
-
-Node http murni tanpa dependensi; data di `data/db.json`; upload di `uploads/`. Auth token Bearer in-memory (SESS).
-
-
-## Revisi v2
-- Semua laporan progres langsung di website (tanpa Google Form/Sheet) — link eksternal dihapus
-- Mitra mobile-first (bottom nav + drawer); admin desktop (sidebar) & mobile sama-sama nyaman
-- Upload foto per nama mitra: nama file `foto_<mitra>_<ts>_<rand>.ext`, filter galeri per mitra & program
-- Dashboard progres setiap mitra di setiap program (tabel + filter + pencarian + peringkat mitra)
-- Impor mitra Excel/CSV (`/api/template.xlsx` template resmi): mitra baru + penugasan otomatis terintegrasi (login, lapor, upload)
-- Desain sidebar profesional mengikuti referensi (hero biru + KPI + quick actions + peringkat)
-- Superadmin kelola program penuh (nama, bidang, target, satuan, tenggat, wajib foto, status)
-- Verifikasi laporan oleh admin; aktivitas tercatat; bahasa Indonesia penuh
+| POST | `/api/login` | tidak | `{ok, token, user}` atau 401 |
+| GET | `/api/me` | Bearer | `{user}` atau 401 `Belum login` |
+| POST atau DELETE | `/api/logout` | Bearer | `{ok:true}` lalu token dihapus dari KV |
+| GET | `/api/constants` | tidak | daftar kabupaten dan pilihan formulir |

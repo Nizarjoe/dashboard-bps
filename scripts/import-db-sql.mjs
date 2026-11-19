@@ -26,9 +26,10 @@ function sqlText(value) {
   return "CAST(X'" + Buffer.from(String(value), 'utf8').toString('hex') + "' AS TEXT)";
 }
 
-function sqlInt(value) {
+function sqlInt(value, nullable) {
+  if (value == null || value === '') return nullable ? 'NULL' : '0';
   const n = Number(value);
-  if (!Number.isFinite(n)) return '0';
+  if (!Number.isFinite(n)) return nullable ? 'NULL' : '0';
   return String(Math.trunc(n));
 }
 
@@ -63,7 +64,7 @@ for (const [src, sheet] of Object.entries(SHEET)) {
     const d = derive(row);
     return '(' + [
       sqlText(sheet), sqlText(d.kab), sqlText(d.rowKey), sqlText(d.jenis), sqlText(d.status),
-      sqlInt(d.cadangan), sqlText(d.hasil), sqlText(d.petak), sqlText(d.pemanen), sqlText(JSON.stringify(row)),
+      sqlInt(d.cadangan, true), sqlText(d.hasil), sqlText(d.petak), sqlText(d.pemanen), sqlText(JSON.stringify(row)),
     ].join(',') + ')';
   });
   for (let i = 0; i < values.length; i += 40) {

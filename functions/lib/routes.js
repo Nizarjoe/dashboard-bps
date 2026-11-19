@@ -17,10 +17,10 @@ export async function routeAuthed(request, env, me, path, method, url) {
   const dbErr = needDb(env);
   if (dbErr) return dbErr;
 
-  if (path === '/api/realisasi' && method === 'GET') return realisasi(url, env);
+  if (path === '/api/realisasi' && method === 'GET') return realisasi(url, env, me);
   if (path === '/api/kpi' && method === 'GET') return kpi(env);
   if (path === '/api/ksa-rekap' && method === 'GET') return ksaRekap(url, env, me);
-  if (path === '/api/monitoring-gc' && method === 'GET') return monitoringGc(url, env);
+  if (path === '/api/monitoring-gc' && method === 'GET') return monitoringGc(url, env, me);
   if (path === '/api/users' && method === 'GET') return listUsers(env, me);
   if (path === '/api/users' && method === 'POST') return createUser(request, env, me);
   if (path === '/api/upload' && method === 'POST') return upload(request, env, me);
@@ -30,7 +30,7 @@ export async function routeAuthed(request, env, me, path, method, url) {
   if (sheet && method === 'POST') return postSheet(request, env, me, sheet[1]);
 
   const file = path.match(/^\/api\/file\/([^/]+)$/);
-  if (file && method === 'GET') return download(env, file[1]);
+  if (file && method === 'GET') return download(env, me, file[1]);
   if (file && method === 'DELETE') return removeFile(env, me, file[1]);
 
   return json(404, { error: 'Not found' });

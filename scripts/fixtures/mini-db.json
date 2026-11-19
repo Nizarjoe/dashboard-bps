@@ -17,7 +17,9 @@
   "utker": [
     { "kdkab": "3305", "idsub": "330501U1", "status": "Eligible", "probable": "", "pengganti": "" },
     { "kdkab": "3305", "idsub": "330501C1", "status": "Eligible", "probable": "", "pengganti": "" },
-    { "kdkab": "3301", "idsub": "330101U1", "status": "Eligible", "probable": "", "pengganti": "" }
+    { "kdkab": "3305", "jenis": "Cadangan", "status": "Eligible", "probable": "", "pengganti": "" },
+    { "kdkab": "3301", "idsub": "330101U1", "status": "Eligible", "probable": "", "pengganti": "" },
+    { "kdkab": "3301", "idsub": "330101U2", "jenis": "Cadangan", "status": "Eligible", "probable": "", "pengganti": "" }
   ],
   "utgil": [
     { "kdkab": "3305", "idsub": "G1", "jenis": "Utama", "status": "Eligible", "pengganti": "" }

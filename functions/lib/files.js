@@ -77,13 +77,14 @@ export async function upload(request, env, me) {
   return json(200, { ok: true, file: key, url: '/api/file/' + key, backend });
 }
 
-export async function download(env, rawKey) {
+export async function download(env, me, rawKey) {
   const key = safeKey(rawKey);
   if (!key) return json(404, { error: 'Not found' });
   const meta = await env.DB.prepare(
     'SELECT key, mime, size, kode, backend FROM upload WHERE key = ?1'
   ).bind(key).first();
   if (!meta) return json(404, { error: 'Berkas tidak ditemukan' });
+  if (me.role === 'kab' && meta.kode !== me.kode) return json(403, { error: 'Akses kabupaten lain ditolak' });
   const body = await getBlob(env, key, meta.backend);
   if (!body) return json(404, { error: 'Berkas tidak ditemukan' });
   const headers = {

@@ -48,9 +48,7 @@ export async function login(request, env) {
 
 export async function logout(request, env) {
   const token = bearer(request);
-  const session = await getSession(env.SESSIONS, token);
-  if (!session) return json(401, { error: 'Belum login' });
-  await deleteSession(env.SESSIONS, token);
+  if (token) await deleteSession(env.SESSIONS, token);
   return json(200, { ok: true });
 }
 

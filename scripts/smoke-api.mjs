@@ -97,6 +97,11 @@ async function counts(dir, label) {
 const csvMod = await import(pathToFileURL(path.join(root, 'functions', 'lib', 'gsheet.js')).href);
 const parsed = csvMod.parseCsv('a,"b,c",d\n1,"x""y",3\n');
 if (parsed[0].join('|') !== 'a|b,c|d' || parsed[1][1] !== 'x"y') fail('parser CSV meleset ' + JSON.stringify(parsed));
+const rowsMod = await import(pathToFileURL(path.join(root, 'functions', 'lib', 'rows.js')).href);
+if (rowsMod.isCadangan({ cadangan: 1, jenis: 'Utama' }) !== true) fail('flag 1 harus cadangan');
+if (rowsMod.isCadangan({ cadangan: 0, jenis: 'Cadangan' }) !== false) fail('flag 0 mengalahkan jenis');
+if (rowsMod.isCadangan({ cadangan: null, jenis: 'Cadangan' }) !== true) fail('flag kosong memakai jenis');
+if (rowsMod.isCadangan({ jenis: 'Utama' }) !== false) fail('tanpa flag dan bukan cadangan');
 console.log('parser csv ok');
 
 const files = await import(pathToFileURL(path.join(root, 'functions', 'lib', 'files.js')).href);
@@ -126,7 +131,7 @@ const kvEnv = { SESSIONS: new MemoryKV(), DB: memDb() };
 const small = await files.upload(new Request('https://x/api/upload', { method: 'POST', body: PNG }), kvEnv, { kode: '3305', role: 'kab' });
 const smallBody = await small.json();
 if (smallBody.backend !== 'kv') fail('cadangan KV gagal ' + JSON.stringify(smallBody));
-const got = Buffer.from(await (await files.download(kvEnv, smallBody.file)).arrayBuffer());
+const got = Buffer.from(await (await files.download(kvEnv, { kode: '3305', role: 'kab' }, smallBody.file)).arrayBuffer());
 if (!got.equals(PNG)) fail('unduh cadangan KV tidak sama');
 const big = new Uint8Array(201 * 1024);
 big.set(PNG);
@@ -171,15 +176,34 @@ try {
 
   const rl = await (await fetch(base + '/api/realisasi', { headers: auth(kab.token) })).json();
   const cil = rl.rows.find(r => r.kode === '3301');
-  if (!cil || cil.tK !== 128 || cil.rK !== 54 || cil.tK2 !== 47 || cil.rK2 !== 47 || cil.ku !== 1 || cil.kc !== 0) {
+  if (!cil || cil.tK !== 128 || cil.rK !== 54 || cil.tK2 !== 47 || cil.rK2 !== 47 || cil.ku !== 2 || cil.kc !== 0) {
     fail('realisasi 3301 ' + JSON.stringify(cil));
   }
   const keb = rl.rows.find(r => r.kode === '3305');
-  if (!keb || keb.ku !== 1 || keb.kc !== 1) fail('sampel utama/cadangan 3305 ' + JSON.stringify(keb));
+  if (!keb || keb.ku !== 1 || keb.kc !== 2) fail('sampel utama/cadangan 3305 ' + JSON.stringify(keb));
+  const sumKu = rl.rows.reduce((a, r) => a + r.ku, 0);
+  const sumKc = rl.rows.reduce((a, r) => a + r.kc, 0);
+  if (rl.total.ku !== sumKu || rl.total.kc !== sumKc) fail('total ku/kc ' + JSON.stringify(rl.total));
+
+  const hijack = await (await fetch(base + '/api/realisasi?kab=3301', { headers: auth(kab.token) })).json();
+  if (hijack.rows.some(r => r.kode === '3301' && r.nama === 'CILACAP' && hijack.rows.length === 1 && hijack.rows[0].kode === '3301')) {
+    fail('3305 mendapat Cilacap');
+  }
+  if (hijack.rows.length !== 1 || hijack.rows[0].kode !== '3305' || hijack.rows[0].nama === 'CILACAP') {
+    fail('?kab=3301 untuk 3305 harus dibatasi ke 3305: ' + JSON.stringify(hijack.rows));
+  }
+  if (hijack.total.ku !== hijack.rows[0].ku || hijack.total.kc !== hijack.rows[0].kc) fail('total filter tidak ikut ku/kc');
+
+  const sheetHijack = await (await fetch(base + '/api/sheet/panen?kab=3301', { headers: auth(kab.token) })).json();
+  if ((sheetHijack.data || []).some(r => r.kdkab === '3301')) fail('sheet 3305 membocorkan 3301');
+  const ksaHijack = await (await fetch(base + '/api/ksa-rekap?bulan=Mei&kab=3301', { headers: auth(kab.token) })).json();
+  if ((ksaHijack.rows || []).some(r => r.kab === '3301')) fail('rekap KSA membocorkan 3301');
+  const monHijack = await (await fetch(base + '/api/monitoring-gc?jenis=Utama&kab=3301', { headers: auth(kab.token) })).json();
+  if ((monHijack.rows || []).length !== 1 || monHijack.rows[0].kode !== '3305') fail('monitoring membocorkan kabupaten lain');
 
   const kpi = await (await fetch(base + '/api/kpi', { headers: auth(kab.token) })).json();
-  if (kpi.utamaKering !== 2 || kpi.cadanganKering !== 1 || kpi.utamaGiling !== 1 || kpi.keringT1 !== 1 || kpi.cadanganGiling !== 0) {
-    fail('kpi ' + JSON.stringify(kpi));
+  if (kpi.utamaKering !== sumKu || kpi.cadanganKering !== sumKc || kpi.utamaGiling !== 1 || kpi.keringT1 !== 1 || kpi.cadanganGiling !== 0) {
+    fail('kpi tidak sama dengan ku/kc ' + JSON.stringify(kpi) + ' ku=' + sumKu + ' kc=' + sumKc);
   }
 
   const panen = await (await fetch(base + '/api/sheet/panen', { headers: auth(kab.token) })).json();
@@ -187,6 +211,22 @@ try {
   const admin = await login('0000');
   const all = await (await fetch(base + '/api/sheet/panen', { headers: auth(admin.token) })).json();
   if (all.data.length !== 2) fail('admin harus melihat 2 panen, dapat ' + all.data.length);
+  const prov = await (await fetch(base + '/api/realisasi?kab=3301', { headers: auth(admin.token) })).json();
+  if (prov.rows.length !== 1 || prov.rows[0].kode !== '3301' || prov.rows[0].nama !== 'CILACAP') {
+    fail('admin harus boleh memfilter 3301: ' + JSON.stringify(prov.rows));
+  }
+  const paksa = await (await fetch(base + '/api/sheet/panen33', {
+    method: 'POST', headers: auth(kab.token),
+    body: JSON.stringify({ action: 'submit', data: { kab: '3301', petugas: 'P', jenis: 'Utama', id: 'X1', hasil: '1. Belum Panen' } }),
+  })).json();
+  if (!paksa.success) fail('submit paksa kab gagal ' + JSON.stringify(paksa));
+  const milik = await (await fetch(base + '/api/sheet/panen33', { headers: auth(kab.token) })).json();
+  if (!milik.data.some(r => r.id === 'X1' && r.kab === '3305')) fail('submit 3305 harus tersimpan sebagai 3305');
+  const ubahOrang = await fetch(base + '/api/sheet/panen', {
+    method: 'POST', headers: auth(kab.token),
+    body: JSON.stringify({ action: 'updateCell', matchValue: '330101A1', targetColumn: 'pengganti', value: 'CURI' }),
+  });
+  if (ubahOrang.status !== 403) fail('updateCell kabupaten lain harus 403, dapat ' + ubahOrang.status);
 
   const upd = await (await fetch(base + '/api/sheet/panen', {
     method: 'POST', headers: auth(kab.token),
@@ -227,6 +267,17 @@ try {
   if (file.status !== 200 || !bytes.equals(PNG)) fail('unduh berkas ' + file.status + ' ukuran ' + bytes.length);
   const anon = await fetch(base + upBody.url);
   if (anon.status !== 401) fail('unduh tanpa login harus 401, dapat ' + anon.status);
+  const lain = await login('3301');
+  const curi = await fetch(base + upBody.url, { headers: { authorization: 'Bearer ' + lain.token } });
+  if (curi.status !== 403) fail('unduh berkas kabupaten lain harus 403, dapat ' + curi.status);
+  const dead = await fetch(base + '/api/logout', { method: 'POST', headers: { authorization: 'Bearer ' + kab.token } });
+  const again = await fetch(base + '/api/logout', { method: 'POST', headers: { authorization: 'Bearer ' + kab.token } });
+  const junk = await fetch(base + '/api/logout', { method: 'POST', headers: { authorization: 'Bearer bukan-token' } });
+  if (dead.status !== 200 || again.status !== 200 || junk.status !== 200) {
+    fail('logout harus idempoten 200, dapat ' + dead.status + '/' + again.status + '/' + junk.status);
+  }
+  const after = await fetch(base + '/api/me', { headers: auth(kab.token) });
+  if (after.status !== 401) fail('sesi masih hidup setelah logout ' + after.status);
 
   const made = await (await fetch(base + '/api/users', {
     method: 'POST', headers: auth((await login('9999')).token),

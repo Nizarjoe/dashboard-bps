@@ -21,7 +21,7 @@ CREATE TABLE sheet_row (
   row_key TEXT NOT NULL DEFAULT '',
   jenis TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT '',
-  cadangan INTEGER NOT NULL DEFAULT 0,
+  cadangan INTEGER,
   hasil TEXT NOT NULL DEFAULT '',
   petak TEXT NOT NULL DEFAULT '',
   pemanen TEXT NOT NULL DEFAULT '',

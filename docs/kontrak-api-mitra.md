@@ -17,7 +17,7 @@ Arsitektur:
   - Nama baru ditambahkan di akhir, ID lama tidak bergeser.
   - Relasi mitra ke PML diambil dari pasangan PCL-PML di sheet. Kalau satu mitra punya beberapa PML, simpan semuanya; PML melihat sampel di mana dia tercatat sebagai PML.
   - Admin `3305`.
-  - Login dan `GET /api/me` membaca daftar akun dari KV (`akun:fresh` 5 menit, `akun:last` 7 hari). Kalau salinan segar habis tetapi last-good ada, keduanya langsung memakai last-good dan menyegarkan lewat `waitUntil`. Apps Script hanya ditunggu bila last-good kosong. Login mitra/PML mencocokkan ID pada last-good; kalau ID tidak ada di sana, baru satu sinkronisasi sinkron. `GET /api/me` pada salinan basi mengirim `stale:true`, `syncedAt`, dan `meta.stale:true`. Login admin tidak memanggil Apps Script.
+  - Login dan `GET /api/me` membaca daftar akun dari KV (`akun:fresh` 5 menit, `akun:last` 7 hari). Kalau salinan segar habis tetapi last-good ada, keduanya langsung memakai last-good dan menyegarkan lewat `waitUntil`. Apps Script hanya ditunggu bila last-good kosong. Login mitra/PML mencocokkan ID pada last-good. ID yang tidak ada di sana memicu paling banyak satu `syncAkun` sinkron per 60 detik (kunci KV `akun:sync-lock`); selama jendela itu ID yang sama jenisnya dijawab 401 tanpa sinkronisasi. Format selain `3305`, `3305` + 3 digit, atau `3305P` + 2 digit ditolak 401 tanpa Apps Script. `GET /api/me` pada salinan basi mengirim `stale:true`, `syncedAt`, dan `meta.stale:true`. Login admin tidak memanggil Apps Script.
   - Hapus superadmin, admin provinsi, dan 34 kabupaten lain.
 
 Konvensi:

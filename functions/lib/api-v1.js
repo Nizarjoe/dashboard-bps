@@ -249,6 +249,21 @@ async function requireUser(request, env) {
   return { user: session };
 }
 
+const AKUN_SYNC_LOCK = 'akun:sync-lock';
+const AKUN_SYNC_LOCK_TTL = 60;
+
+function idAkunValid(id) {
+  return id === '3305' || /^3305\d{3}$/.test(id) || /^3305P\d{2}$/.test(id);
+}
+
+async function claimAkunSync(env) {
+  const kv = env && env.SESSIONS;
+  if (!kv) return false;
+  if (await kv.get(AKUN_SYNC_LOCK)) return false;
+  await kv.put(AKUN_SYNC_LOCK, String(Date.now()), { expirationTtl: AKUN_SYNC_LOCK_TTL });
+  return true;
+}
+
 async function login(request, env, execCtx) {
   if (!env || !env.SESSIONS) return apiError(503, 'SOURCE_UNAVAILABLE', 'Penyimpanan sesi (KV SESSIONS) belum terpasang.');
   const body = await readJson(request);
@@ -264,20 +279,24 @@ async function login(request, env, execCtx) {
   }
   let found = null;
   let akunCache = null;
-  if (id === '3305') {
+  if (!idAkunValid(id)) {
+    found = null;
+  } else if (id === '3305') {
     found = { id: '3305', nama: 'ADMIN KEBUMEN', role: 'admin', aktif: true };
   } else {
     akunCache = await readAkunCache(env);
     if (!akunCache) {
-      try { akunCache = { list: await syncAkun(env), fresh: true }; }
-      catch (e) {
-        if (e && e.response) return e.response;
-        if (e && e.code === 'UPSTREAM_ERROR') return apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.');
-        throw e;
+      if (await claimAkunSync(env)) {
+        try { akunCache = { list: await syncAkun(env), fresh: true }; }
+        catch (e) {
+          if (e && e.response) return e.response;
+          if (e && e.code === 'UPSTREAM_ERROR') return apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.');
+          throw e;
+        }
       }
     }
-    found = (akunCache.list || []).find(a => a.id === id) || null;
-    if (!found && !akunCache.fresh) {
+    found = (akunCache && akunCache.list || []).find(a => a.id === id) || null;
+    if (!found && akunCache && !akunCache.fresh && await claimAkunSync(env)) {
       try {
         const list = await syncAkun(env);
         akunCache = { list, fresh: true };

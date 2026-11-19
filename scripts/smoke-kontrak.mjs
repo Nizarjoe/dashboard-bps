@@ -405,6 +405,12 @@ const meBasi = await call('/api/me', auth(loginCepat.r.json.token));
 if (meBasi.status !== 200 || meBasi.json.stale !== true || !meBasi.json.meta || meBasi.json.meta.stale !== true || !meBasi.json.syncedAt) {
   fail('me basi ' + JSON.stringify(meBasi.json));
 }
+const sebelumAsing = akunCalls;
+const idSalah = await call('/api/login', { method: 'POST', json: { id: '9999', password: '9999' } });
+const bentukSalah = await call('/api/login', { method: 'POST', json: { id: '3305P1', password: '3305P1' } });
+if (idSalah.status !== 401 || idSalah.json.error.code !== 'INVALID_CREDENTIALS' || bentukSalah.status !== 401 || akunCalls !== sebelumAsing) {
+  fail('ID tidak valid memanggil Apps Script ' + idSalah.status + ' ' + akunCalls);
+}
 const terakhir = JSON.parse(await kv.get('akun:last'));
 terakhir.akun = terakhir.akun.filter(a => a.id !== mitraA.id);
 await kv.put('akun:last', JSON.stringify(terakhir));
@@ -415,6 +421,11 @@ const loginMenunggu = await Promise.race([
   new Promise(resolve => setTimeout(() => resolve({ kind: 'timeout' }), 400)),
 ]);
 if (loginMenunggu.kind !== 'timeout') fail('login ID di luar last-good tidak menyinkronkan');
+const saatSync = akunCalls;
+const kedua = await call('/api/login', { method: 'POST', json: { id: '3305999', password: '3305999' } });
+if (kedua.status !== 401 || kedua.json.error.code !== 'INVALID_CREDENTIALS' || akunCalls !== saatSync) {
+  fail('sync ID tak dikenal terulang ' + kedua.status + ' ' + akunCalls);
+}
 lepasAkun();
 const loginSelesai = await loginBaru;
 if (loginSelesai.status !== 200 || loginSelesai.json.user.id !== mitraA.id) fail('sync satu kali ' + loginSelesai.status);

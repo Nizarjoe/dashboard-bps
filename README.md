@@ -1,44 +1,84 @@
-# Dashboard Monitoring Produksi 3305 — BPS Kebumen
+# SINTA PADI — Sistem Informasi SKGB Jawa Tengah
 
-Reinkarnasi profesional Google Sites "Monitoring Produksi 3305" (Tim Statistik Produksi, BPS Kabupaten Kebumen) menjadi dashboard web production-ready.
+Dashboard kabupaten/kota se-Jawa Tengah. Halaman statis di `public/` dibangun ke `dist/`. API berjalan di Cloudflare Pages lewat `dist/_worker.js`.
 
-## Menjalankan
+## Login
+
+Password sama dengan kode. Tidak ada ubah password.
+
+| Peran | Kode | Password |
+|---|---|---|
+| Kabupaten/kota | kode BPS, contoh `3305` | sama dengan kode |
+| Admin provinsi | `0000` | `0000` |
+| Superadmin | `9999` | `9999` |
+
+## Perintah
 
 ```bash
-node server.js        # port 8200 (env PORT untuk ubah)
+npm run build          # dist/ statis saja
+npm run build:worker   # dist/ + dist/_worker.js
+npm test               # build frontend, server Node, proxy cadangan
+npm run test:sessions  # login KV, termasuk setelah proses baru
+npm run test:api       # D1, tulis/baca, kering2, unggah R2, unduh
+node server.js         # API lama di port 8200 (data/db.json). Env PORT mengubah port.
 ```
 
-- Dashboard: http://localhost:8200
-- API: /api/login, /api/me, /api/data, /api/survei, /api/progress, /api/users, /api/upload, /api/foto/delete, /api/meta, /api/export (CSV)
+`node server.js` tetap ada untuk pengembangan lokal. Jangan menambah berkas baru di `data/` atau `uploads/` ke git.
 
-## Login (ganti password di data/db.json untuk produksi)
+## Binding
 
-| Role | Username | Password | Hak |
-|---|---|---|---|
-| Superadmin | superadmin | bps3305 | Semua + kelola pengguna |
-| Admin | admin | bps3305 | Kelola survei, upload/hapus foto, aktivitas, pengaturan |
-| Mitra BPS | mitra | mitra3305 | Lihat dashboard + update progres + upload foto |
+| Binding | Jenis | Nilai |
+|---|---|---|
+| `SESSIONS` | Workers KV | `3b0c0af482734b8ba8710a5f60412ae5` (preview, sudah terpasang) |
+| `DB` | D1 | nama `sinta-padi`. `database_id` di `wrangler.toml` masih placeholder |
+| `UPLOADS` | R2 | bucket `sinta-padi-uploads` |
 
-## Fitur (mengikuti situs Google Sites asli)
+`wrangler pages dev` memakai simulasi lokal (Miniflare), bukan sumber daya remote.
 
-- 3 bidang: Statistik Tanaman Pangan, INPEK, Horti/Perkebunan/Peternakan/Perikanan — 27 survei seed (KSA, Ubinan SR1-3, SKJG, SKGB, IMK, DPA/STPIM/IBSTR, Galian URT/BH, Konstruksi, SPT, SKP, Komstrat, VIP Horti, DPP DUTL)
-- Progres real-time per survei (target vs selesai, persen, status Belum Mulai/Berjalan/Selesai)
-- Link Google Sheet monitoring & Google Form per survei (dikelola admin, persis seperti situs lama)
-- Upload foto dokumentasi survei (magic-byte validation, maks 5 MB) menggantikan Google Form upload foto
-- KPI dashboard: total survei, progres keseluruhan, perlu perhatian, dokumentasi
-- Log aktivitas, manajemen pengguna (superadmin), export CSV rekap, pengaturan instansi
+R2 di akun Cloudflare biasanya meminta metode pembayaran meskipun kuotanya gratis. Bila binding `UPLOADS` tidak ada, berkas sampai 200 KB disimpan di KV `SESSIONS` dengan awalan `up:`. Berkas yang lebih besar membalas 503 dan menjelaskan bahwa R2 belum terpasang.
 
-## Teknis
+Cache Google Sheet (5 menit) memakai KV `SESSIONS` dengan awalan `gs:`.
 
-Node http murni tanpa dependensi; data di `data/db.json`; upload di `uploads/`. Auth token Bearer in-memory (SESS).
+## Pasang di Pages
 
+Perintah build: `npm run build:worker`. Direktori keluaran: `dist`. Node 20.
 
-## Revisi v2
-- Semua laporan progres langsung di website (tanpa Google Form/Sheet) — link eksternal dihapus
-- Mitra mobile-first (bottom nav + drawer); admin desktop (sidebar) & mobile sama-sama nyaman
-- Upload foto per nama mitra: nama file `foto_<mitra>_<ts>_<rand>.ext`, filter galeri per mitra & program
-- Dashboard progres setiap mitra di setiap program (tabel + filter + pencarian + peringkat mitra)
-- Impor mitra Excel/CSV (`/api/template.xlsx` template resmi): mitra baru + penugasan otomatis terintegrasi (login, lapor, upload)
-- Desain sidebar profesional mengikuti referensi (hero biru + KPI + quick actions + peringkat)
-- Superadmin kelola program penuh (nama, bidang, target, satuan, tenggat, wajib foto, status)
-- Verifikasi laporan oleh admin; aktivitas tercatat; bahasa Indonesia penuh
+`dist/_worker.js` adalah Pages advanced mode. Ia menangani `/api/*` dan meneruskan permintaan lain ke `env.ASSETS` (termasuk fallback SPA di `_redirects`). Folder `functions/` diabaikan selama `_worker.js` ada di keluaran.
+
+1. Buat database: `npx wrangler d1 create sinta-padi`. Salin `database_id` ke `wrangler.toml` (binding `DB`).
+2. Terapkan skema ke remote: `npx wrangler d1 migrations apply sinta-padi --remote`.
+3. Impor data yang sudah ada:
+
+```bash
+node scripts/import-db-sql.mjs data/db.json > /tmp/sinta-padi.sql
+npx wrangler d1 execute sinta-padi --remote --file /tmp/sinta-padi.sql
+```
+
+Impor mengosongkan `users`, `target`, dan `sheet_row`, lalu mengisi ulang. Metadata unggahan tidak dihapus. Jangan meng-commit berkas SQL itu.
+
+4. Buat bucket R2 `sinta-padi-uploads` bila akun mengizinkan, lalu pasang binding `UPLOADS`.
+5. Di Pages → Settings → Bindings, pasang `SESSIONS`, `DB`, dan `UPLOADS` pada production dan preview. Nama binding harus persis.
+6. Unggah isi `dist/` (termasuk `_worker.js`).
+
+Lokal:
+
+```bash
+npx wrangler d1 migrations apply sinta-padi --local
+node scripts/import-db-sql.mjs data/db.json > /tmp/sinta-padi.sql
+npx wrangler d1 execute sinta-padi --local --file /tmp/sinta-padi.sql
+npx wrangler pages dev dist
+```
+
+Bila binding `SESSIONS` tidak ada, `/api/*` diteruskan ke `API_ORIGIN` (server Node). Tanpa keduanya, responsnya 503.
+
+## Sesi
+
+Token Bearer 48 karakter hex, kunci KV `sess:…`, TTL 7 hari. Token yang sama tetap berlaku setelah proses atau deploy baru, sampai logout atau TTL habis. Logout di halaman memanggil `POST /api/logout`.
+
+Pengguna dibaca dari tabel D1 `users` bila tabel itu berisi data. Bila tabel belum ada atau masih kosong, login memakai seed statis yang dihasilkan dari daftar di `server.js` (`npm run seed`).
+
+## Peta dan pengeringan tahap 2
+
+`GET /api/realisasi` tetap mengembalikan `tK`, `rK`, `tK2`, `rK2`, `tG`, `rG`. `tK2` sama dengan realisasi tahap 2, mengikuti `server.js`. Tiap baris kini juga punya `ku` dan `kc`: jumlah sampel kering eligible utama dan cadangan di kabupaten itu (pola id `C` + angka, sama seperti KPI). Peta memakai kedua angka itu. Parameter `?kab=3305` mempersempit baris dan total; UI peta belum punya dropdown filter.
+
+Kunjungan pengeringan ke-2 menulis dan membaca `/api/sheet/kering2`, terpisah dari `kering1`. Bentuk isiannya sama. Halaman anomali kering tetap membaca `kering1`.

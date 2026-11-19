@@ -222,6 +222,31 @@ env.SHEET_CSV = { pengeringan, penggilingan };
 
 const dash = await call('/api/admin/dashboard', auth(admin.json.token));
 if (dash.status !== 200 || !dash.json.kpi.pengeringan || !Array.isArray(dash.json.anomali)) fail('dashboard');
+const catalog = JSON.parse(await readFile(path.join(root, 'data/gsheets.json'), 'utf8'));
+const [bidang, , , monSid, monGid] = catalog[0];
+const monCsv = 'Judul,,,\na,b,c,\n1,2,,\n,,\n';
+env.GSHEET_CSV = { [monSid + ':' + monGid]: monCsv };
+const daftar = await call('/api/gsheets', auth(admin.json.token));
+if (daftar.status !== 200 || daftar.json.sheets.length !== catalog.length || daftar.json.sheets[0].bidang !== bidang) {
+  fail('gsheets admin ' + daftar.status);
+}
+const mon = await call('/api/gsheet?sid=' + encodeURIComponent(monSid) + '&gid=' + encodeURIComponent(monGid), auth(admin.json.token));
+if (mon.status !== 200 || mon.json.meta.stale !== false || mon.json.rows.length !== 3 || mon.json.rows[1][2] !== 'c') {
+  fail('gsheet admin ' + JSON.stringify(mon.json));
+}
+const tolakMitra = await call('/api/gsheets', auth(loginA.json.token));
+const tolakPml = await call('/api/gsheet?sid=' + encodeURIComponent(monSid) + '&gid=' + encodeURIComponent(monGid), auth(loginP.json.token));
+if (tolakMitra.status !== 403 || tolakPml.status !== 403) fail('monitoring non-admin ' + tolakMitra.status + '/' + tolakPml.status);
+const asing = await call('/api/gsheet?sid=tidak-terdaftar&gid=0', auth(admin.json.token));
+if (asing.status !== 404 || asing.json.error.code !== 'NOT_FOUND') fail('sid asing ' + asing.status);
+env.GSHEET_FORCE_FAIL = true;
+delete env.GSHEET_CSV;
+const basi = await call('/api/gsheet?sid=' + encodeURIComponent(monSid) + '&gid=' + encodeURIComponent(monGid), auth(admin.json.token));
+if (basi.status !== 200 || basi.json.meta.stale !== true || basi.json.rows[1][2] !== 'c') fail('stale monitoring ' + JSON.stringify(basi.json && basi.json.meta));
+await kv.delete('mon:last:' + monSid + ':' + monGid);
+const kosongMon = await call('/api/gsheet?sid=' + encodeURIComponent(monSid) + '&gid=' + encodeURIComponent(monGid), auth(admin.json.token));
+if (kosongMon.status !== 503 || kosongMon.json.error.code !== 'SOURCE_UNAVAILABLE') fail('monitoring tanpa salinan ' + kosongMon.status);
+env.GSHEET_FORCE_FAIL = false;
 const csv = await call('/api/admin/ekspor?jenis=pengeringan&format=csv', auth(admin.json.token));
 if (csv.status !== 200 || !csv.text.startsWith('jenis,id,')) fail('ekspor');
 const bye = await call('/api/logout', { method: 'POST', token: loginA.json.token });

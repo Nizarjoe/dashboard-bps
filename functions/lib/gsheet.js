@@ -1,5 +1,5 @@
 import gsheets from '../../data/gsheets.json' with { type: 'json' };
-import { json } from './http.js';
+import { apiError, apiOk } from './errors.js';
 
 const TTL = 300;
 
@@ -28,43 +28,69 @@ export function parseCsv(csv) {
   return data.map(r => r.slice(0, lastCol + 1));
 }
 
-export function listGsheets() {
-  return json(200, {
-    sheets: gsheets.map(([bidang, survei, label, sid, gid]) => ({ bidang, survei, label, sid, gid })),
-  });
+export function sheetCatalog() {
+  return gsheets.map(([bidang, survei, label, sid, gid]) => ({
+    bidang, survei, label, sid, gid: String(gid),
+  }));
 }
 
-export async function readGsheet(url, env) {
-  const sid = url.searchParams.get('sid') || '';
-  const gid = url.searchParams.get('gid') || '0';
-  if (!/^[a-zA-Z0-9_-]{10,}$/.test(sid) || !/^\d+$/.test(gid)) {
-    return json(400, { error: 'sid atau gid tidak valid' });
+export function allowedPair(sid, gid) {
+  const want = String(gid);
+  return sheetCatalog().some(sheet => sheet.sid === sid && sheet.gid === want);
+}
+
+function pack(rows, syncedAt, stale) {
+  return apiOk({ rows, meta: { syncedAt, stale } });
+}
+
+export async function readAllowedSheet(env, sid, gid) {
+  const gidText = String(gid || '0');
+  if (!allowedPair(sid, gidText)) return apiError(404, 'NOT_FOUND', 'Sheet tidak terdaftar.');
+  const kv = env && env.SESSIONS;
+  const freshKey = 'mon:fresh:' + sid + ':' + gidText;
+  const lastKey = 'mon:last:' + sid + ':' + gidText;
+  if (env && env.GSHEET_FORCE_FAIL) {
+    const last = kv ? await kv.get(lastKey) : null;
+    if (!last) return apiError(503, 'SOURCE_UNAVAILABLE', 'Sumber Google Sheet tidak tersedia.');
+    const saved = JSON.parse(last);
+    return pack(saved.rows, saved.syncedAt, true);
   }
-  const cacheKey = 'gs:v1:' + sid + ':' + gid;
-  try {
-    const hit = await env.SESSIONS.get(cacheKey);
-    if (hit) {
-      return new Response(hit, {
-        status: 200,
-        headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
-      });
+  const inline = env && env.GSHEET_CSV && env.GSHEET_CSV[sid + ':' + gidText];
+  if (typeof inline === 'string') {
+    const rows = parseCsv(inline);
+    const syncedAt = new Date().toISOString();
+    if (kv) await kv.put(lastKey, JSON.stringify({ rows, syncedAt }));
+    return pack(rows, syncedAt, false);
+  }
+  if (kv) {
+    const fresh = await kv.get(freshKey);
+    if (fresh) {
+      const saved = JSON.parse(fresh);
+      return pack(saved.rows, saved.syncedAt, false);
     }
-  } catch { /* cache meleset, ambil ulang */ }
-  const remote = 'https://docs.google.com/spreadsheets/d/' + sid + '/export?format=csv&gid=' + gid;
-  let resp;
-  try {
-    resp = await fetch(remote, { headers: { 'user-agent': 'Mozilla/5.0' } });
-  } catch (e) {
-    return json(502, { error: 'Gagal memuat sheet: ' + String(e && e.message || e) });
   }
-  if (!resp.ok) return json(502, { error: 'Gagal memuat sheet: GSheet fetch ' + resp.status });
-  const csv = await resp.text();
-  if (csv.length > 8_000_000) return json(502, { error: 'Gagal memuat sheet: berkas terlalu besar' });
-  const rows = parseCsv(csv);
-  const body = JSON.stringify({ rows });
-  try { await env.SESSIONS.put(cacheKey, body, { expirationTtl: TTL }); } catch { /* tetap kirim data */ }
-  return new Response(body, {
-    status: 200,
-    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
-  });
+  const remote = 'https://docs.google.com/spreadsheets/d/' + sid + '/export?format=csv&gid=' + encodeURIComponent(gidText);
+  try {
+    const resp = await fetch(remote, { headers: { 'user-agent': 'Mozilla/5.0' } });
+    if (!resp.ok) throw new Error('status ' + resp.status);
+    const csv = await resp.text();
+    if (csv.length > 8_000_000) throw new Error('terlalu besar');
+    const rows = parseCsv(csv);
+    const syncedAt = new Date().toISOString();
+    const saved = JSON.stringify({ rows, syncedAt });
+    if (kv) {
+      await kv.put(lastKey, saved);
+      await kv.put(freshKey, saved, { expirationTtl: TTL });
+    }
+    return pack(rows, syncedAt, false);
+  } catch {
+    if (kv) {
+      const last = await kv.get(lastKey);
+      if (last) {
+        const saved = JSON.parse(last);
+        return pack(saved.rows, saved.syncedAt, true);
+      }
+    }
+    return apiError(503, 'SOURCE_UNAVAILABLE', 'Sumber Google Sheet tidak tersedia.');
+  }
 }

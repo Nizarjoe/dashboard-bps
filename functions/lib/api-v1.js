@@ -2,6 +2,7 @@ import { apiError, apiOk } from './errors.js';
 import { bearer, readJson } from './http.js';
 import { deleteSession, getSession, newToken, putSession, SESSION_TTL_SECONDS } from './session.js';
 import { loadSumber, SLOTS, canonNama } from './sumber.js';
+import { readAllowedSheet, sheetCatalog } from './gsheet.js';
 import { createStore } from './store.js';
 import { ensureAkun } from './akun.js';
 
@@ -616,6 +617,11 @@ export async function handleV1(request, env) {
     if (user.role === 'pml' && path !== '/api/logout') return apiError(403, 'FORBIDDEN', 'PML tidak dapat mengubah data.');
   }
   if (path === '/api/me' && method === 'GET') return me(request, env, user);
+  if ((path === '/api/gsheets' || path === '/api/gsheet') && method === 'GET') {
+    if (user.role !== 'admin') return apiError(403, 'FORBIDDEN', 'Hanya admin yang dapat membuka monitoring.');
+    if (path === '/api/gsheets') return apiOk({ sheets: sheetCatalog() });
+    return readAllowedSheet(env, url.searchParams.get('sid') || '', url.searchParams.get('gid') || '0');
+  }
   const ctx = await openContext(env);
   if (ctx.error) return ctx.error;
   if (path === '/api/sampel' && method === 'GET') return listSampel(url, ctx, user);

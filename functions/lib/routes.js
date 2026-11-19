@@ -1,7 +1,8 @@
 import { json } from './http.js';
 import { getSheet, postSheet } from './sheets.js';
 import { realisasi, kpi, ksaRekap, monitoringGc } from './stats.js';
-import { listGsheets, readGsheet } from './gsheet.js';
+import { readAllowedSheet, sheetCatalog } from './gsheet.js';
+import { apiOk, apiError } from './errors.js';
 import { listUsers, createUser } from './users.js';
 import { upload, download, removeFile } from './files.js';
 
@@ -11,8 +12,14 @@ function needDb(env) {
 }
 
 export async function routeAuthed(request, env, me, path, method, url) {
-  if (path === '/api/gsheets' && method === 'GET') return listGsheets();
-  if (path === '/api/gsheet' && method === 'GET') return readGsheet(url, env);
+  if (path === '/api/gsheets' && method === 'GET') {
+    if (!me || me.role !== 'admin') return apiError(403, 'FORBIDDEN', 'Hanya admin yang dapat membuka monitoring.');
+    return apiOk({ sheets: sheetCatalog() });
+  }
+  if (path === '/api/gsheet' && method === 'GET') {
+    if (!me || me.role !== 'admin') return apiError(403, 'FORBIDDEN', 'Hanya admin yang dapat membuka monitoring.');
+    return readAllowedSheet(env, url.searchParams.get('sid') || '', url.searchParams.get('gid') || '0');
+  }
 
   const dbErr = needDb(env);
   if (dbErr) return dbErr;

@@ -54,5 +54,7 @@ Endpoint:
 - `POST /api/admin/sampel/:jenis/:id/tolak {alasan 1-300}` membalas `{status:'ditolak',versi,locked:false}`.
 - `GET /api/admin/akun` membalas `{data:[{id,nama,role,pml:Orang|null,aktif,jumlahSampel}]}` tanpa password.
 - `GET /api/admin/ekspor?jenis=&format=csv` mengembalikan CSV gabungan sheet asli dan isian terbaru.
+- `GET /api/gsheets` hanya admin (mitra dan PML 403 FORBIDDEN). Membalas `{sheets:[{bidang:'tp'|'inpek'|'horti', survei, label, sid, gid}]}` dari `data/gsheets.json`.
+- `GET /api/gsheet?sid=&gid=` hanya admin. `rows` memakai `parseCsv` lama (baris kosong dibuang, kolom kosong di kanan dipotong). Respons `{rows:string[][], meta:{syncedAt, stale}}`. Hanya pasangan sid+gid yang ada di katalog; selain itu 404 NOT_FOUND. Cache KV 5 menit plus salinan terakhir (`stale:true`). Tanpa salinan: 503 SOURCE_UNAVAILABLE.
 - `GET /api/pml/dashboard` membalas `{pml, mitra:[{mitra,total,sudah,draf,ditolak,belum,fotoLengkap}], anomali, syncedAt, stale}`. Semua PUT/POST dari PML dibalas 403.
-- Endpoint lama dari PR #2 (`/api/sheet/*`, `/api/realisasi`, peta provinsi, KSA, monitoring, upload KV) DIHAPUS.
+- Endpoint lama dari PR #2 (`/api/sheet/*`, `/api/realisasi`, peta provinsi, KSA, `/api/monitoring-gc`, upload KV) DIHAPUS. `/api/monitoring-gc` tidak dikembalikan.

@@ -5,6 +5,7 @@ import { loadSumber, SLOTS, canonNama } from './sumber.js';
 import { readAllowedSheet, sheetCatalog } from './gsheet.js';
 import { createStore } from './store.js';
 import { ensureAkun } from './akun.js';
+import { indexFotoPayload, uploadsFor } from './foto-index.js';
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_FOTO = 2 * 1024 * 1024;
@@ -68,7 +69,7 @@ async function openContext(env) {
   const store = createStore(env);
   try {
     const akun = await ensureAkun(store, sumber.records);
-    return { sumber, store, akun };
+    return { sumber, store, akun, env };
   } catch (e) {
     if (e && e.code === 'UPSTREAM_ERROR') {
       return { error: apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.') };
@@ -181,13 +182,35 @@ async function bundle(ctx) {
   return { isian };
 }
 
-async function uploadsOf(ctx, jenis, id) {
+const FOTO_FRESH = 'foto:ringkas:fresh';
+const FOTO_LAST = 'foto:ringkas:last';
+
+async function loadFotoIndex(ctx) {
+  const kv = ctx.env && ctx.env.SESSIONS;
+  const cache = ctx.store.kind === 'apps-script' && kv;
+  if (cache) {
+    const fresh = await kv.get(FOTO_FRESH);
+    if (fresh) return { index: indexFotoPayload(JSON.parse(fresh).rows), stale: false };
+  }
   try {
-    return await ctx.store.listFoto(jenis, id);
+    const rows = await ctx.store.listFotoAll();
+    if (cache) {
+      const packed = JSON.stringify({ rows });
+      await kv.put(FOTO_LAST, packed);
+      await kv.put(FOTO_FRESH, packed, { expirationTtl: 60 });
+    }
+    return { index: indexFotoPayload(rows), stale: false };
   } catch (e) {
-    if (e && e.code === 'UPSTREAM_ERROR') throw e;
+    if (e && e.code === 'UPSTREAM_ERROR' && cache) {
+      const last = await kv.get(FOTO_LAST);
+      if (last) return { index: indexFotoPayload(JSON.parse(last).rows), stale: true };
+    }
     throw e;
   }
+}
+
+async function dropFotoFresh(ctx) {
+  if (ctx.store.kind === 'apps-script' && ctx.env && ctx.env.SESSIONS) await ctx.env.SESSIONS.delete(FOTO_FRESH);
 }
 
 function visible(ctx, user) {
@@ -271,30 +294,37 @@ async function listSampel(url, ctx, user) {
   const status = url.searchParams.get('status') || '';
   const mitraParam = url.searchParams.get('mitra') || '';
   let mitraQ = '';
+  let scoped = visible(ctx, user);
+  if (jenis) scoped = scoped.filter(rec => rec.jenis === jenis);
   if (user.role === 'admin') mitraQ = mitraParam;
   else if (user.role === 'pml' && mitraParam) {
-    const bawahan = new Set(visible(ctx, user).map(rec => byName(ctx.akun, 'mitra', rec.pcl)?.id).filter(Boolean));
+    const bawahan = new Set(scoped.map(rec => byName(ctx.akun, 'mitra', rec.pcl)?.id).filter(Boolean));
     if (!bawahan.has(mitraParam)) return apiError(403, 'FORBIDDEN', 'Mitra itu bukan bawahan Anda.');
     mitraQ = mitraParam;
   }
-  const isian = await ctx.store.listIsian();
-  const rows = [];
-  for (const rec of visible(ctx, user)) {
-    if (jenis && rec.jenis !== jenis) continue;
-    const latest = latestOf(versionsFor(isian, rec.jenis, rec.id));
-    let uploads = [];
-    try { uploads = await ctx.store.listFoto(rec.jenis, rec.id); } catch (e) {
+  let isian;
+  try { isian = await ctx.store.listIsian(); }
+  catch (e) {
+    if (e && e.code === 'UPSTREAM_ERROR') return apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.');
+    throw e;
+  }
+  const statusOf = (rec) => workflow(latestOf(versionsFor(isian, rec.jenis, rec.id)));
+  const prog = progres(scoped.map(rec => ({ status: statusOf(rec) })));
+  let chosen = scoped;
+  if (mitraQ) chosen = chosen.filter(rec => (byName(ctx.akun, 'mitra', rec.pcl)?.id || '') === mitraQ);
+  if (status) chosen = chosen.filter(rec => statusOf(rec) === status);
+  let foto = { index: new Map(), stale: false };
+  if (chosen.length) {
+    try { foto = await loadFotoIndex(ctx); }
+    catch (e) {
       if (e && e.code === 'UPSTREAM_ERROR') return apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.');
       throw e;
     }
-    const item = ringkas(rec, ctx, latest, uploads);
-    rows.push(item);
   }
-  const prog = progres(rows.filter(r => !jenis || r.jenis === jenis));
-  const data = rows.filter(r => (!status || r.status === status) && (!mitraQ || r.mitra.id === mitraQ));
+  const data = chosen.map(rec => ringkas(rec, ctx, latestOf(versionsFor(isian, rec.jenis, rec.id)), uploadsFor(foto.index, rec.jenis, rec.id)));
   return apiOk({
     data,
-    meta: { syncedAt: ctx.sumber.syncedAt, stale: ctx.sumber.stale, progres: prog },
+    meta: { syncedAt: ctx.sumber.syncedAt, stale: ctx.sumber.stale || foto.stale, progres: prog },
   });
 }
 
@@ -427,6 +457,7 @@ async function putFoto(request, ctx, user, jenis, id, slot) {
   const waktu = new Date().toISOString();
   try {
     await ctx.store.uploadFoto({ jenis, id, slot, mime, bytes, oleh: user.id, waktu });
+    await dropFotoFresh(ctx);
   } catch (e) {
     if (e && e.code === 'UPSTREAM_ERROR') return apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.');
     throw e;
@@ -489,13 +520,14 @@ async function tolak(request, ctx, user, jenis, id) {
 
 async function dashboard(ctx) {
   const isian = await ctx.store.listIsian();
+  const foto = ctx.sumber.records.length ? await loadFotoIndex(ctx) : { index: new Map(), stale: false };
   const groups = { pengeringan: [], penggilingan: [] };
   const anomali = [];
   const perK = new Map();
   const perM = new Map();
   for (const rec of ctx.sumber.records) {
     const latest = latestOf(versionsFor(isian, rec.jenis, rec.id));
-    const uploads = await ctx.store.listFoto(rec.jenis, rec.id);
+    const uploads = uploadsFor(foto.index, rec.jenis, rec.id);
     const item = ringkas(rec, ctx, latest, uploads);
     groups[rec.jenis].push(item);
     anomali.push(...anomaliFor(rec, ctx, latest, uploads));
@@ -526,18 +558,19 @@ async function dashboard(ctx) {
     perKecamatan: [...perK.values()],
     anomali,
     syncedAt: ctx.sumber.syncedAt,
-    stale: ctx.sumber.stale,
+    stale: ctx.sumber.stale || foto.stale,
   });
 }
 
 async function pmlDashboard(ctx, user) {
   const mine = visible(ctx, user);
   const isian = await ctx.store.listIsian();
+  const foto = mine.length ? await loadFotoIndex(ctx) : { index: new Map(), stale: false };
   const byMitra = new Map();
   const anomali = [];
   for (const rec of mine) {
     const latest = latestOf(versionsFor(isian, rec.jenis, rec.id));
-    const uploads = await ctx.store.listFoto(rec.jenis, rec.id);
+    const uploads = uploadsFor(foto.index, rec.jenis, rec.id);
     const item = ringkas(rec, ctx, latest, uploads);
     anomali.push(...anomaliFor(rec, ctx, latest, uploads));
     const key = item.mitra.id || item.mitra.nama;
@@ -553,7 +586,7 @@ async function pmlDashboard(ctx, user) {
     mitra: [...byMitra.values()],
     anomali,
     syncedAt: ctx.sumber.syncedAt,
-    stale: ctx.sumber.stale,
+    stale: ctx.sumber.stale || foto.stale,
   });
 }
 

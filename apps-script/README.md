@@ -16,4 +16,8 @@ Service account Google tidak punya kuota Drive pada Gmail biasa. Penulisan isian
 
 Skrip menulis tab `isian`, `akun`, dan `foto`. Foto disimpan sebagai file privat di `SKGB 2026/<jenis>/<id>/`. Penulisan baris memakai `LockService.getScriptLock()` paling lama 10 detik. `uploadFoto_` membuka spreadsheet lebih dulu, baru membuat file, supaya kegagalan sheet tidak meninggalkan file tanpa indeks.
 
+Operasi: `listIsian`, `appendIsian`, `listAkun`, `upsertAkun`, `listFoto`, `listFotoAll`, `uploadFoto`, `getFoto`. `listFoto` membaca riwayat satu sampel. `listFotoAll` membaca tab `foto` sekali dan mengembalikan slot terbaru per `(jenis, id)` tanpa byte file. Tanda tangan HMAC untuk semua operasi sama.
+
 Tanda tangan: HMAC-SHA256 atas `timestamp.nonce.stableStringify(payload)`, masa berlaku 5 menit, nonce tidak boleh diulang. Ini sama dengan `functions/lib/hmac.js`.
+
+Setelah menempel `Code.gs` yang baru, deploy versi web app yang baru. URL lama tetap menunjuk deployment sebelumnya sampai versi baru dipilih.

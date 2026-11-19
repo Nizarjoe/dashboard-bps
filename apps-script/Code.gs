@@ -65,6 +65,7 @@ function dispatch_(op, payload) {
   if (op === 'listAkun') return listAkun_();
   if (op === 'upsertAkun') return upsertAkun_(payload);
   if (op === 'listFoto') return listFoto_(payload);
+  if (op === 'listFotoAll') return listFotoAll_(payload);
   if (op === 'uploadFoto') return uploadFoto_(payload);
   if (op === 'getFoto') return getFoto_(payload);
   throw new Error('operasi tidak dikenal');
@@ -147,6 +148,43 @@ function listFoto_(payload) {
   return objects_(book_().getSheetByName('foto')).filter(function (row) {
     return row.jenis === payload.jenis && String(row.id) === String(payload.id);
   });
+}
+
+function waktuRank_(value) {
+  if (Object.prototype.toString.call(value) === '[object Date]') return value.getTime();
+  var t = Date.parse(String(value || ''));
+  return isNaN(t) ? 0 : t;
+}
+
+function listFotoAll_() {
+  var rows = objects_(book_().getSheetByName('foto'));
+  var best = {};
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    if (!row.jenis || row.id === '' || row.id == null || !row.slot) continue;
+    var key = String(row.jenis) + '\n' + String(row.id) + '\n' + String(row.slot);
+    var prev = best[key];
+    if (!prev || waktuRank_(row.waktu) >= waktuRank_(prev.waktu)) {
+      best[key] = {
+        jenis: String(row.jenis),
+        id: String(row.id),
+        slot: String(row.slot),
+        waktu: String(row.waktu || ''),
+        mime: row.mime || '',
+        oleh: row.oleh || ''
+      };
+    }
+  }
+  var grouped = {};
+  for (var name in best) {
+    var item = best[name];
+    var sample = item.jenis + '\n' + item.id;
+    if (!grouped[sample]) grouped[sample] = { jenis: item.jenis, id: item.id, slots: [] };
+    grouped[sample].slots.push({ slot: item.slot, waktu: item.waktu, mime: item.mime, oleh: item.oleh });
+  }
+  var out = [];
+  for (var sampleKey in grouped) out.push(grouped[sampleKey]);
+  return out;
 }
 
 function uploadFoto_(payload) {

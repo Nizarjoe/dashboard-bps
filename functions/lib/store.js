@@ -23,6 +23,9 @@ export function createMemoryStore() {
     async listIsian() { return isian.map(row => ({ ...row })); },
     async appendIsian(row) { isian.push({ ...row }); return { ...row }; },
     async listFoto(jenis, id) { return foto.filter(f => f.jenis === jenis && f.id === id).map(f => ({ ...f })); },
+    async listFotoAll() {
+      return foto.map(f => ({ jenis: f.jenis, id: f.id, slot: f.slot, waktu: f.waktu, mime: f.mime, oleh: f.oleh }));
+    },
     async uploadFoto(row) { foto.push({ ...row, bytes: row.bytes }); return { waktu: row.waktu }; },
     async getFoto(jenis, id, slot) {
       const hits = foto.filter(f => f.jenis === jenis && f.id === id && f.slot === slot);
@@ -59,12 +62,19 @@ export function createKvStore(kv) {
       const raw = await kv.get(fotoIdx(jenis, id));
       return raw ? JSON.parse(raw) : [];
     },
+    async listFotoAll() {
+      const raw = await kv.get('foto:all');
+      return raw ? JSON.parse(raw) : [];
+    },
     async uploadFoto(row) {
       const list = await this.listFoto(row.jenis, row.id);
       const item = { slot: row.slot, waktu: row.waktu, mime: row.mime, oleh: row.oleh };
       list.push(item);
       await kv.put(fotoIdx(row.jenis, row.id), JSON.stringify(list));
       await kv.put('foto-bin:' + row.jenis + ':' + row.id + ':' + row.slot + ':' + row.waktu, b64(row.bytes));
+      const all = await this.listFotoAll();
+      all.push({ jenis: row.jenis, id: row.id, slot: row.slot, waktu: row.waktu, mime: row.mime, oleh: row.oleh });
+      await kv.put('foto:all', JSON.stringify(all));
       return { waktu: row.waktu };
     },
     async getFoto(jenis, id, slot) {
@@ -120,6 +130,7 @@ export function createAppsScriptStore(env) {
     async listIsian() { return (await this.call('listIsian', {})) || []; },
     async appendIsian(row) { return this.call('appendIsian', row); },
     async listFoto(jenis, id) { return (await this.call('listFoto', { jenis, id })) || []; },
+    async listFotoAll() { return (await this.call('listFotoAll', {})) || []; },
     async uploadFoto(row) {
       return this.call('uploadFoto', {
         jenis: row.jenis, id: row.id, slot: row.slot, mime: row.mime, oleh: row.oleh, waktu: row.waktu,
@@ -137,6 +148,7 @@ export function createAppsScriptStore(env) {
 }
 
 export function createStore(env) {
+  if (env && env.store) return env.store;
   if (env && env.APPS_SCRIPT_URL) return createAppsScriptStore(env);
   if (env && env.STORE === 'memory') return createMemoryStore();
   if (env && env.SESSIONS) return createKvStore(env.SESSIONS);

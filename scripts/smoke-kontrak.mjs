@@ -72,6 +72,22 @@ if (!gs.includes("String(body.timestamp) + '.' + String(body.nonce) + '.' + stab
 }
 console.log('hmac ok');
 
+const fotoMod = await import(pathToFileURL(path.join(root, 'functions/lib/foto-index.js')).href);
+const indeks = fotoMod.latestFotoIndex([
+  { jenis: 'pengeringan', id: 'A', slot: 'ktp', waktu: '2026-01-01T00:00:00.000Z', mime: 'image/png', oleh: '1' },
+  { jenis: 'pengeringan', id: 'A', slot: 'ktp', waktu: '2026-02-01T00:00:00.000Z', mime: 'image/jpeg', oleh: '2' },
+  { jenis: 'pengeringan', id: 'A', slot: 'ka_sebelum_1', waktu: '2026-01-02T00:00:00.000Z' },
+  { jenis: 'penggilingan', id: 'B', slot: 'ktp', waktu: '2026-01-03T00:00:00.000Z' },
+]);
+const slotA = fotoMod.uploadsFor(indeks, 'pengeringan', 'A');
+if (slotA.length !== 2 || slotA.find(s => s.slot === 'ktp').waktu !== '2026-02-01T00:00:00.000Z') fail('slot terbaru per sampel');
+if (fotoMod.uploadsFor(indeks, 'penggilingan', 'B').length !== 1) fail('indeks tidak memisahkan sampel');
+const dariSkrip = fotoMod.indexFotoPayload([
+  { jenis: 'pengeringan', id: 'A', slots: [{ slot: 'ktp', waktu: '2026-06-01T00:00:00.000Z', mime: 'image/png', oleh: '1' }] },
+]);
+if (fotoMod.uploadsFor(dariSkrip, 'pengeringan', 'A')[0].waktu !== '2026-06-01T00:00:00.000Z') fail('payload listFotoAll');
+console.log('indeks foto ok');
+
 const akunMod = await import(pathToFileURL(path.join(root, 'functions/lib/akun.js')).href);
 const storeMod = await import(pathToFileURL(path.join(root, 'functions/lib/store.js')).href);
 const mem = storeMod.createMemoryStore();
@@ -123,6 +139,66 @@ const detailMilik = await call('/api/sampel/pengeringan/' + milik.id, auth(login
 if (!detailMilik.json.meta || typeof detailMilik.json.meta.stale !== 'boolean' || !detailMilik.json.meta.syncedAt) fail('detail tanpa meta');
 const saring = await call('/api/sampel?jenis=pengeringan&mitra=' + encodeURIComponent(mitraA.id), auth(loginP.json.token));
 if (saring.status !== 200 || !saring.json.data.length || saring.json.data.some(r => r.mitra.id !== mitraA.id)) fail('PML tidak bisa menyaring bawahan');
+
+const inner = storeMod.createMemoryStore();
+let fotoAll = 0;
+let fotoOne = 0;
+let fotoFail = false;
+env.store = {
+  kind: 'apps-script',
+  listIsian: () => inner.listIsian(),
+  appendIsian: (row) => inner.appendIsian(row),
+  listFoto: async (jenis, id) => { fotoOne += 1; return inner.listFoto(jenis, id); },
+  listFotoAll: async () => {
+    fotoAll += 1;
+    if (fotoFail) {
+      const err = new Error('upstream');
+      err.code = 'UPSTREAM_ERROR';
+      throw err;
+    }
+    return [{
+      jenis: 'pengeringan',
+      id: milik.id,
+      slots: [
+        { slot: 'ktp', waktu: '2026-01-01T00:00:00.000Z', mime: 'image/png', oleh: mitraA.id },
+        { slot: 'ktp', waktu: '2026-06-01T00:00:00.000Z', mime: 'image/jpeg', oleh: mitraA.id },
+      ],
+    }, {
+      jenis: 'pengeringan',
+      id: orangLain.id,
+      slots: [{ slot: 'ktp', waktu: '2026-07-01T00:00:00.000Z', mime: 'image/png', oleh: mitraB.id }],
+    }];
+  },
+  uploadFoto: (row) => inner.uploadFoto(row),
+  getFoto: (jenis, id, slot) => inner.getFoto(jenis, id, slot),
+  listAkun: () => inner.listAkun(),
+  upsertAkun: (row) => inner.upsertAkun(row),
+};
+const batch = await call('/api/sampel?jenis=pengeringan&mitra=' + encodeURIComponent(mitraA.id), auth(loginP.json.token));
+const dashBatch = await call('/api/admin/dashboard', auth(admin.json.token));
+const pmlBatch = await call('/api/pml/dashboard', auth(loginP.json.token));
+if (batch.status !== 200 || dashBatch.status !== 200 || pmlBatch.status !== 200) fail('batch foto ' + batch.status + '/' + dashBatch.status + '/' + pmlBatch.status);
+if (fotoAll !== 1 || fotoOne !== 0) fail('masih memanggil listFoto per sampel ' + fotoAll + '/' + fotoOne);
+if (batch.json.data.some(r => r.mitra.id !== mitraA.id)) fail('filter mitra sesudah agregasi');
+const hit = batch.json.data.find(r => r.id === milik.id);
+if (!hit || hit.fotoTerisi < 1) fail('join indeks foto kosong');
+const lain = dashBatch.json.anomali.find(r => r.jenis === 'pengeringan' && r.id === orangLain.id && r.kode === 'KTP_KOSONG');
+if (lain) fail('indeks foto tidak terpakai di dashboard');
+const hangat = fotoAll;
+await call('/api/admin/dashboard', auth(admin.json.token));
+if (fotoAll !== hangat) fail('cache indeks foto tidak terpakai');
+fotoFail = true;
+await kv.delete('foto:ringkas:fresh');
+const fotoBasi = await call('/api/sampel?jenis=pengeringan&mitra=' + encodeURIComponent(mitraA.id), auth(loginP.json.token));
+if (fotoBasi.status !== 200 || fotoBasi.json.meta.stale !== true) fail('salinan terakhir indeks foto ' + fotoBasi.status);
+if (fotoBasi.json.data.some(r => r.mitra.id !== mitraA.id)) fail('filter hilang saat stale');
+const detailSatu = await call('/api/sampel/pengeringan/' + milik.id, auth(loginA.json.token));
+if (detailSatu.status !== 200 || fotoOne !== 1) fail('detail harus tetap listFoto satu sampel');
+delete env.store;
+fotoFail = false;
+await kv.delete('foto:ringkas:fresh');
+await kv.delete('foto:ringkas:last');
+console.log('batch foto ok');
 const luar = await call('/api/sampel?jenis=pengeringan&mitra=' + encodeURIComponent(mitraB.id), auth(loginP.json.token));
 if (luar.status !== 403 || luar.json.error.code !== 'FORBIDDEN') fail('PML menyaring mitra luar ' + luar.status);
 const abaikan = await call('/api/sampel?jenis=pengeringan&mitra=' + encodeURIComponent(mitraB.id), auth(loginA.json.token));

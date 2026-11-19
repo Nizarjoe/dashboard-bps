@@ -3,11 +3,12 @@
  * Verifikasi sama dengan functions/lib/hmac.js:
  * canonical = timestamp + "." + nonce + "." + stableStringify(payload)
  * Deploy: Execute as Me, Who has access: Anyone.
- * Script property: APPS_SCRIPT_SECRET
+ * Script property: APPS_SCRIPT_SECRET, SPREADSHEET_ID, FOLDER_ID
  */
 var SPREADSHEET_NAME = 'Input Mitra SKGB 3305';
 var FOLDER_NAME = 'SKGB 2026';
 var MAX_SKEW_SEC = 300;
+var lockHeld_ = false;
 
 function doPost(e) {
   try {
@@ -20,6 +21,12 @@ function doPost(e) {
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message || err) });
   }
+}
+
+function setup() {
+  var ss = book_();
+  var root = folderFor_();
+  return { spreadsheetId: ss.getId(), folderId: root.getId() };
 }
 
 function stableStringify_(value) {
@@ -63,14 +70,38 @@ function dispatch_(op, payload) {
   throw new Error('operasi tidak dikenal');
 }
 
+function withLock_(fn) {
+  if (lockHeld_) return fn();
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  lockHeld_ = true;
+  try {
+    return fn();
+  } finally {
+    lockHeld_ = false;
+    lock.releaseLock();
+  }
+}
+
 function book_() {
-  var files = DriveApp.getFilesByName(SPREADSHEET_NAME);
-  var file = files.hasNext() ? files.next() : null;
-  var ss = file ? SpreadsheetApp.open(file) : SpreadsheetApp.create(SPREADSHEET_NAME);
-  ensureSheet_(ss, 'isian', ['key', 'versi', 'oleh', 'aksi', 'waktu', 'status', 'alasan', 'isian']);
-  ensureSheet_(ss, 'akun', ['id', 'nama', 'peran', 'pml_id', 'aktif']);
-  ensureSheet_(ss, 'foto', ['jenis', 'id', 'slot', 'waktu', 'mime', 'oleh', 'fileId']);
-  return ss;
+  return withLock_(function () {
+    var props = PropertiesService.getScriptProperties();
+    var id = props.getProperty('SPREADSHEET_ID');
+    var ss = null;
+    if (id) {
+      ss = SpreadsheetApp.openById(id);
+    } else {
+      var query = 'title = "' + SPREADSHEET_NAME + '" and mimeType = "application/vnd.google-apps.spreadsheet" and trashed = false';
+      var found = DriveApp.searchFiles(query);
+      if (found.hasNext()) ss = SpreadsheetApp.open(found.next());
+      else ss = SpreadsheetApp.create(SPREADSHEET_NAME);
+      props.setProperty('SPREADSHEET_ID', ss.getId());
+    }
+    ensureSheet_(ss, 'isian', ['key', 'versi', 'oleh', 'aksi', 'waktu', 'status', 'alasan', 'isian']);
+    ensureSheet_(ss, 'akun', ['id', 'nama', 'peran', 'pml_id', 'aktif']);
+    ensureSheet_(ss, 'foto', ['jenis', 'id', 'slot', 'waktu', 'mime', 'oleh', 'fileId']);
+    return ss;
+  });
 }
 
 function ensureSheet_(ss, name, header) {
@@ -86,9 +117,11 @@ function listIsian_() {
 }
 
 function appendIsian_(row) {
-  var sh = book_().getSheetByName('isian');
-  sh.appendRow([row.key, row.versi, row.oleh, row.aksi, row.waktu, row.status, row.alasan || '', JSON.stringify(row.isian || {})]);
-  return row;
+  return withLock_(function () {
+    var sh = book_().getSheetByName('isian');
+    sh.appendRow([row.key, row.versi, row.oleh, row.aksi, row.waktu, row.status, row.alasan || '', JSON.stringify(row.isian || {})]);
+    return row;
+  });
 }
 
 function listAkun_() {
@@ -96,16 +129,18 @@ function listAkun_() {
 }
 
 function upsertAkun_(row) {
-  var sh = book_().getSheetByName('akun');
-  var values = sh.getDataRange().getValues();
-  for (var i = 1; i < values.length; i++) {
-    if (String(values[i][0]) === String(row.id)) {
-      sh.getRange(i + 1, 1, 1, 5).setValues([[row.id, row.nama, row.peran || row.role, row.pml_id || '', row.aktif !== false]]);
-      return row;
+  return withLock_(function () {
+    var sh = book_().getSheetByName('akun');
+    var values = sh.getDataRange().getValues();
+    for (var i = 1; i < values.length; i++) {
+      if (String(values[i][0]) === String(row.id)) {
+        sh.getRange(i + 1, 1, 1, 5).setValues([[row.id, row.nama, row.peran || row.role, row.pml_id || '', row.aktif !== false]]);
+        return row;
+      }
     }
-  }
-  sh.appendRow([row.id, row.nama, row.peran || row.role, row.pml_id || '', row.aktif !== false]);
-  return row;
+    sh.appendRow([row.id, row.nama, row.peran || row.role, row.pml_id || '', row.aktif !== false]);
+    return row;
+  });
 }
 
 function listFoto_(payload) {
@@ -115,13 +150,16 @@ function listFoto_(payload) {
 }
 
 function uploadFoto_(payload) {
-  var folder = folderFor_(payload.jenis, payload.id);
-  var bytes = Utilities.base64Decode(payload.base64);
-  var ext = payload.mime === 'image/png' ? 'png' : payload.mime === 'image/webp' ? 'webp' : 'jpg';
-  var blob = Utilities.newBlob(bytes, payload.mime, payload.slot + '__' + payload.waktu + '.' + ext);
-  var file = folder.createFile(blob);
-  book_().getSheetByName('foto').appendRow([payload.jenis, payload.id, payload.slot, payload.waktu, payload.mime, payload.oleh || '', file.getId()]);
-  return { waktu: payload.waktu, fileId: file.getId() };
+  return withLock_(function () {
+    var ss = book_();
+    var folder = folderFor_(payload.jenis, payload.id);
+    var bytes = Utilities.base64Decode(payload.base64);
+    var ext = payload.mime === 'image/png' ? 'png' : payload.mime === 'image/webp' ? 'webp' : 'jpg';
+    var blob = Utilities.newBlob(bytes, payload.mime, payload.slot + '__' + payload.waktu + '.' + ext);
+    var file = folder.createFile(blob);
+    ss.getSheetByName('foto').appendRow([payload.jenis, payload.id, payload.slot, payload.waktu, payload.mime, payload.oleh || '', file.getId()]);
+    return { waktu: payload.waktu, fileId: file.getId() };
+  });
 }
 
 function getFoto_(payload) {
@@ -133,16 +171,34 @@ function getFoto_(payload) {
   return { mime: last.mime, waktu: last.waktu, base64: Utilities.base64Encode(file.getBlob().getBytes()) };
 }
 
+function rootFolder_() {
+  return withLock_(function () {
+    var props = PropertiesService.getScriptProperties();
+    var id = props.getProperty('FOLDER_ID');
+    if (id) return DriveApp.getFolderById(id);
+    var query = 'title = "' + FOLDER_NAME + '" and mimeType = "application/vnd.google-apps.folder" and trashed = false';
+    var found = DriveApp.searchFolders(query);
+    var folder = found.hasNext() ? found.next() : DriveApp.createFolder(FOLDER_NAME);
+    props.setProperty('FOLDER_ID', folder.getId());
+    return folder;
+  });
+}
+
 function folderFor_(jenis, id) {
-  var root = DriveApp.getFoldersByName(FOLDER_NAME);
-  var base = root.hasNext() ? root.next() : DriveApp.createFolder(FOLDER_NAME);
+  var base = rootFolder_();
+  if (!jenis) return base;
   var jenisFolder = childFolder_(base, jenis);
+  if (id == null || id === '') return jenisFolder;
   return childFolder_(jenisFolder, String(id));
 }
 
 function childFolder_(parent, name) {
   var it = parent.getFoldersByName(name);
-  return it.hasNext() ? it.next() : parent.createFolder(name);
+  while (it.hasNext()) {
+    var folder = it.next();
+    if (!folder.isTrashed()) return folder;
+  }
+  return parent.createFolder(name);
 }
 
 function objects_(sh) {

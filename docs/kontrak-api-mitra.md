@@ -38,9 +38,9 @@ Tipe:
 Endpoint:
 - `POST /api/login {id,password}` membalas 200 `{token,expiresAt,user}`. Error: 400, 401 INVALID_CREDENTIALS (pesan sama untuk ID tak dikenal dan password salah), 429 setelah 5 gagal per ID per 10 menit.
 - `POST /api/logout` selalu membalas 200 `{ok:true}`.
-- `GET /api/me` membalas `{user,syncedAt}`; mitra mendapat tambahan `pml:Orang`, PML mendapat tambahan `jumlahMitra`.
-- `GET /api/sampel?jenis=&status=&mitra=`: admin melihat semua, mitra hanya miliknya (parameter mitra diabaikan), PML hanya bawahannya. Respons `{data:SampelRingkas[], meta:{syncedAt,stale,progres:{total,sudah,draf,ditolak,belum}}}`.
-- `GET /api/sampel/:jenis/:id` membalas `{sampel, sumber:{faseAmatan,bulanPanen,x,y,lokasiIdSegmen,skalaUsaha,narahubung,telepon,alamat}, isian:{namaResponden,nik,statusSampel (pengeringan) | hasilPencacahan (penggilingan), null bila tidak berlaku}, foto:Foto[12], locked, versi, alasanDitolak, riwayat (hanya admin):[{versi,oleh:Orang,aksi,waktu}]}`. Isian diambil dari Input Mitra terbaru, kalau belum ada dari sheet asli. Error: 403, 404.
+- `GET /api/me` membalas `{user,syncedAt,stale}`; mitra mendapat tambahan `pml:Orang`, PML mendapat tambahan `jumlahMitra`.
+- `GET /api/sampel?jenis=&status=&mitra=`: admin melihat semua dan boleh memfilter `mitra`. Mitra hanya melihat miliknya; parameter `mitra` diabaikan. PML hanya melihat bawahannya dan boleh memfilter `mitra`. Jika `mitra` yang diminta bukan bawahan PML itu, responsnya 403 FORBIDDEN. Respons `{data:SampelRingkas[], meta:{syncedAt,stale,progres:{total,sudah,draf,ditolak,belum}}}`.
+- `GET /api/sampel/:jenis/:id` membalas `{sampel, sumber:{faseAmatan,bulanPanen,x,y,lokasiIdSegmen,skalaUsaha,narahubung,telepon,alamat}, isian:{namaResponden,nik,statusSampel (pengeringan) | hasilPencacahan (penggilingan), null bila tidak berlaku}, foto:Foto[12], locked, versi, alasanDitolak, riwayat (hanya admin):[{versi,oleh:Orang,aksi,waktu}], meta:{syncedAt,stale}}`. Isian diambil dari Input Mitra terbaru, kalau belum ada dari sheet asli. Error: 403, 404.
 - `PUT /api/sampel/:jenis/:id/isian {versi,kirim,isian}`:
   - Mitra hanya untuk sampel miliknya dan saat belum terkunci. Admin kapan saja; untuk admin `kirim` opsional dan status dipertahankan.
   - `kirim:false` menghasilkan status draf. `kirim:true` menghasilkan status sudah dan mengunci; syaratnya NIK `^\d{16}$` dan foto ktp sudah ada.
@@ -53,7 +53,7 @@ Endpoint:
 - `GET /api/admin/dashboard` membalas `{kpi:{pengeringan:{sampel,utama,cadangan,sudah,draf,ditolak,belum,fotoLengkap}, penggilingan:{...}}, perMitra:[{mitra,pml,total,sudah,draf,ditolak,belum}], perKecamatan:[{kdkec,nmkec,total,sudah}], anomali:Anomali[], syncedAt, stale}`.
 - `POST /api/admin/sampel/:jenis/:id/tolak {alasan 1-300}` membalas `{status:'ditolak',versi,locked:false}`.
 - `GET /api/admin/akun` membalas `{data:[{id,nama,role,pml:Orang|null,aktif,jumlahSampel}]}` tanpa password.
-- `GET /api/admin/ekspor?jenis=&format=csv` mengembalikan CSV gabungan sheet asli dan isian terbaru.
+- `GET /api/admin/ekspor?jenis=&format=csv` mengembalikan CSV gabungan sheet asli dan isian terbaru. Header: `content-type: text/csv; charset=utf-8` dan `Content-Disposition: attachment; filename="skgb-<jenis>-<YYYYMMDD>.csv"`. Jika `jenis` kosong, nama berkas memakai `semua`. Isi diawali BOM UTF-8.
 - `GET /api/gsheets` hanya admin (mitra dan PML 403 FORBIDDEN). Membalas `{sheets:[{bidang:'tp'|'inpek'|'horti', survei, label, sid, gid}]}` dari `data/gsheets.json`.
 - `GET /api/gsheet?sid=&gid=` hanya admin. `rows` memakai `parseCsv` lama (baris kosong dibuang, kolom kosong di kanan dipotong). Respons `{rows:string[][], meta:{syncedAt, stale}}`. Hanya pasangan sid+gid yang ada di katalog; selain itu 404 NOT_FOUND. Cache KV 5 menit plus salinan terakhir (`stale:true`). Tanpa salinan: 503 SOURCE_UNAVAILABLE.
 - `GET /api/pml/dashboard` membalas `{pml, mitra:[{mitra,total,sudah,draf,ditolak,belum,fotoLengkap}], anomali, syncedAt, stale}`. Semua PUT/POST dari PML dibalas 403.

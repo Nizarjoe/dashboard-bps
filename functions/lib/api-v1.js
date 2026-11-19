@@ -253,7 +253,7 @@ async function me(request, env, user) {
   const ctx = await openContext(env);
   if (ctx.error) return ctx.error;
   const akun = ctx.akun.find(a => a.id === user.id) || user;
-  const body = { user: userOf(akun), syncedAt: ctx.sumber.syncedAt };
+  const body = { user: userOf(akun), syncedAt: ctx.sumber.syncedAt, stale: ctx.sumber.stale };
   if (akun.role === 'mitra') {
     const ids = String(akun.pml_id || '').split(',').filter(Boolean);
     const pml = ctx.akun.find(a => a.id === ids[0]) || null;
@@ -269,7 +269,14 @@ async function me(request, env, user) {
 async function listSampel(url, ctx, user) {
   const jenis = url.searchParams.get('jenis') || '';
   const status = url.searchParams.get('status') || '';
-  const mitraQ = user.role === 'admin' ? (url.searchParams.get('mitra') || '') : '';
+  const mitraParam = url.searchParams.get('mitra') || '';
+  let mitraQ = '';
+  if (user.role === 'admin') mitraQ = mitraParam;
+  else if (user.role === 'pml' && mitraParam) {
+    const bawahan = new Set(visible(ctx, user).map(rec => byName(ctx.akun, 'mitra', rec.pcl)?.id).filter(Boolean));
+    if (!bawahan.has(mitraParam)) return apiError(403, 'FORBIDDEN', 'Mitra itu bukan bawahan Anda.');
+    mitraQ = mitraParam;
+  }
   const isian = await ctx.store.listIsian();
   const rows = [];
   for (const rec of visible(ctx, user)) {
@@ -314,6 +321,7 @@ async function detail(ctx, user, jenis, id) {
     locked: workflow(latest) === 'sudah',
     versi: latest ? Number(latest.versi) : 0,
     alasanDitolak: latest && latest.status === 'ditolak' ? (latest.alasan || '') : null,
+    meta: { syncedAt: ctx.sumber.syncedAt, stale: ctx.sumber.stale },
   };
   if (user.role === 'admin') {
     body.riwayat = versions.map(v => ({
@@ -572,9 +580,15 @@ async function ekspor(url, ctx) {
       fields.statusSampel, fields.hasilPencacahan, latest ? latest.versi : 0,
     ].map(csvEscape).join(','));
   }
-  return new Response(lines.join('\n') + '\n', {
+  const jenisFile = jenis || 'semua';
+  const tanggal = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  return new Response('\uFEFF' + lines.join('\n') + '\n', {
     status: 200,
-    headers: { 'content-type': 'text/csv; charset=utf-8', 'cache-control': 'no-store' },
+    headers: {
+      'content-type': 'text/csv; charset=utf-8',
+      'content-disposition': 'attachment; filename="skgb-' + jenisFile + '-' + tanggal + '.csv"',
+      'cache-control': 'no-store',
+    },
   });
 }
 

@@ -44,10 +44,14 @@ async function call(pathname, opt = {}) {
   const mod = await import(pathToFileURL(path.join(root, 'functions/lib/handle.js')).href);
   const res = await mod.dispatch(new Request('https://pages.example' + pathname, init), env);
   const type = res.headers.get('content-type') || '';
-  const body = type.includes('json') || type.includes('csv') || type.startsWith('text/') ? await res.text() : Buffer.from(await res.arrayBuffer());
+  const raw = Buffer.from(await res.arrayBuffer());
+  const keepBom = type.includes('csv');
+  const text = type.includes('json') || keepBom || type.startsWith('text/')
+    ? new TextDecoder('utf-8', { ignoreBOM: keepBom }).decode(raw)
+    : '';
   let json = null;
-  if (typeof body === 'string' && type.includes('json')) json = JSON.parse(body);
-  return { status: res.status, json, text: typeof body === 'string' ? body : '', raw: body, headers: res.headers };
+  if (type.includes('json')) json = JSON.parse(text);
+  return { status: res.status, json, text, raw, headers: res.headers };
 }
 
 function auth(token) { return { token }; }
@@ -107,6 +111,7 @@ if (loginA.json.user.role !== 'mitra' || loginB.json.user.role !== 'mitra' || lo
 const meA = await call('/api/me', auth(loginA.json.token));
 const meP = await call('/api/me', auth(loginP.json.token));
 if (!meA.json.pml || !meA.json.pml.id) fail('mitra tanpa PML ' + JSON.stringify(meA.json));
+if (typeof meA.json.stale !== 'boolean' || typeof meP.json.stale !== 'boolean') fail('me tanpa stale');
 if (typeof meP.json.jumlahMitra !== 'number') fail('PML tanpa jumlahMitra');
 
 const listA = await call('/api/sampel?jenis=pengeringan', auth(loginA.json.token));
@@ -114,6 +119,14 @@ if (!listA.json.data.length || listA.json.data.some(r => r.mitra.id !== mitraA.i
 const milik = listA.json.data[0];
 const listB = await call('/api/sampel?jenis=pengeringan', auth(loginB.json.token));
 const orangLain = listB.json.data[0];
+const detailMilik = await call('/api/sampel/pengeringan/' + milik.id, auth(loginA.json.token));
+if (!detailMilik.json.meta || typeof detailMilik.json.meta.stale !== 'boolean' || !detailMilik.json.meta.syncedAt) fail('detail tanpa meta');
+const saring = await call('/api/sampel?jenis=pengeringan&mitra=' + encodeURIComponent(mitraA.id), auth(loginP.json.token));
+if (saring.status !== 200 || !saring.json.data.length || saring.json.data.some(r => r.mitra.id !== mitraA.id)) fail('PML tidak bisa menyaring bawahan');
+const luar = await call('/api/sampel?jenis=pengeringan&mitra=' + encodeURIComponent(mitraB.id), auth(loginP.json.token));
+if (luar.status !== 403 || luar.json.error.code !== 'FORBIDDEN') fail('PML menyaring mitra luar ' + luar.status);
+const abaikan = await call('/api/sampel?jenis=pengeringan&mitra=' + encodeURIComponent(mitraB.id), auth(loginA.json.token));
+if (abaikan.status !== 200 || abaikan.json.data.some(r => r.mitra.id !== mitraA.id)) fail('mitra tidak boleh memakai filter mitra');
 const baca = await call('/api/sampel/pengeringan/' + milik.id, auth(loginB.json.token));
 if (baca.status !== 403) fail('baca sampel orang lain ' + baca.status);
 const tulis = await call('/api/sampel/pengeringan/' + milik.id + '/isian', {
@@ -248,7 +261,10 @@ const kosongMon = await call('/api/gsheet?sid=' + encodeURIComponent(monSid) + '
 if (kosongMon.status !== 503 || kosongMon.json.error.code !== 'SOURCE_UNAVAILABLE') fail('monitoring tanpa salinan ' + kosongMon.status);
 env.GSHEET_FORCE_FAIL = false;
 const csv = await call('/api/admin/ekspor?jenis=pengeringan&format=csv', auth(admin.json.token));
-if (csv.status !== 200 || !csv.text.startsWith('jenis,id,')) fail('ekspor');
+const namaFile = csv.headers.get('content-disposition') || '';
+if (csv.status !== 200 || !csv.text.startsWith('\uFEFFjenis,id,') || csv.headers.get('content-type') !== 'text/csv; charset=utf-8' || !/^attachment; filename="skgb-pengeringan-\d{8}\.csv"$/.test(namaFile)) {
+  fail('ekspor ' + csv.status + ' ' + namaFile + ' ' + csv.text.slice(0, 24));
+}
 const bye = await call('/api/logout', { method: 'POST', token: loginA.json.token });
 const bye2 = await call('/api/logout', { method: 'POST' });
 if (bye.status !== 200 || bye2.status !== 200 || bye.json.ok !== true) fail('logout');

@@ -20,8 +20,9 @@ export function sessionKey(token) {
 }
 
 export async function putSession(kv, token, user) {
+  const id = String(user.id || user.kode || '');
   const payload = {
-    kode: user.kode,
+    id,
     nama: user.nama,
     role: user.role,
     iat: Date.now(),
@@ -35,10 +36,11 @@ export async function getSession(kv, token) {
   if (!raw) return null;
   let s;
   try { s = JSON.parse(raw); } catch { return null; }
-  if (!s || typeof s.kode !== 'string' || typeof s.role !== 'string') return null;
+  const id = s && (s.id || s.kode);
+  if (!id || typeof s.role !== 'string') return null;
   return {
-    kode: s.kode,
-    nama: typeof s.nama === 'string' ? s.nama : s.kode,
+    id: String(id),
+    nama: typeof s.nama === 'string' ? s.nama : String(id),
     role: s.role,
     iat: typeof s.iat === 'number' ? s.iat : 0,
   };

@@ -3,5 +3,5 @@
 import { dispatch } from '../lib/handle.js';
 
 export async function onRequest(context) {
-  return dispatch(context.request, (context && context.env) || {});
+  return dispatch(context.request, (context && context.env) || {}, context);
 }

@@ -2,9 +2,9 @@
 import { dispatch } from '../functions/lib/handle.js';
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.pathname.startsWith('/api/')) return dispatch(request, env);
+    if (url.pathname.startsWith('/api/')) return dispatch(request, env, ctx);
     if (env && env.ASSETS && typeof env.ASSETS.fetch === 'function') return env.ASSETS.fetch(request);
     return new Response('Aset statis tidak tersedia', {
       status: 500,

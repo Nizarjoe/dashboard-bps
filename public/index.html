@@ -97,6 +97,19 @@ html.dark .sel:disabled{background:#1e293b;color:#94a3b8}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.25)}
 .mob{display:none}
 #map{height:440px;border-radius:12px}
+.maptools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.maptools label{font-size:10px;font-weight:700;letter-spacing:1px;color:#64748b}
+.mapleg{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;margin-top:10px;font-size:12px;color:#475569}
+.mapleg .item{display:inline-flex;align-items:center;gap:6px}
+.mapleg .item.on{font-weight:800;color:#0f172a}
+html.dark .mapleg{color:#cbd5e1}
+html.dark .mapleg .item.on{color:#f8fafc}
+.mapleg i{width:14px;height:14px;border-radius:2px;display:inline-block;border:1px solid rgba(15,23,42,.25);flex:none}
+.mapscale{display:inline-flex;align-items:center;gap:3px}
+.mapscale b{width:18px;height:8px;display:inline-block;border:1px solid rgba(15,23,42,.15)}
+.pop-line{display:flex;justify-content:space-between;gap:18px;margin-top:4px;font-size:12px}
+.pop-line.on{font-weight:800}
+html.dark .leaflet-popup-content-wrapper,html.dark .leaflet-popup-tip{background:#0f172a;color:#e2e8f0;box-shadow:none}
 @media(max-width:900px){
  .sb{transform:translateX(-100%)}.sb.open{transform:none}
  .hdr,.main{margin-left:0;left:0}.sb.min~.hdr,.sb.min~.main{margin-left:0}
@@ -105,6 +118,7 @@ html.dark .sel:disabled{background:#1e293b;color:#94a3b8}
  .status-api{display:none}
  .hdr{padding:0 12px}
  #map{height:320px}
+ .maptools .sel{flex:1 1 140px}
 }
 .leaflet-container{font:inherit}
 @media print{.sb,.hdr,.tabs,.btn{display:none!important}.main{margin:0}}
@@ -121,7 +135,8 @@ html.dark .sel:disabled{background:#1e293b;color:#94a3b8}
 <div id="app"></div>
 <script>
 /* ====== STATE ====== */
-const S={user:null,route:'dashboard',tab:{},dark:localStorage.getItem('sp_dark')==='1',cache:{},map:null,layer:'ku'};
+const S={user:null,route:'dashboard',tab:{},dark:localStorage.getItem('sp_dark')==='1',cache:{},map:null,layer:'ku',mapKab:''};
+let epoch=0;
 if(S.dark)document.documentElement.classList.add('dark');
 const $=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -173,6 +188,7 @@ function go(r){
 
 /* ====== LOGIN ====== */
 function renderLogin(){
+  epoch++;
   document.getElementById('app').innerHTML=`
   <div class="login"><div class="c">
     <div class="bx">🌾</div>
@@ -197,8 +213,19 @@ function renderLogin(){
 
 /* ====== LAYOUT ====== */
 async function logout(){
-  try{ if(S.user&&S.user.token) await api('/api/logout',{method:'POST',body:'{}'}); }catch(e){}
-  localStorage.removeItem('sp_user');S.user=null;render();
+  const token=S.user&&S.user.token;
+  localStorage.removeItem('sp_user');
+  S.user=null;
+  S.cache={};
+  if(S.map){try{S.map.remove()}catch(e){}S.map=null}
+  if(location.hash) history.replaceState(null,'',location.pathname+location.search);
+  renderLogin();
+  if(!token) return;
+  const p='/api/logout';
+  const url=(API_BASE&&p.startsWith('/'))?API_BASE+p:p;
+  try{
+    await fetch(url,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:'{}'});
+  }catch(e){/* token klien sudah dihapus */ }
 }
 function layout(content){
   const u=S.user;
@@ -268,21 +295,50 @@ async function pgDashboard(){
   return html;
 }
 
+const MAP_LAYERS=[['ku','Sampel kering utama'],['kc','Sampel kering cadangan'],['kt1','Realisasi kering kunjungan 1'],['kt2','Realisasi kering kunjungan 2'],['kg','Realisasi penggilingan']];
+const SCALE={ku:['#dcfce7','#bbf7d0','#86efac','#4ade80','#166534'],kc:['#ffedd5','#fed7aa','#fdba74','#fb923c','#c2410c'],lain:['#dcfce7','#bbf7d0','#86efac','#4ade80','#22c55e']};
+function mapKabCode(){if(S.user&&S.user.role==='kab')return S.user.kode;return S.mapKab||''}
+function realisasiUrl(){const kab=mapKabCode();return '/api/realisasi'+(kab?'?kab='+encodeURIComponent(kab):'')}
+function layerLabel(key){const hit=MAP_LAYERS.find(x=>x[0]===key);return hit?hit[1]:'Nilai'}
+function numOr0(v){const n=Number(v);return Number.isFinite(n)?n:0}
+function layerVal(r){if(!r)return 0;if(S.layer==='ku')return numOr0(r.ku);if(S.layer==='kc')return numOr0(r.kc);if(S.layer==='kt1')return numOr0(r.rK);if(S.layer==='kt2')return numOr0(r.rK2);if(S.layer==='kg')return numOr0(r.rG);return 0}
+function scaleFor(layer){return layer==='kc'?SCALE.kc:layer==='ku'?SCALE.ku:SCALE.lain}
+function legendHtml(){
+  const colors=scaleFor(S.layer);
+  const item=(key,color,label)=>`<span class="item ${S.layer===key?'on':''}"><i style="background:${color}"></i>${label}</span>`;
+  return item('ku','#166534','Sampel kering utama')+item('kc','#c2410c','Sampel kering cadangan')+`<span class="mapscale" aria-hidden="true">${colors.map(c=>`<b style="background:${c}"></b>`).join('')}</span><span>rendah – tinggi</span>`;
+}
+function popupHtml(row,label){
+  if(!row) return `<b>${esc(label||'Kabupaten')}</b><div class="pop-line">Tidak ada data untuk filter ini.</div>`;
+  const line=(key,title,val)=>`<div class="pop-line ${S.layer===key?'on':''}"><span>${title}</span><span>${fmt(val)}</span></div>`;
+  const extra=S.layer!=='ku'&&S.layer!=='kc'?line(S.layer,layerLabel(S.layer),layerVal(row)):'';
+  return `<div><b>${esc(row.nama)}</b> <span style="color:#64748b">${esc(row.kode)}</span>${line('ku','Sampel kering utama',numOr0(row.ku))}${line('kc','Sampel kering cadangan',numOr0(row.kc))}${extra}</div>`;
+}
+function fillFor(v,max,layer){const colors=scaleFor(layer);return colors[Math.min(colors.length-1,Math.floor(numOr0(v)/(max/4.01)))]}
 async function pgPeta(){
-  const rl=await api('/api/realisasi');
-  const val=r=>({ku:r.ku??r.rK,kc:r.kc??r.rK,kt1:r.rK,kt2:r.rK2,kg:r.rG}[S.layer]||0);
-  const max=Math.max(...rl.rows.map(val),1);
-  const tot=rl.total;
-  let html=`<h1>PETA JAWA TENGAH</h1><div class="sub">Choropleth gradasi hijau — sebaran data SKGB per kabupaten/kota. <span class="badge b-g">LIVE</span></div>
-  <div class="card"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
-  <select id="lselect" class="sel" onchange="S.layer=this.value;drawMap()">
-    <option value="ku">Kering Utama Eligible</option><option value="kc">Kering Cadangan Eligible</option>
-    <option value="kt1">Realisasi Kering Tahap 1</option><option value="kt2">Realisasi Kering Tahap 2</option><option value="kg">Realisasi Penggilingan</option>
-  </select>${expBtns('Peta',['kode','nama','nilai'],rl.rows.map(r=>({kode:r.kode,nama:r.nama,nilai:val(r)})))}</div>
+  const rl=await api(realisasiUrl());
+  const rows=rl.rows||[];
+  const tot=rl.total||{};
+  const sumKu=rows.reduce((a,r)=>a+numOr0(r.ku),0);
+  const sumKc=rows.reduce((a,r)=>a+numOr0(r.kc),0);
+  const locked=S.user.role==='kab';
+  const cur=mapKabCode();
+  const kabNama=cur?((CONST&&CONST.kabupaten.find(([k])=>k===cur)||[cur,cur])[1]):'Semua kabupaten';
+  const kabOpts=`<option value="" ${cur?'':'selected'}>Semua</option>`+(CONST?CONST.kabupaten:[]).map(([k,n])=>`<option value="${esc(k)}" ${k===cur?'selected':''}>${esc(k)} - ${esc(n)}</option>`).join('');
+  const layerOpts=MAP_LAYERS.map(([k,n])=>`<option value="${k}" ${S.layer===k?'selected':''}>${esc(n)}</option>`).join('');
+  let html=`<h1>PETA JAWA TENGAH</h1><div class="sub">Sebaran sampel kering per kabupaten. Utama dan cadangan dihitung terpisah. <span class="badge b-g">LIVE</span></div>
+  <div class="card"><div class="maptools">
+  <label for="mkab">KABUPATEN</label>
+  <select id="mkab" class="sel" ${locked?'disabled':''} onchange="S.mapKab=this.value;render()">${kabOpts}</select>
+  <label for="lselect">LAYER</label>
+  <select id="lselect" class="sel" onchange="S.layer=this.value;drawMap()">${layerOpts}</select>
+  ${expBtns('Peta',['kode','nama','utama','cadangan'],rows.map(r=>({kode:r.kode,nama:r.nama,utama:numOr0(r.ku),cadangan:numOr0(r.kc)})))}</div>
+  <div class="sub" style="margin-bottom:10px">${esc(kabNama)} · sampel kering utama ${fmt(sumKu)} · sampel kering cadangan ${fmt(sumKc)}</div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px">
     ${[['SAMPEL ELIGIBLE KERING','#d1fae5','#065f46',fmt(tot.tK)],['SAMPEL ELIGIBLE GILING','#ffedd5','#9a3412',fmt(tot.tG)],['TARGET KERING','#dbeafe','#1e40af',fmt(tot.tK)],['TARGET GILING','#ede9fe','#5b21b6',fmt(tot.tG)],['REALISASI KERING',null,'#065f46',`${fmt(tot.rK)} / ${fmt(tot.tK)}`],['REALISASI GILING',null,'#9d174d',`${fmt(tot.rG)} / ${fmt(tot.tG)}`]].map(([l,bg,fg,v])=>`<div style="border-radius:12px;padding:12px;background:${bg||'#fff'};border:1px solid #e2e8f0"><div style="font-size:9px;letter-spacing:1px;font-weight:800;color:#64748b">${l}</div><div style="font-size:18px;font-weight:900;color:${fg}">${v}</div></div>`).join('')}
   </div>
   <div id="map"></div>
+  <div id="mapleg" class="mapleg">${legendHtml()}</div>
   <div style="font-size:10px;color:#94a3b8;margin-top:6px">© OpenStreetMap contributors — Leaflet 1.9.4 — batas kabupaten: geojson-political-indonesia</div></div>`;
   setTimeout(drawMap,60);
   return html;
@@ -300,31 +356,39 @@ function rowForFeature(rows,f){
   const alt=p.VARNAME_2||'';
   return rows.find(r=>sameKab(r.nama,name)||sameKab(r.nama,alt))||null;
 }
+let mapGen=0;
 async function drawMap(){
+  const gen=++mapGen;
   const el=document.getElementById('map');if(!el)return;
+  const leg=document.getElementById('mapleg');if(leg)leg.innerHTML=legendHtml();
+  const sel=document.getElementById('lselect');if(sel&&sel.value!==S.layer)sel.value=S.layer;
   if(typeof L==='undefined'){toast('Peta belum siap, coba lagi');return;}
   if(S.map){S.map.remove();S.map=null}
-  S.map=L.map(el).setView([-7.3,109.8],8);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(S.map);
+  const map=L.map(el).setView([-7.3,109.8],8);
+  S.map=map;
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
   let gj;try{gj=await loadJatengGeo()}catch(e){gj=null}
-  const rl=await api('/api/realisasi');
-  const val=r=>({ku:r.ku??r.rK,kc:r.kc??r.rK,kt1:r.rK,kt2:r.rK2,kg:r.rG}[S.layer]||0);
-  const max=Math.max(...rl.rows.map(val),1);
+  if(gen!==mapGen||!document.getElementById('map'))return;
+  let rl;try{rl=await api(realisasiUrl())}catch(e){if(!S.user)return renderLogin();toast(e.message||'Gagal memuat peta');return}
+  if(gen!==mapGen||!document.getElementById('map')||S.map!==map)return;
+  const rows=rl.rows||[];
+  const max=Math.max(...rows.map(layerVal),1);
+  const kab=mapKabCode();
+  let focus=null;
   if(gj&&gj.features&&gj.features.length){
     L.geoJSON(gj,{style:f=>{
-      const row=rowForFeature(rl.rows,f);
-      const v=row?val(row):null;
-      const c=v==null?'#f1f5f9':['#dcfce7','#bbf7d0','#86efac','#4ade80','#22c55e'][Math.min(4,Math.floor(v/(max/4.01)))];
-      return {fillColor:c,fillOpacity:.85,color:'#fff',weight:1};
+      const row=rowForFeature(rows,f);
+      if(!row) return {fillColor:'#e5e7eb',fillOpacity:.5,color:'#fff',weight:1};
+      return {fillColor:fillFor(layerVal(row),max,S.layer),fillOpacity:.88,color:'#fff',weight:1};
     },onEachFeature:(f,l)=>{
-      const row=rowForFeature(rl.rows,f);
+      const row=rowForFeature(rows,f);
       const label=(f.properties&&(f.properties.NAME_2||f.properties.nama))||'';
       l.bindTooltip(label);
-      l.on('click',()=>{if(row)toast(row.nama+': '+val(row))});
-    }}).addTo(S.map);
-  }else{
-    toast('GeoJSON kab tidak termuat — peta dasar saja');
-  }
+      l.bindPopup(popupHtml(row,label));
+      if(row&&kab&&row.kode===kab) focus=l;
+    }}).addTo(map);
+    if(focus) map.fitBounds(focus.getBounds(),{padding:[24,24],maxZoom:10});
+  }else toast('Batas kabupaten tidak termuat. Peta dasar tetap tampil.');
 }
 
 async function pgKSA(bulan){
@@ -525,7 +589,7 @@ async function pgPengeringan(tahap){
   }else{
     const rows=kering.data.filter(r=>S.user.role==='kab'?r.kab===S.user.kode:true);
     const cols=kering.header;
-    html+=`<div class="card"><div style="display:flex;gap:10px;margin-bottom:10px"><input id="qkr" class="sel" placeholder="Cari…" oninput="drawKR()"><button class="btn w" onclick="render()">⟳ Refresh</button>${expBtns('KERING1',cols,rows)}</div><div id="krbox" style="overflow-x:auto;max-height:460px;overflow-y:auto"></div></div>`;
+    html+=`<div class="card"><div style="display:flex;gap:10px;margin-bottom:10px"><input id="qkr" class="sel" placeholder="Cari…" oninput="drawKR()"><button class="btn w" onclick="render()">⟳ Refresh</button>${expBtns(sheetName.toUpperCase(),cols,rows)}</div><div id="krbox" style="overflow-x:auto;max-height:460px;overflow-y:auto"></div></div>`;
     window.drawKR=()=>{
       const input=document.getElementById('qkr'), box=document.getElementById('krbox');
       if(!input||!box) return;
@@ -609,14 +673,29 @@ async function pgGilingInput(){
 
 async function pgAnomali(jenis){
   const isK=jenis==='k';
-  const data=isK?await sheet('kering1'):await sheet('giling');
   const H=(CONST||await api('/api/constants')).hasilPencacahan[0];
-  const rows=(isK?data.data.filter(r=>r.hasil!==H):data.data.filter(r=>r.hasil!==H));
-  let html=`<h1>ANOMALI ${isK?'KERING':'GILING'}</h1><div class="sub">Daftar pencacahan ${isK?'pengeringan tahap 1':'penggilingan'} yang gagal/anomali (hasil ≠ 1. Berhasil diwawancarai).</div>
-  <div class="card"><div style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><div style="background:#ffedd5;border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:10px"><span style="font-size:22px">⚠️</span><div><div style="font-size:9px;letter-spacing:1px;font-weight:800;color:#9a3412">TOTAL ANOMALI</div><div style="font-size:22px;font-weight:900;color:#9a3412">${fmt(rows.length)}</div></div></div><button class="btn w" onclick="render()">⟳ Refresh</button></div>
-  <div style="overflow-x:auto;max-height:460px;overflow-y:auto"><table class="tbl"><tr><th>NO</th><th>KAB</th><th>PETUGAS</th><th>JENIS SAMPEL</th><th>${isK?'ID SUBSEGMEN':'NAMA PENGGILINGAN'}</th><th>HASIL PENCACAHAN</th></tr>
-  ${rows.slice(0,100).map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.kab)}</td><td>${esc(r.petugas)}</td><td>${esc(r.jenis)}</td><td><b>${esc(isK?r.id:(r.peng||r.id||''))}</b></td><td><span class="badge b-r">${esc(r.hasil)}</span></td></tr>`).join('')||'<tr><td colspan="6" style="color:#16a34a;padding:20px">✓ Tidak ada anomali</td></tr>'}</table></div></div>`;
-  return html;
+  const gagal=r=>r.hasil!==H;
+  if(!isK){
+    const data=await sheet('giling');
+    const rows=(data.data||[]).filter(gagal);
+    return `<h1>ANOMALI GILING</h1><div class="sub">Pencacahan penggilingan yang gagal (hasil selain 1. Berhasil diwawancarai).</div>
+    <div class="card"><div style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><div style="background:#ffedd5;border-radius:12px;padding:12px 18px"><div style="font-size:9px;letter-spacing:1px;font-weight:800;color:#9a3412">TOTAL ANOMALI</div><div style="font-size:22px;font-weight:900;color:#9a3412">${fmt(rows.length)}</div></div><button class="btn w" onclick="render()">⟳ Refresh</button></div>
+    <div style="overflow-x:auto;max-height:460px;overflow-y:auto"><table class="tbl"><tr><th>NO</th><th>KAB</th><th>PETUGAS</th><th>JENIS SAMPEL</th><th>NAMA PENGGILINGAN</th><th>HASIL PENCACAHAN</th></tr>
+    ${rows.slice(0,100).map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.kab)}</td><td>${esc(r.petugas)}</td><td>${esc(r.jenis)}</td><td><b>${esc(r.peng||r.id||'')}</b></td><td><span class="badge b-r">${esc(r.hasil)}</span></td></tr>`).join('')||'<tr><td colspan="6" style="padding:20px">Tidak ada anomali</td></tr>'}</table></div></div>`;
+  }
+  const kunj=S.tab.anomK==='2'||S.tab.anomK==='semua'?S.tab.anomK:'1';
+  const rowsOf=(d,name)=>{if(!d||!Array.isArray(d.data))throw new Error((d&&(d.error||d.message))||('Data '+name+' tidak terbaca'));return d.data};
+  const parts=[];
+  if(kunj==='1'||kunj==='semua') parts.push(...rowsOf(await sheet('kering1'),'kering1').filter(gagal).map(r=>({...r,kunj:'1'})));
+  if(kunj==='2'||kunj==='semua') parts.push(...rowsOf(await sheet('kering2'),'kering2').filter(gagal).map(r=>({...r,kunj:'2'})));
+  const tabBtn=(id,label)=>`<button type="button" class="${kunj===id?'on':''}" onclick="S.tab.anomK='${id}';render()">${label}</button>`;
+  const sub=kunj==='1'?'Sumber: kunjungan 1 (saat panen).':kunj==='2'?'Sumber: kunjungan 2 (saat pengeringan).':'Sumber: kunjungan 1 dan 2. Kolom kunjungan membedakan barisnya.';
+  return `<h1>ANOMALI KERING</h1><div class="sub">Pencacahan pengeringan yang gagal (hasil selain 1. Berhasil diwawancarai). ${sub}</div>
+  <div class="tabs">${tabBtn('1','Kunjungan 1')}${tabBtn('2','Kunjungan 2')}${tabBtn('semua','Semua')}</div>
+  <div class="card"><div style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><div style="background:#ffedd5;border-radius:12px;padding:12px 18px"><div style="font-size:9px;letter-spacing:1px;font-weight:800;color:#9a3412">TOTAL ANOMALI</div><div style="font-size:22px;font-weight:900;color:#9a3412">${fmt(parts.length)}</div></div><button class="btn w" onclick="render()">⟳ Refresh</button></div>
+  <div style="overflow-x:auto;max-height:460px;overflow-y:auto"><table class="tbl"><tr><th>NO</th><th>KUNJUNGAN</th><th>KAB</th><th>PETUGAS</th><th>JENIS SAMPEL</th><th>ID SUBSEGMEN</th><th>HASIL PENCACAHAN</th></tr>
+  ${parts.slice(0,100).map((r,i)=>`<tr><td>${i+1}</td><td>Kunjungan ${esc(r.kunj)}</td><td>${esc(r.kab)}</td><td>${esc(r.petugas)}</td><td>${esc(r.jenis)}</td><td><b>${esc(r.id||'')}</b></td><td><span class="badge b-r">${esc(r.hasil)}</span></td></tr>`).join('')||'<tr><td colspan="7" style="padding:20px">Tidak ada anomali</td></tr>'}</table></div>
+  <div style="font-size:11px;color:#64748b;margin-top:6px">Menampilkan ${fmt(Math.min(100,parts.length))} dari ${fmt(parts.length)} baris.</div></div>`;
 }
 
 async function pgPengaturan(){
@@ -674,24 +753,42 @@ const PAGES={
   monitoring:pgIdentifikasi,'gs-tp':()=>pgGSheets('tp'),'gs-inpek':()=>pgGSheets('inpek'),'gs-horti':()=>pgGSheets('horti'),pengaturan:pgPengaturan
 };
 async function render(){
+  const mine=++epoch;
   const app=document.getElementById('app');
   if(!S.user){
     const saved=localStorage.getItem('sp_user');
-    if(saved){S.user=JSON.parse(saved);/* validate */}
-    if(!S.user)return renderLogin();
-    try{const j=await api('/api/me');S.user={...S.user,...j.user}}catch(e){S.user=null;return renderLogin()}
+    if(saved){try{S.user=JSON.parse(saved)}catch(e){localStorage.removeItem('sp_user');S.user=null}}
+    if(!S.user){if(mine===epoch)renderLogin();return}
+    try{const j=await api('/api/me');if(mine!==epoch)return;S.user={...S.user,...j.user}}
+    catch(e){if(mine!==epoch)return;S.user=null;localStorage.removeItem('sp_user');return renderLogin()}
   }
-  if(!CONST)CONST=await api('/api/constants');
+  if(mine!==epoch||!S.user)return;
+  if(!CONST){
+    try{CONST=await api('/api/constants')}
+    catch(e){
+      if(mine!==epoch)return;
+      if(!S.user)return renderLogin();
+      app.innerHTML=layout('<div class="card"><h1>Gagal memuat</h1><div class="sub">'+esc(e.message||e)+'</div><button class="btn g" onclick="render()">⟳ Coba Lagi</button></div>');
+      return;
+    }
+  }
+  if(mine!==epoch||!S.user)return;
   if(S.route==='monitoring'){S.tab.ident='gc'}
   if(S.route==='monitoring'&&S.tab.ident==='gc'){
     const html=layout(await (async()=>{const inner=await pgIdentifikasi();return inner.split('<div class="tabs">')[0]+'<div class="tabs"><button onclick="S.tab.ident=\'lookup\';go(\'identifikasi\')">Lookup Database</button><button onclick="S.tab.ident=\'input\';go(\'identifikasi\')">Input Hasil</button><button class="on">Monitoring GC</button></div>'+(await (async()=>{const m=await pgIdentifikasi();return m.split('Monitoring GC</button>').pop()})())})());
+    if(mine!==epoch||!S.user)return;
     app.innerHTML=html;return;
   }
   const page=PAGES[S.route]||pgDashboard;
-  try{app.innerHTML=layout(await page());}
+  try{
+    const html=layout(await page());
+    if(mine!==epoch||!S.user)return;
+    app.innerHTML=html;
+  }
   catch(e){
+    if(mine!==epoch)return;
     if(!S.user) return renderLogin();
-    app.innerHTML=layout('<div class="card"><h1>⚠️ Gagal memuat halaman</h1><div class="sub">'+esc(e.message||e)+'</div><button class="btn g" onclick="render()">⟳ Coba Lagi</button></div>');
+    app.innerHTML=layout('<div class="card"><h1>Gagal memuat halaman</h1><div class="sub">'+esc(e.message||e)+'</div><button class="btn g" onclick="render()">⟳ Coba Lagi</button></div>');
   }
 }
 window.go=go;window.logout=logout;window.S=S;window.toggleDark=toggleDark;

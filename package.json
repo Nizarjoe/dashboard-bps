@@ -10,8 +10,8 @@
     "build:worker": "node scripts/build-worker.mjs",
     "seed": "node scripts/gen-users-seed.mjs",
     "test": "node scripts/smoke-frontend.mjs",
-    "test:sessions": "node scripts/smoke-sessions.mjs",
-    "test:api": "node scripts/smoke-api.mjs",
+    "test:sessions": "node scripts/smoke-kontrak.mjs",
+    "test:api": "node scripts/smoke-kontrak.mjs",
     "test:migration": "node scripts/smoke-migration.mjs"
   },
   "devDependencies": {

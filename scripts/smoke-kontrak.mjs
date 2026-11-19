@@ -1,0 +1,237 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const PNG = Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'));
+
+function fail(msg) {
+  console.error(msg);
+  process.exit(1);
+}
+
+class MemoryKV {
+  constructor() { this.map = new Map(); }
+  async get(key) {
+    const row = this.map.get(key);
+    if (!row) return null;
+    if (row.exp && Date.now() > row.exp) { this.map.delete(key); return null; }
+    return row.value;
+  }
+  async put(key, value, opts) {
+    const ttl = opts && opts.expirationTtl;
+    this.map.set(key, { value, exp: ttl ? Date.now() + ttl * 1000 : 0 });
+  }
+  async delete(key) { this.map.delete(key); }
+}
+
+const pengeringan = await readFile(path.join(root, 'scripts/fixtures/sheets/pengeringan.csv'), 'utf8');
+const penggilingan = await readFile(path.join(root, 'scripts/fixtures/sheets/penggilingan.csv'), 'utf8');
+if (/3305\d{12}/.test(pengeringan) || /083191150203|085227535833/.test(penggilingan)) fail('fixture masih memuat data sensitif');
+
+const kv = new MemoryKV();
+const env = { SESSIONS: kv, SHEET_CSV: { pengeringan, penggilingan } };
+
+async function call(pathname, opt = {}) {
+  const headers = new Headers(opt.headers || {});
+  if (opt.token) headers.set('authorization', 'Bearer ' + opt.token);
+  const init = { method: opt.method || 'GET', headers };
+  if (opt.json) {
+    headers.set('content-type', 'application/json');
+    init.body = JSON.stringify(opt.json);
+  }
+  if (opt.body) init.body = opt.body;
+  const mod = await import(pathToFileURL(path.join(root, 'functions/lib/handle.js')).href);
+  const res = await mod.dispatch(new Request('https://pages.example' + pathname, init), env);
+  const type = res.headers.get('content-type') || '';
+  const body = type.includes('json') || type.includes('csv') || type.startsWith('text/') ? await res.text() : Buffer.from(await res.arrayBuffer());
+  let json = null;
+  if (typeof body === 'string' && type.includes('json')) json = JSON.parse(body);
+  return { status: res.status, json, text: typeof body === 'string' ? body : '', raw: body, headers: res.headers };
+}
+
+function auth(token) { return { token }; }
+
+const hmac = await import(pathToFileURL(path.join(root, 'functions/lib/hmac.js')).href);
+const signed = await hmac.signBody('rahasia', 'appendIsian', { key: 'a' }, 1_700_000_000);
+const seen = new Set();
+const okSig = await hmac.verifySigned(signed, 'rahasia', seen, 1_700_000_000);
+if (!okSig.ok) fail('HMAC sah ditolak: ' + okSig.error);
+const bad = { ...signed, signature: signed.signature.replace(/.$/, signed.signature.endsWith('a') ? 'b' : 'a') };
+const badSig = await hmac.verifySigned(bad, 'rahasia', seen, 1_700_000_000);
+if (badSig.ok || !/salah/.test(badSig.error)) fail('HMAC salah harus ditolak');
+const replay = await hmac.verifySigned(signed, 'rahasia', seen, 1_700_000_000);
+if (replay.ok) fail('nonce replay harus ditolak');
+const gs = await readFile(path.join(root, 'apps-script/Code.gs'), 'utf8');
+if (!gs.includes("String(body.timestamp) + '.' + String(body.nonce) + '.' + stableStringify_(body.payload)")) {
+  fail('Apps Script tidak memakai canonical HMAC yang sama');
+}
+console.log('hmac ok');
+
+const akunMod = await import(pathToFileURL(path.join(root, 'functions/lib/akun.js')).href);
+const storeMod = await import(pathToFileURL(path.join(root, 'functions/lib/store.js')).href);
+const mem = storeMod.createMemoryStore();
+await mem.upsertAkun({ id: '3305001', nama: 'ARIF NUROCHMAN', peran: 'mitra', role: 'mitra', pml_id: '', aktif: true });
+const sumberMod = await import(pathToFileURL(path.join(root, 'functions/lib/sumber.js')).href);
+const parsed = sumberMod.parseJenis(pengeringan, 'pengeringan').records.concat(sumberMod.parseJenis(penggilingan, 'penggilingan').records);
+const seeded = await akunMod.ensureAkun(mem, parsed);
+const arif = seeded.find(a => a.nama === 'ARIF NUROCHMAN');
+if (!arif || arif.id !== '3305001') fail('ID lama bergeser: ' + JSON.stringify(arif));
+const fendy = seeded.find(a => a.nama === 'FENDY HERMAWAN');
+if (!fendy || fendy.id === '3305001') fail('nama baru tidak ditambahkan di akhir');
+console.log('akun stabil ok');
+
+const badLogin = await call('/api/login', { method: 'POST', json: {} });
+if (badLogin.status !== 400 || badLogin.json.error.code !== 'BAD_REQUEST') fail('login kosong ' + badLogin.status);
+const wrong = await call('/api/login', { method: 'POST', json: { id: '3305', password: 'salah' } });
+if (wrong.status !== 401 || wrong.json.error.code !== 'INVALID_CREDENTIALS') fail('password salah ' + JSON.stringify(wrong.json));
+for (let i = 0; i < 4; i++) await call('/api/login', { method: 'POST', json: { id: '3305', password: 'salah' } });
+const limited = await call('/api/login', { method: 'POST', json: { id: '3305', password: 'salah' } });
+if (limited.status !== 429 || !limited.headers.get('retry-after')) fail('rate limit ' + limited.status);
+await kv.delete('rl:3305');
+
+const admin = await call('/api/login', { method: 'POST', json: { id: '3305', password: '3305' } });
+if (admin.status !== 200 || admin.json.user.role !== 'admin' || !admin.json.expiresAt) fail('login admin ' + JSON.stringify(admin.json));
+const akun = await call('/api/admin/akun', auth(admin.json.token));
+if (akun.status !== 200 || akun.json.data.some(a => a.id === '9999' || a.id === '0000')) fail('akun lama masih ada');
+const mitraA = akun.json.data.find(a => a.nama === 'ARIF NUROCHMAN' && a.role === 'mitra');
+const mitraB = akun.json.data.find(a => a.nama === 'FENDY HERMAWAN' && a.role === 'mitra');
+const pml = akun.json.data.find(a => a.role === 'pml' && a.nama === 'TULUS YULIANTO');
+if (!mitraA || !mitraB || !pml) fail('seed akun tidak lengkap');
+if (akun.json.data.some(a => a.password)) fail('password bocor');
+
+const loginA = await call('/api/login', { method: 'POST', json: { id: mitraA.id, password: mitraA.id } });
+const loginB = await call('/api/login', { method: 'POST', json: { id: mitraB.id, password: mitraB.id } });
+const loginP = await call('/api/login', { method: 'POST', json: { id: pml.id, password: pml.id } });
+if (loginA.json.user.role !== 'mitra' || loginB.json.user.role !== 'mitra' || loginP.json.user.role !== 'pml') fail('login peran');
+const meA = await call('/api/me', auth(loginA.json.token));
+const meP = await call('/api/me', auth(loginP.json.token));
+if (!meA.json.pml || !meA.json.pml.id) fail('mitra tanpa PML ' + JSON.stringify(meA.json));
+if (typeof meP.json.jumlahMitra !== 'number') fail('PML tanpa jumlahMitra');
+
+const listA = await call('/api/sampel?jenis=pengeringan', auth(loginA.json.token));
+if (!listA.json.data.length || listA.json.data.some(r => r.mitra.id !== mitraA.id)) fail('mitra melihat sampel orang lain');
+const milik = listA.json.data[0];
+const listB = await call('/api/sampel?jenis=pengeringan', auth(loginB.json.token));
+const orangLain = listB.json.data[0];
+const baca = await call('/api/sampel/pengeringan/' + milik.id, auth(loginB.json.token));
+if (baca.status !== 403) fail('baca sampel orang lain ' + baca.status);
+const tulis = await call('/api/sampel/pengeringan/' + milik.id + '/isian', {
+  method: 'PUT', token: loginB.json.token,
+  json: { versi: 0, kirim: false, isian: { namaResponden: 'X', statusSampel: 'Berhasil dicacah', nik: '' } },
+});
+if (tulis.status !== 403) fail('tulis sampel orang lain ' + tulis.status);
+
+const opsi = await call('/api/opsi', auth(loginA.json.token));
+if (!opsi.json.statusSampel.includes('Berhasil dicacah') || opsi.json.slots.length !== 12) fail('opsi');
+
+const invalid = await call('/api/sampel/pengeringan/' + milik.id + '/isian', {
+  method: 'PUT', token: loginA.json.token,
+  json: { versi: 0, kirim: false, isian: { namaResponden: '', statusSampel: 'tidak-ada' } },
+});
+if (invalid.status !== 422 || invalid.json.error.code !== 'VALIDATION') fail('422 ' + invalid.status);
+
+const draf = await call('/api/sampel/pengeringan/' + milik.id + '/isian', {
+  method: 'PUT', token: loginA.json.token,
+  json: { versi: 0, kirim: false, isian: { namaResponden: 'Siti', statusSampel: 'Berhasil dicacah', nik: '123' } },
+});
+if (draf.status !== 200 || draf.json.status !== 'draf' || draf.json.versi !== 1) fail('draf ' + JSON.stringify(draf.json));
+const conflict = await call('/api/sampel/pengeringan/' + milik.id + '/isian', {
+  method: 'PUT', token: loginA.json.token,
+  json: { versi: 0, kirim: false, isian: { namaResponden: 'Siti', statusSampel: 'Berhasil dicacah' } },
+});
+if (conflict.status !== 409 || conflict.json.error.code !== 'CONFLICT') fail('conflict ' + conflict.status);
+
+const fdBig = new FormData();
+fdBig.append('file', new Blob([new Uint8Array(MAX_PLUS())], { type: 'image/png' }), 'big.png');
+const tooBig = await call('/api/sampel/pengeringan/' + milik.id + '/foto/ktp', { method: 'PUT', token: loginA.json.token, body: fdBig });
+if (tooBig.status !== 413) fail('413 ' + tooBig.status);
+const fdBad = new FormData();
+fdBad.append('file', new Blob([Uint8Array.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])], { type: 'text/plain' }), 'a.txt');
+const badType = await call('/api/sampel/pengeringan/' + milik.id + '/foto/ktp', { method: 'PUT', token: loginA.json.token, body: fdBad });
+if (badType.status !== 415) fail('415 ' + badType.status);
+const fd = new FormData();
+fd.append('file', new Blob([PNG], { type: 'image/png' }), 'a.png');
+const uploaded = await call('/api/sampel/pengeringan/' + milik.id + '/foto/ktp', { method: 'PUT', token: loginA.json.token, body: fd });
+if (uploaded.status !== 200 || uploaded.json.terisi !== true) fail('unggah ' + JSON.stringify(uploaded.json));
+const fd2 = new FormData();
+fd2.append('file', new Blob([PNG], { type: 'image/png' }), 'b.png');
+await call('/api/sampel/pengeringan/' + milik.id + '/foto/ktp', { method: 'PUT', token: loginA.json.token, body: fd2 });
+
+const kirim = await call('/api/sampel/pengeringan/' + milik.id + '/isian', {
+  method: 'PUT', token: loginA.json.token,
+  json: { versi: draf.json.versi, kirim: true, isian: { namaResponden: 'Siti', statusSampel: 'Berhasil dicacah', nik: '9999000000000099' } },
+});
+if (kirim.status !== 200 || kirim.json.status !== 'sudah' || kirim.json.locked !== true) fail('kirim ' + JSON.stringify(kirim.json));
+const detailP = await call('/api/sampel/pengeringan/' + milik.id, auth(loginP.json.token));
+if (detailP.status !== 200) fail('PML tidak bisa membaca bawahannya ' + detailP.status);
+if (!detailP.json.isian.nik.includes('*') || detailP.json.isian.nik.includes('9999000000000099')) fail('NIK PML tidak tersamar ' + detailP.json.isian.nik);
+if (detailP.json.sumber.narahubung || detailP.json.sumber.telepon) fail('narahubung bocor ke PML');
+const ktpP = detailP.json.foto.find(f => f.slot === 'ktp');
+if (!ktpP.hidden || ktpP.url) fail('ktp PML harus tersembunyi');
+const fotoP = await call('/api/foto/pengeringan/' + milik.id + '/ktp', auth(loginP.json.token));
+if (fotoP.status !== 403) fail('GET ktp PML ' + fotoP.status);
+const tulisP = await call('/api/sampel/pengeringan/' + milik.id + '/isian', {
+  method: 'PUT', token: loginP.json.token,
+  json: { versi: kirim.json.versi, kirim: false, isian: { namaResponden: 'X', statusSampel: 'Berhasil dicacah' } },
+});
+if (tulisP.status !== 403) fail('PML menulis ' + tulisP.status);
+const locked = await call('/api/sampel/pengeringan/' + milik.id + '/isian', {
+  method: 'PUT', token: loginA.json.token,
+  json: { versi: kirim.json.versi, kirim: false, isian: { namaResponden: 'Siti', statusSampel: 'Berhasil dicacah' } },
+});
+if (locked.status !== 409 || locked.json.error.code !== 'LOCKED') fail('locked ' + locked.status);
+
+const koreksi = await call('/api/sampel/pengeringan/' + milik.id + '/isian', {
+  method: 'PUT', token: admin.json.token,
+  json: { versi: kirim.json.versi, isian: { namaResponden: 'Siti Koreksi', statusSampel: 'Berhasil dicacah', nik: '9999000000000099' } },
+});
+if (koreksi.status !== 200 || koreksi.json.status !== 'sudah') fail('koreksi admin ' + JSON.stringify(koreksi.json));
+const tolak = await call('/api/admin/sampel/pengeringan/' + milik.id + '/tolak', {
+  method: 'POST', token: admin.json.token, json: { alasan: 'NIK perlu dicek ulang' },
+});
+if (tolak.status !== 200 || tolak.json.status !== 'ditolak' || tolak.json.locked !== false) fail('tolak ' + JSON.stringify(tolak.json));
+const lagi = await call('/api/sampel/pengeringan/' + milik.id + '/isian', {
+  method: 'PUT', token: loginA.json.token,
+  json: { versi: tolak.json.versi, kirim: false, isian: { namaResponden: 'Siti Lagi', statusSampel: 'Tidak Berhasil', nik: '' } },
+});
+if (lagi.status !== 200 || lagi.json.status !== 'draf') fail('edit setelah tolak ' + JSON.stringify(lagi.json));
+
+const orangP = await call('/api/sampel/pengeringan/' + orangLain.id, auth(loginP.json.token));
+if (orangP.status !== 403) fail('PML membaca luar bawahan ' + orangP.status);
+
+const fotoA = await call('/api/foto/pengeringan/' + milik.id + '/ktp', auth(loginA.json.token));
+if (fotoA.status !== 200 || !Buffer.from(fotoA.raw).equals(Buffer.from(PNG))) fail('unduh foto ' + fotoA.status);
+if (fotoA.headers.get('cache-control') !== 'private, max-age=300') fail('cache foto');
+
+const kosong = await call('/api/foto/pengeringan/' + milik.id + '/ka_sebelum_1', auth(loginA.json.token));
+if (kosong.status !== 404) fail('slot kosong ' + kosong.status);
+
+env.SHEET_FORCE_FAIL = true;
+delete env.SHEET_CSV;
+const stale = await call('/api/sampel?jenis=pengeringan', auth(admin.json.token));
+if (stale.status !== 200 || stale.json.meta.stale !== true) fail('stale ' + stale.status + ' ' + JSON.stringify(stale.json && stale.json.meta));
+env.SHEET_FORCE_FAIL = false;
+await kv.delete('src:last:pengeringan');
+await kv.delete('src:last:penggilingan');
+env.SHEET_FORCE_FAIL = true;
+const down = await call('/api/sampel', auth(admin.json.token));
+if (down.status !== 503 || down.json.error.code !== 'SOURCE_UNAVAILABLE') fail('503 ' + down.status);
+env.SHEET_FORCE_FAIL = false;
+env.SHEET_CSV = { pengeringan, penggilingan };
+
+const dash = await call('/api/admin/dashboard', auth(admin.json.token));
+if (dash.status !== 200 || !dash.json.kpi.pengeringan || !Array.isArray(dash.json.anomali)) fail('dashboard');
+const csv = await call('/api/admin/ekspor?jenis=pengeringan&format=csv', auth(admin.json.token));
+if (csv.status !== 200 || !csv.text.startsWith('jenis,id,')) fail('ekspor');
+const bye = await call('/api/logout', { method: 'POST', token: loginA.json.token });
+const bye2 = await call('/api/logout', { method: 'POST' });
+if (bye.status !== 200 || bye2.status !== 200 || bye.json.ok !== true) fail('logout');
+const dead = await call('/api/me', auth(loginA.json.token));
+if (dead.status !== 401) fail('sesi masih hidup');
+const lama = await call('/api/realisasi', auth(admin.json.token));
+if (lama.status !== 404) fail('endpoint lama ' + lama.status);
+
+console.log('kontrak ok');
+
+function MAX_PLUS() { return 2 * 1024 * 1024 + 1; }

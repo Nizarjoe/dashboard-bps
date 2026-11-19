@@ -17,6 +17,7 @@ Arsitektur:
   - Nama baru ditambahkan di akhir, ID lama tidak bergeser.
   - Relasi mitra ke PML diambil dari pasangan PCL-PML di sheet. Kalau satu mitra punya beberapa PML, simpan semuanya; PML melihat sampel di mana dia tercatat sebagai PML.
   - Admin `3305`.
+  - Login dan `GET /api/me` membaca daftar akun dari KV (`akun:fresh`, 5 menit, plus `akun:last`). Keduanya tidak menunggu Apps Script selama salinan itu ada. `ensureAkun` jalan di `waitUntil` bila salinan segar kedaluwarsa, dan hanya ditunggu bila belum ada salinan sama sekali. Login admin tidak memanggil Apps Script.
   - Hapus superadmin, admin provinsi, dan 34 kabupaten lain.
 
 Konvensi:
@@ -50,7 +51,7 @@ Endpoint:
 - `PUT /api/sampel/:jenis/:id/foto/:slot` (multipart, field file, maksimal 2MB, jpeg/png/webp; hak akses sama dengan isian). Foto lama di slot itu diganti, tetapi tetap disimpan sebagai riwayat. Respons 200 `{slot,terisi,url:'/api/foto/<jenis>/<id>/<slot>',uploadedAt,fotoTerisi}`.
 - `GET /api/foto/:jenis/:id/:slot` mengembalikan byte gambar dengan `Cache-Control: private, max-age=300`. Hak akses sama dengan detail; PML yang meminta ktp mendapat 403; slot kosong mendapat 404.
 - `GET /api/opsi` membalas `{statusSampel:[], hasilPencacahan:[], slots:[{slot,label:{pengeringan,penggilingan}}]}`. Nilai opsi = nilai unik dari sheet ditambah daftar tetap.
-- `GET /api/admin/dashboard` membalas `{kpi:{pengeringan:{sampel,utama,cadangan,sudah,draf,ditolak,belum,fotoLengkap}, penggilingan:{...}}, perMitra:[{mitra,pml,total,sudah,draf,ditolak,belum}], perKecamatan:[{kdkec,nmkec,total,sudah}], anomali:Anomali[], syncedAt, stale}`.
+- `GET /api/admin/dashboard` membalas `{kpi:{pengeringan:{sampel,utama,cadangan,sudah,draf,ditolak,belum,fotoLengkap}, penggilingan:{...}}, perMitra:[{mitra,pml,total,sudah,draf,ditolak,belum}], perKecamatan:[{kdkec,nmkec,total,sudah}], anomali:Anomali[], syncedAt, stale}`. Hasil yang berhasil disimpan di KV 60 detik. Kalau pembacaan isian atau indeks foto gagal dan salinan terakhir ada, balas salinan itu dengan `stale:true` dan `meta.stale:true`, bukan 502. Tanpa salinan: 502 UPSTREAM_ERROR.
 - `POST /api/admin/sampel/:jenis/:id/tolak {alasan 1-300}` membalas `{status:'ditolak',versi,locked:false}`.
 - `GET /api/admin/akun` membalas `{data:[{id,nama,role,pml:Orang|null,aktif,jumlahSampel}]}` tanpa password.
 - `GET /api/admin/ekspor?jenis=&format=csv` mengembalikan CSV gabungan sheet asli dan isian terbaru. Header: `content-type: text/csv; charset=utf-8` dan `Content-Disposition: attachment; filename="skgb-<jenis>-<YYYYMMDD>.csv"`. Jika `jenis` kosong, nama berkas memakai `semua`. Isi diawali BOM UTF-8.

@@ -42,7 +42,7 @@ async function call(pathname, opt = {}) {
   }
   if (opt.body) init.body = opt.body;
   const mod = await import(pathToFileURL(path.join(root, 'functions/lib/handle.js')).href);
-  const res = await mod.dispatch(new Request('https://pages.example' + pathname, init), env);
+  const res = await mod.dispatch(new Request('https://pages.example' + pathname, init), env, opt.exec);
   const type = res.headers.get('content-type') || '';
   const raw = Buffer.from(await res.arrayBuffer());
   const keepBom = type.includes('csv');
@@ -341,6 +341,61 @@ const namaFile = csv.headers.get('content-disposition') || '';
 if (csv.status !== 200 || !csv.text.startsWith('\uFEFFjenis,id,') || csv.headers.get('content-type') !== 'text/csv; charset=utf-8' || !/^attachment; filename="skgb-pengeringan-\d{8}\.csv"$/.test(namaFile)) {
   fail('ekspor ' + csv.status + ' ' + namaFile + ' ' + csv.text.slice(0, 24));
 }
+const gudang = storeMod.createMemoryStore();
+let akunCalls = 0;
+let lepasAkun;
+const gerbangAkun = new Promise(resolve => { lepasAkun = resolve; });
+let isianGagal = false;
+env.store = {
+  kind: 'apps-script',
+  listIsian: async () => {
+    if (isianGagal) {
+      const err = new Error('upstream');
+      err.code = 'UPSTREAM_ERROR';
+      throw err;
+    }
+    return [];
+  },
+  appendIsian: async (row) => row,
+  listFoto: async () => [],
+  listFotoAll: async () => [],
+  uploadFoto: async () => ({ waktu: '' }),
+  getFoto: async () => null,
+  listAkun: async () => { akunCalls += 1; await gerbangAkun; return gudang.listAkun(); },
+  upsertAkun: (row) => gudang.upsertAkun(row),
+};
+const loginHangat = await call('/api/login', { method: 'POST', json: { id: mitraA.id, password: mitraA.id } });
+const meHangat = await call('/api/me', auth(loginHangat.json.token));
+if (loginHangat.status !== 200 || meHangat.status !== 200 || akunCalls !== 0) fail('login/me hangat menunggu akun ' + akunCalls);
+const awalDash = await call('/api/admin/dashboard', auth(admin.json.token));
+if (awalDash.status !== 200 || !awalDash.json.kpi) fail('dashboard awal ' + awalDash.status);
+await kv.delete('dash:admin:fresh');
+isianGagal = true;
+const dashBasi = await call('/api/admin/dashboard', auth(admin.json.token));
+if (dashBasi.status !== 200 || dashBasi.json.stale !== true || !dashBasi.json.meta || dashBasi.json.meta.stale !== true) {
+  fail('dashboard basi ' + dashBasi.status + ' ' + JSON.stringify(dashBasi.json && dashBasi.json.meta));
+}
+await kv.delete('dash:admin:fresh');
+await kv.delete('dash:admin:last');
+const dashHilang = await call('/api/admin/dashboard', auth(admin.json.token));
+if (dashHilang.status !== 502 || dashHilang.json.error.code !== 'UPSTREAM_ERROR') fail('dashboard tanpa salinan ' + dashHilang.status);
+isianGagal = false;
+await kv.delete('akun:fresh');
+akunCalls = 0;
+const pekerjaan = [];
+const exec = { waitUntil(job) { pekerjaan.push(job); } };
+const mulai = Date.now();
+const adminHangat = await call('/api/login', { method: 'POST', json: { id: '3305', password: '3305' }, exec });
+if (adminHangat.status !== 200 || Date.now() - mulai > 1000 || akunCalls !== 1 || pekerjaan.length !== 1) {
+  fail('login admin menunggu Apps Script ' + adminHangat.status + ' ' + akunCalls);
+}
+lepasAkun();
+await Promise.all(pekerjaan);
+delete env.store;
+await kv.delete('dash:admin:fresh');
+await kv.delete('dash:admin:last');
+console.log('login cache ok');
+
 const bye = await call('/api/logout', { method: 'POST', token: loginA.json.token });
 const bye2 = await call('/api/logout', { method: 'POST' });
 if (bye.status !== 200 || bye2.status !== 200 || bye.json.ok !== true) fail('logout');

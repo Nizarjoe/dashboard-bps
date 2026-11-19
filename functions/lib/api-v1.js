@@ -4,7 +4,7 @@ import { deleteSession, getSession, newToken, putSession, SESSION_TTL_SECONDS } 
 import { loadSumber, SLOTS, canonNama } from './sumber.js';
 import { readAllowedSheet, sheetCatalog } from './gsheet.js';
 import { createStore } from './store.js';
-import { ensureAkun } from './akun.js';
+import { deferWork, readAkunCache, resolveAkun, syncAkun } from './akun.js';
 import { indexFotoPayload, uploadsFor } from './foto-index.js';
 
 const WINDOW_MS = 10 * 60 * 1000;
@@ -63,19 +63,13 @@ function maskNik(nik) {
   return s.slice(0, 4) + '*'.repeat(s.length - 8) + s.slice(-4);
 }
 
-async function openContext(env) {
+async function openContext(env, execCtx) {
   const sumber = await loadSumber(env);
   if (sumber.error) return sumber;
   const store = createStore(env);
-  try {
-    const akun = await ensureAkun(store, sumber.records);
-    return { sumber, store, akun, env };
-  } catch (e) {
-    if (e && e.code === 'UPSTREAM_ERROR') {
-      return { error: apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.') };
-    }
-    throw e;
-  }
+  const akun = await resolveAkun(env, store, sumber.records, execCtx);
+  if (akun.error) return akun;
+  return { sumber, store, akun: akun.list, env, execCtx };
 }
 
 function findRecord(ctx, jenis, id) {
@@ -209,8 +203,31 @@ async function loadFotoIndex(ctx) {
   }
 }
 
+const DASH_FRESH = 'dash:admin:fresh';
+const DASH_LAST = 'dash:admin:last';
+
 async function dropFotoFresh(ctx) {
-  if (ctx.store.kind === 'apps-script' && ctx.env && ctx.env.SESSIONS) await ctx.env.SESSIONS.delete(FOTO_FRESH);
+  const kv = ctx.store.kind === 'apps-script' && ctx.env && ctx.env.SESSIONS;
+  if (!kv) return;
+  await kv.delete(FOTO_FRESH);
+  await kv.delete(DASH_FRESH);
+}
+
+function staleDashboard(body) {
+  return {
+    ...body,
+    stale: true,
+    meta: { syncedAt: body.syncedAt || null, stale: true },
+  };
+}
+
+async function savedDashboard(env) {
+  const kv = env && env.SESSIONS;
+  if (!kv) return null;
+  const raw = await kv.get(DASH_LAST);
+  if (!raw) return null;
+  try { return staleDashboard(JSON.parse(raw)); }
+  catch { return null; }
 }
 
 function visible(ctx, user) {
@@ -230,7 +247,7 @@ async function requireUser(request, env) {
   return { user: session };
 }
 
-async function login(request, env) {
+async function login(request, env, execCtx) {
   if (!env || !env.SESSIONS) return apiError(503, 'SOURCE_UNAVAILABLE', 'Penyimpanan sesi (KV SESSIONS) belum terpasang.');
   const body = await readJson(request);
   const id = String(body.id || '').trim();
@@ -243,12 +260,31 @@ async function login(request, env) {
   if (rl && rl.count >= 5 && now < rl.until) {
     return apiError(429, 'RATE_LIMITED', 'Terlalu banyak percobaan login. Coba lagi nanti.', { retryAfter: Math.ceil((rl.until - now) / 1000) });
   }
-  const ctx = await openContext(env);
-  if (ctx.error && id !== '3305') return ctx.error;
-  const akun = ctx.error ? [] : ctx.akun;
-  const found = id === '3305'
-    ? { id: '3305', nama: 'ADMIN KEBUMEN', role: 'admin', aktif: true }
-    : (akun.find(a => a.id === id) || null);
+  let found = null;
+  let akunCache = null;
+  if (id === '3305') {
+    found = { id: '3305', nama: 'ADMIN KEBUMEN', role: 'admin', aktif: true };
+  } else {
+    akunCache = await readAkunCache(env);
+    if (!akunCache) {
+      try { akunCache = { list: await syncAkun(env), fresh: true }; }
+      catch (e) {
+        if (e && e.response) return e.response;
+        if (e && e.code === 'UPSTREAM_ERROR') return apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.');
+        throw e;
+      }
+    }
+    found = (akunCache.list || []).find(a => a.id === id) || null;
+    if (!found && !akunCache.fresh) {
+      try {
+        const list = await syncAkun(env);
+        akunCache = { list, fresh: true };
+        found = list.find(a => a.id === id) || null;
+      } catch (e) {
+        if (e && e.code !== 'UPSTREAM_ERROR' && !e.response) throw e;
+      }
+    }
+  }
   const ok = found && found.aktif !== false && password === id;
   if (!ok) {
     if (!rl || now >= rl.until) rl = { count: 0, until: now + WINDOW_MS };
@@ -257,6 +293,8 @@ async function login(request, env) {
     return apiError(401, 'INVALID_CREDENTIALS', CREDS);
   }
   await env.SESSIONS.delete(rlKey);
+  if (id === '3305') akunCache = await readAkunCache(env);
+  if (!akunCache || !akunCache.fresh) deferWork(execCtx, () => syncAkun(env));
   const token = newToken();
   await putSession(env.SESSIONS, token, found);
   return apiOk({
@@ -272,18 +310,23 @@ async function logout(request, env) {
   return apiOk({ ok: true });
 }
 
-async function me(request, env, user) {
-  const ctx = await openContext(env);
-  if (ctx.error) return ctx.error;
-  const akun = ctx.akun.find(a => a.id === user.id) || user;
-  const body = { user: userOf(akun), syncedAt: ctx.sumber.syncedAt, stale: ctx.sumber.stale };
+async function me(request, env, user, execCtx) {
+  const sumber = await loadSumber(env);
+  if (sumber.error) return sumber.error;
+  const store = createStore(env);
+  const loaded = await resolveAkun(env, store, sumber.records, execCtx);
+  if (loaded.error && user.role !== 'admin') return loaded.error;
+  const daftar = loaded.list || [];
+  const ctx = { sumber, akun: daftar };
+  const akun = daftar.find(a => a.id === user.id) || user;
+  const body = { user: userOf(akun), syncedAt: sumber.syncedAt, stale: sumber.stale };
   if (akun.role === 'mitra') {
     const ids = String(akun.pml_id || '').split(',').filter(Boolean);
     const pml = ctx.akun.find(a => a.id === ids[0]) || null;
     body.pml = orang(pml);
   }
   if (akun.role === 'pml') {
-    const names = new Set(ctx.sumber.records.filter(r => r.pml && byName(ctx.akun, 'pml', r.pml)?.id === user.id).map(r => r.pcl));
+    const names = new Set(sumber.records.filter(r => r.pml && byName(daftar, 'pml', r.pml)?.id === user.id).map(r => r.pcl));
     body.jumlahMitra = [...names].filter(Boolean).length;
   }
   return apiOk(body);
@@ -518,7 +561,7 @@ async function tolak(request, ctx, user, jenis, id) {
   return apiOk({ status: 'ditolak', versi: row.versi, locked: false });
 }
 
-async function dashboard(ctx) {
+async function computeDashboard(ctx) {
   const isian = await ctx.store.listIsian();
   const foto = ctx.sumber.records.length ? await loadFotoIndex(ctx) : { index: new Map(), stale: false };
   const groups = { pengeringan: [], penggilingan: [] };
@@ -552,14 +595,44 @@ async function dashboard(ctx) {
     belum: rows.filter(r => r.status === 'belum').length,
     fotoLengkap: rows.filter(r => r.fotoTerisi === 12).length,
   });
-  return apiOk({
+  return {
     kpi: { pengeringan: kpiOf(groups.pengeringan), penggilingan: kpiOf(groups.penggilingan) },
     perMitra: [...perM.values()],
     perKecamatan: [...perK.values()],
     anomali,
     syncedAt: ctx.sumber.syncedAt,
     stale: ctx.sumber.stale || foto.stale,
-  });
+  };
+}
+
+async function dashboard(ctx) {
+  const kv = ctx.env && ctx.env.SESSIONS;
+  const remote = ctx.store.kind === 'apps-script' && kv;
+  if (remote) {
+    const fresh = await kv.get(DASH_FRESH);
+    if (fresh) {
+      try { return apiOk(JSON.parse(fresh)); }
+      catch { /* hitung ulang */ }
+    }
+  }
+  try {
+    const body = await computeDashboard(ctx);
+    if (remote) {
+      const packed = JSON.stringify(body);
+      await kv.put(DASH_LAST, packed);
+      await kv.put(DASH_FRESH, packed, { expirationTtl: 60 });
+    }
+    return apiOk(body);
+  } catch (e) {
+    if (e && e.code === 'UPSTREAM_ERROR') {
+      if (remote) {
+        const saved = await savedDashboard(ctx.env);
+        if (saved) return apiOk(saved);
+      }
+      return apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.');
+    }
+    throw e;
+  }
 }
 
 async function pmlDashboard(ctx, user) {
@@ -650,12 +723,12 @@ function akunPublik(ctx) {
   };
 }
 
-export async function handleV1(request, env) {
+export async function handleV1(request, env, execCtx) {
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
   if (path === '/api/logout' && (method === 'POST' || method === 'DELETE')) return logout(request, env);
-  if (path === '/api/login' && method === 'POST') return login(request, env);
+  if (path === '/api/login' && method === 'POST') return login(request, env, execCtx);
   if (!path.startsWith('/api/')) return apiError(404, 'NOT_FOUND', 'Halaman tidak ditemukan.');
   const auth = await requireUser(request, env);
   if (auth.error) return auth.error;
@@ -663,14 +736,20 @@ export async function handleV1(request, env) {
   if (method === 'PUT' || method === 'POST') {
     if (user.role === 'pml' && path !== '/api/logout') return apiError(403, 'FORBIDDEN', 'PML tidak dapat mengubah data.');
   }
-  if (path === '/api/me' && method === 'GET') return me(request, env, user);
+  if (path === '/api/me' && method === 'GET') return me(request, env, user, execCtx);
   if ((path === '/api/gsheets' || path === '/api/gsheet') && method === 'GET') {
     if (user.role !== 'admin') return apiError(403, 'FORBIDDEN', 'Hanya admin yang dapat membuka monitoring.');
     if (path === '/api/gsheets') return apiOk({ sheets: sheetCatalog() });
     return readAllowedSheet(env, url.searchParams.get('sid') || '', url.searchParams.get('gid') || '0');
   }
-  const ctx = await openContext(env);
-  if (ctx.error) return ctx.error;
+  const ctx = await openContext(env, execCtx);
+  if (ctx.error) {
+    if (path === '/api/admin/dashboard' && method === 'GET' && user.role === 'admin' && ctx.error.status === 502) {
+      const saved = await savedDashboard(env);
+      if (saved) return apiOk(saved);
+    }
+    return ctx.error;
+  }
   if (path === '/api/sampel' && method === 'GET') return listSampel(url, ctx, user);
   if (path === '/api/opsi' && method === 'GET') return apiOk(ctx.sumber.opsi);
   if (path === '/api/admin/dashboard' && method === 'GET') {

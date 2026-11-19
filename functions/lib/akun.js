@@ -1,4 +1,6 @@
-import { canonNama } from './sumber.js';
+import { apiError } from './errors.js';
+import { canonNama, loadSumber } from './sumber.js';
+import { createStore } from './store.js';
 
 const ADMIN = { id: '3305', nama: 'Admin Kebumen', peran: 'admin', role: 'admin', pml_id: '', aktif: true };
 
@@ -69,6 +71,77 @@ export async function ensureAkun(store, records) {
   if (!all.some(a => a.id === '3305')) await store.upsertAkun(ADMIN);
   all = await store.listAkun();
   return all.map(normalizeAkun);
+}
+
+const AKUN_FRESH = 'akun:fresh';
+const AKUN_LAST = 'akun:last';
+const AKUN_TTL = 300;
+
+function parseAkunCache(raw) {
+  try {
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.akun)) return null;
+    return data.akun;
+  } catch {
+    return null;
+  }
+}
+
+export function deferWork(execCtx, fn) {
+  const job = Promise.resolve().then(fn).catch(e => {
+    console.error(JSON.stringify({ level: 'error', message: String(e && e.message || e) }));
+  });
+  if (execCtx && typeof execCtx.waitUntil === 'function') execCtx.waitUntil(job);
+  return job;
+}
+
+export async function syncAkun(env, store, records) {
+  let recs = records;
+  if (!recs) {
+    const sumber = await loadSumber(env);
+    if (sumber.error) {
+      const err = new Error('sumber');
+      err.response = sumber.error;
+      throw err;
+    }
+    recs = sumber.records;
+  }
+  const list = await ensureAkun(store || createStore(env), recs);
+  const kv = env && env.SESSIONS;
+  if (kv) {
+    const packed = JSON.stringify({ akun: list, syncedAt: new Date().toISOString() });
+    await kv.put(AKUN_LAST, packed);
+    await kv.put(AKUN_FRESH, packed, { expirationTtl: AKUN_TTL });
+  }
+  return list;
+}
+
+export async function readAkunCache(env) {
+  const kv = env && env.SESSIONS;
+  if (!kv) return null;
+  const fresh = parseAkunCache(await kv.get(AKUN_FRESH));
+  if (fresh) return { list: fresh, fresh: true };
+  const last = parseAkunCache(await kv.get(AKUN_LAST));
+  if (last) return { list: last, fresh: false };
+  return null;
+}
+
+export async function resolveAkun(env, store, records, execCtx) {
+  const cached = await readAkunCache(env);
+  if (cached && cached.fresh) return { list: cached.list };
+  if (cached) {
+    deferWork(execCtx, () => syncAkun(env, store, records));
+    return { list: cached.list };
+  }
+  try {
+    return { list: await syncAkun(env, store, records) };
+  } catch (e) {
+    if (e && e.response) return { error: e.response };
+    if (e && e.code === 'UPSTREAM_ERROR') {
+      return { error: apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.') };
+    }
+    throw e;
+  }
 }
 
 export function normalizeAkun(row) {

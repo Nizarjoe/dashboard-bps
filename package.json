@@ -11,7 +11,8 @@
     "seed": "node scripts/gen-users-seed.mjs",
     "test": "node scripts/smoke-frontend.mjs",
     "test:sessions": "node scripts/smoke-sessions.mjs",
-    "test:api": "node scripts/smoke-api.mjs"
+    "test:api": "node scripts/smoke-api.mjs",
+    "test:migration": "node scripts/smoke-migration.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

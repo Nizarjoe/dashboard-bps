@@ -76,12 +76,13 @@ export async function ensureAkun(store, records) {
 const AKUN_FRESH = 'akun:fresh';
 const AKUN_LAST = 'akun:last';
 const AKUN_TTL = 300;
+const AKUN_LAST_TTL = 7 * 24 * 60 * 60;
 
 function parseAkunCache(raw) {
   try {
     const data = JSON.parse(raw);
     if (!data || !Array.isArray(data.akun)) return null;
-    return data.akun;
+    return { list: data.akun, syncedAt: data.syncedAt || null };
   } catch {
     return null;
   }
@@ -110,7 +111,7 @@ export async function syncAkun(env, store, records) {
   const kv = env && env.SESSIONS;
   if (kv) {
     const packed = JSON.stringify({ akun: list, syncedAt: new Date().toISOString() });
-    await kv.put(AKUN_LAST, packed);
+    await kv.put(AKUN_LAST, packed, { expirationTtl: AKUN_LAST_TTL });
     await kv.put(AKUN_FRESH, packed, { expirationTtl: AKUN_TTL });
   }
   return list;
@@ -120,21 +121,22 @@ export async function readAkunCache(env) {
   const kv = env && env.SESSIONS;
   if (!kv) return null;
   const fresh = parseAkunCache(await kv.get(AKUN_FRESH));
-  if (fresh) return { list: fresh, fresh: true };
+  if (fresh) return { list: fresh.list, fresh: true, syncedAt: fresh.syncedAt };
   const last = parseAkunCache(await kv.get(AKUN_LAST));
-  if (last) return { list: last, fresh: false };
+  if (last) return { list: last.list, fresh: false, syncedAt: last.syncedAt };
   return null;
 }
 
 export async function resolveAkun(env, store, records, execCtx) {
   const cached = await readAkunCache(env);
-  if (cached && cached.fresh) return { list: cached.list };
+  if (cached && cached.fresh) return { list: cached.list, fresh: true, syncedAt: cached.syncedAt };
   if (cached) {
     deferWork(execCtx, () => syncAkun(env, store, records));
-    return { list: cached.list };
+    return { list: cached.list, fresh: false, syncedAt: cached.syncedAt };
   }
   try {
-    return { list: await syncAkun(env, store, records) };
+    const list = await syncAkun(env, store, records);
+    return { list, fresh: true, syncedAt: new Date().toISOString() };
   } catch (e) {
     if (e && e.response) return { error: e.response };
     if (e && e.code === 'UPSTREAM_ERROR') {

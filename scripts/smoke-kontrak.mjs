@@ -346,9 +346,12 @@ let akunCalls = 0;
 let lepasAkun;
 const gerbangAkun = new Promise(resolve => { lepasAkun = resolve; });
 let isianGagal = false;
+let lepasIsian = () => {};
+let gerbangIsian = Promise.resolve();
 env.store = {
   kind: 'apps-script',
   listIsian: async () => {
+    await gerbangIsian;
     if (isianGagal) {
       const err = new Error('upstream');
       err.code = 'UPSTREAM_ERROR';
@@ -370,27 +373,52 @@ if (loginHangat.status !== 200 || meHangat.status !== 200 || akunCalls !== 0) fa
 const awalDash = await call('/api/admin/dashboard', auth(admin.json.token));
 if (awalDash.status !== 200 || !awalDash.json.kpi) fail('dashboard awal ' + awalDash.status);
 await kv.delete('dash:admin:fresh');
-isianGagal = true;
-const dashBasi = await call('/api/admin/dashboard', auth(admin.json.token));
-if (dashBasi.status !== 200 || dashBasi.json.stale !== true || !dashBasi.json.meta || dashBasi.json.meta.stale !== true) {
-  fail('dashboard basi ' + dashBasi.status + ' ' + JSON.stringify(dashBasi.json && dashBasi.json.meta));
+gerbangIsian = new Promise(resolve => { lepasIsian = resolve; });
+const pekerjaan = [];
+const exec = { waitUntil(job) { pekerjaan.push(job); } };
+const dashTertahan = call('/api/admin/dashboard', { token: admin.json.token, exec });
+const dashCepat = await Promise.race([
+  dashTertahan.then(r => ({ kind: 'res', r })),
+  new Promise(resolve => setTimeout(() => resolve({ kind: 'timeout' }), 400)),
+]);
+if (dashCepat.kind !== 'res' || dashCepat.r.status !== 200 || dashCepat.r.json.stale !== true || dashCepat.r.json.meta.stale !== true || !dashCepat.r.json.syncedAt) {
+  fail('dashboard last-good menunggu upstream');
 }
+lepasIsian();
+await Promise.all(pekerjaan);
+await dashTertahan;
 await kv.delete('dash:admin:fresh');
 await kv.delete('dash:admin:last');
+isianGagal = true;
+gerbangIsian = Promise.resolve();
 const dashHilang = await call('/api/admin/dashboard', auth(admin.json.token));
 if (dashHilang.status !== 502 || dashHilang.json.error.code !== 'UPSTREAM_ERROR') fail('dashboard tanpa salinan ' + dashHilang.status);
 isianGagal = false;
 await kv.delete('akun:fresh');
-akunCalls = 0;
-const pekerjaan = [];
-const exec = { waitUntil(job) { pekerjaan.push(job); } };
-const mulai = Date.now();
-const adminHangat = await call('/api/login', { method: 'POST', json: { id: '3305', password: '3305' }, exec });
-if (adminHangat.status !== 200 || Date.now() - mulai > 1000 || akunCalls !== 1 || pekerjaan.length !== 1) {
-  fail('login admin menunggu Apps Script ' + adminHangat.status + ' ' + akunCalls);
+const loginTertahan = call('/api/login', { method: 'POST', json: { id: mitraA.id, password: mitraA.id } });
+const loginCepat = await Promise.race([
+  loginTertahan.then(r => ({ kind: 'res', r })),
+  new Promise(resolve => setTimeout(() => resolve({ kind: 'timeout' }), 400)),
+]);
+if (loginCepat.kind !== 'res' || loginCepat.r.status !== 200) fail('login last-good menunggu Apps Script');
+const meBasi = await call('/api/me', auth(loginCepat.r.json.token));
+if (meBasi.status !== 200 || meBasi.json.stale !== true || !meBasi.json.meta || meBasi.json.meta.stale !== true || !meBasi.json.syncedAt) {
+  fail('me basi ' + JSON.stringify(meBasi.json));
 }
+const terakhir = JSON.parse(await kv.get('akun:last'));
+terakhir.akun = terakhir.akun.filter(a => a.id !== mitraA.id);
+await kv.put('akun:last', JSON.stringify(terakhir));
+await kv.delete('akun:fresh');
+const loginBaru = call('/api/login', { method: 'POST', json: { id: mitraA.id, password: mitraA.id } });
+const loginMenunggu = await Promise.race([
+  loginBaru.then(r => ({ kind: 'res', r })),
+  new Promise(resolve => setTimeout(() => resolve({ kind: 'timeout' }), 400)),
+]);
+if (loginMenunggu.kind !== 'timeout') fail('login ID di luar last-good tidak menyinkronkan');
 lepasAkun();
-await Promise.all(pekerjaan);
+const loginSelesai = await loginBaru;
+if (loginSelesai.status !== 200 || loginSelesai.json.user.id !== mitraA.id) fail('sync satu kali ' + loginSelesai.status);
+await loginTertahan;
 delete env.store;
 await kv.delete('dash:admin:fresh');
 await kv.delete('dash:admin:last');

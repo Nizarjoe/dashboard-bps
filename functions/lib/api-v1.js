@@ -205,6 +205,8 @@ async function loadFotoIndex(ctx) {
 
 const DASH_FRESH = 'dash:admin:fresh';
 const DASH_LAST = 'dash:admin:last';
+const DASH_FRESH_TTL = 60;
+const DASH_LAST_TTL = 7 * 24 * 60 * 60;
 
 async function dropFotoFresh(ctx) {
   const kv = ctx.store.kind === 'apps-script' && ctx.env && ctx.env.SESSIONS;
@@ -319,7 +321,11 @@ async function me(request, env, user, execCtx) {
   const daftar = loaded.list || [];
   const ctx = { sumber, akun: daftar };
   const akun = daftar.find(a => a.id === user.id) || user;
-  const body = { user: userOf(akun), syncedAt: sumber.syncedAt, stale: sumber.stale };
+  const akunStale = loaded.fresh === false;
+  const syncedAt = akunStale && loaded.syncedAt ? loaded.syncedAt : sumber.syncedAt;
+  const stale = Boolean(sumber.stale || akunStale);
+  const body = { user: userOf(akun), syncedAt, stale };
+  if (stale) body.meta = { syncedAt, stale: true };
   if (akun.role === 'mitra') {
     const ids = String(akun.pml_id || '').split(',').filter(Boolean);
     const pml = ctx.akun.find(a => a.id === ids[0]) || null;
@@ -605,6 +611,18 @@ async function computeDashboard(ctx) {
   };
 }
 
+async function rememberDashboard(kv, body) {
+  const packed = JSON.stringify(body);
+  await kv.put(DASH_LAST, packed, { expirationTtl: DASH_LAST_TTL });
+  await kv.put(DASH_FRESH, packed, { expirationTtl: DASH_FRESH_TTL });
+}
+
+async function refreshDashboard(ctx) {
+  const body = await computeDashboard(ctx);
+  if (ctx.env && ctx.env.SESSIONS) await rememberDashboard(ctx.env.SESSIONS, body);
+  return body;
+}
+
 async function dashboard(ctx) {
   const kv = ctx.env && ctx.env.SESSIONS;
   const remote = ctx.store.kind === 'apps-script' && kv;
@@ -614,14 +632,18 @@ async function dashboard(ctx) {
       try { return apiOk(JSON.parse(fresh)); }
       catch { /* hitung ulang */ }
     }
+    const last = await kv.get(DASH_LAST);
+    if (last) {
+      try {
+        const body = JSON.parse(last);
+        deferWork(ctx.execCtx, () => refreshDashboard(ctx));
+        return apiOk(staleDashboard(body));
+      } catch { /* hitung ulang */ }
+    }
   }
   try {
     const body = await computeDashboard(ctx);
-    if (remote) {
-      const packed = JSON.stringify(body);
-      await kv.put(DASH_LAST, packed);
-      await kv.put(DASH_FRESH, packed, { expirationTtl: 60 });
-    }
+    if (remote) await rememberDashboard(kv, body);
     return apiOk(body);
   } catch (e) {
     if (e && e.code === 'UPSTREAM_ERROR') {

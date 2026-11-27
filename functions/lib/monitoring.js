@@ -1,9 +1,10 @@
 // Endpoint monitoring v2. Akses (K5): admin penuh, PML disamarkan server, mitra 403.
 import { apiError, apiOk } from './errors.js';
 import { BIDANG, bacaParamArsip, cariTab, daftarTab, itemPublik, katalogMeta } from './katalog.js';
-import { bacaCache, deteksiHeader, masihSegar, muatTab, responGalat } from './gsheet.js';
+import { bacaCache, COBA_LAGI_DETIK, deteksiHeader, masihSegar, muatTab, responGalat } from './gsheet.js';
 import { samarkanRows } from './samaran.js';
 import { hitungRingkasan } from './ringkasan.js';
+import { buatKunciBaris } from './kunci-baris.js';
 
 // Batas ambil Google per permintaan batch. Satu ambil bisa 2 subrequest
 // (redirect 307 ke googleusercontent), jadi 10 x 2 = 20 dari jatah 50.
@@ -64,6 +65,7 @@ export async function tab(url, env, user) {
   const r = await muatTab(env, t);
   if (!r.ok) return responGalat(r.code, t);
   const headerRow = deteksiHeader(r.rows, t.headerRow);
+  const kb = buatKunciBaris(t, r.rows, headerRow);
   const meta = { syncedAt: r.syncedAt, changedAt: r.changedAt, stale: r.stale, disamarkan: false };
   if (r.error) meta.error = r.error;
   let rows = r.rows;
@@ -86,6 +88,8 @@ export async function tab(url, env, user) {
     headerRow,
     header: headerRow ? rows[headerRow - 1] : [],
     rows,
+    kunci: kb.kunci,
+    kunciBaris: kb.kunciBaris,
     meta,
   });
 }
@@ -135,7 +139,7 @@ export async function ringkasan(url, env, user) {
     const r = hasil[i];
     const dasar = { id: x.id, label: x.label, survei: x.survei };
     if (!r.ok) {
-      if (r.code === 'BATAS_PERMINTAAN') return { ...dasar, status: 'ditunda', error: { code: r.code, message: 'Ditunda karena batas ambil per permintaan. Muat ulang sebentar lagi.' } };
+      if (r.code === 'BATAS_PERMINTAAN') return { ...dasar, status: 'ditunda', error: { code: r.code, message: 'Ditunda karena batas ambil per permintaan. Muat ulang sebentar lagi.' }, cobaLagiDetik: COBA_LAGI_DETIK };
       return { ...dasar, status: 'galat', error: { code: r.code, message: 'Sumber tab ini tidak bisa dibaca.' } };
     }
     if (r.sumberData === 'google') diambil++;

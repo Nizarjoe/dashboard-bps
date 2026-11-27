@@ -92,6 +92,8 @@ Query: `id=<id>` ATAU `sid=<sid>&gid=<gid>`.
   "header": ["No.", "Kode Identitas", "Nama Responden", "NIK", "No HP", "Email PCL", "Alamat", "PCL", "PML", "Hasil Pencacahan", ""],
   "rows": [["DATA SINTETIS UNTUK UJI"], ["Rekap…"], ["No.", "Kode Identitas", "…"],
            ["1", "1234567890123456", "Contoh S. D.", "9900********0001", "*********001", "***@example.test", "[disamarkan]", "Petugas Uji A", "Pengawas Uji A", "1. Berhasil", "[disamarkan]"]],
+  "kunci": { "kolom": "Kode Identitas", "indeks": 1, "sumber": "pemetaan" },
+  "kunciBaris": [null, null, null, "1234567890123456"],
   "meta": {
     "syncedAt": "2026-11-27T05:00:00.000Z",
     "changedAt": "2026-11-27T04:10:00.000Z",
@@ -105,6 +107,11 @@ Query: `id=<id>` ATAU `sid=<sid>&gid=<gid>`.
 
 - `rows` = matriks mentah (termasuk baris judul di atas header), sama seperti v1. Data mulai `rows[headerRow]`.
 - `header` = `rows[headerRow-1]`. Pakai ini, jangan lagi `rows[0]`.
+- `kunciBaris` sejajar dengan `rows` (indeks sama). Baris judul dan header bernilai `null`. Kunci dihitung dari data mentah **sebelum** disamarkan, jadi admin dan PML mendapat nilai yang sama.
+- `kunci.sumber = "pemetaan"`: nilai diambil dari kolom kunci pemetaan ringkasan tab itu (`kunci.kolom`, `kunci.indeks` 0-based). Kolom resmi yang terpetakan saat ini: `ID Sub Segmen`, `Kode Identitas`, `NKS`, `idsubsegmen`, `ID SBR`, atau `NO.` — **bukan** nama atau NIK.
+- Bila tab belum dipetakan, kolom kunci tidak ada di header, atau sel kuncinya kosong: `kunci.sumber = "baris+hash"` dan nilainya `r{n}:{hash8}` (`n` = nomor 1-based di `rows`, `hash8` = FNV-1a 32-bit heksadesimal dari isi baris).
+- Nilai kolom yang dobel di tab yang sama: kemunculan kedua dan seterusnya mendapat akhiran `#r{n}`.
+- Pakai `kunciBaris[i]` sebagai `rujukan.baris` saat PML mengirim koreksi monitoring. Jangan ketik manual.
 - `meta.stale=true` + `meta.error {code,message}` = Google gagal, yang tampil salinan terakhir.
 - `meta.syncedAt` = terakhir dicek ke Google; `meta.changedAt` = terakhir isinya berubah.
 - Admin: `disamarkan:false`, tanpa `kolomDisamarkan`.
@@ -153,7 +160,7 @@ Batch `?bidang=tp`:
   "bidang": "tp",
   "data": [
     { "id": "…", "label": "…", "survei": "…", "status": "ok", "total": 1143, "sudah": 514, "…": "…" },
-    { "id": "…", "label": "…", "survei": "…", "status": "ditunda", "error": { "code": "BATAS_PERMINTAAN", "message": "…" } },
+    { "id": "…", "label": "…", "survei": "…", "status": "ditunda", "error": { "code": "BATAS_PERMINTAAN", "message": "…" }, "cobaLagiDetik": 60 },
     { "id": "…", "label": "…", "survei": "…", "status": "galat", "error": { "code": "SOURCE_UNAVAILABLE", "message": "…" } }
   ],
   "tanpaRingkasan": [{ "id": "…", "label": "…", "alasan": "SHEET_FORMAT_UNSUPPORTED" }],
@@ -161,7 +168,7 @@ Batch `?bidang=tp`:
 }
 ```
 
-Batch mengambil maksimal 10 tab dari Google per permintaan (jatah subrequest Workers). Sisanya `ditunda` bila belum ada cache. Panggil ulang setelah beberapa detik untuk melengkapi.
+Batch mengambil maksimal 10 tab dari Google per permintaan (jatah subrequest Workers). Sisanya `ditunda` bila belum ada cache. Item `ditunda` membawa `cobaLagiDetik` (saat ini 60) sebagai jeda yang disarankan sebelum memuat ulang; respons batch tetap HTTP 200 jadi tidak ada header `Retry-After` (header itu hanya pada galat tunggal `BATAS_PERMINTAAN` / `SOURCE_UNAVAILABLE`).
 Alasan `tanpaRingkasan`: `SHEET_FORMAT_UNSUPPORTED`, `SHEET_REMOVED`, `ARSIP_BELUM_DIPETAKAN`, `BELUM_DIPETAKAN`.
 
 ## Kode galat

@@ -16,6 +16,8 @@ const MAX_BYTES = 8_000_000;
 const KV_PREFIX = 'mon:v2:';
 const PENANDA_KOSONG = new Set(['', '-', '#n/a', '#ref!', '#value!', '#div/0!', '#name?', '#error!', '()']);
 
+export const COBA_LAGI_DETIK = 60;
+
 export const GALAT = {
   NOT_FOUND: { status: 404, retryable: false, pesan: 'Tab tidak terdaftar di katalog monitoring.' },
   SHEET_FORMAT_UNSUPPORTED: { status: 422, retryable: false, pesan: 'Format file sumber tidak didukung (bukan Google Sheets asli).' },
@@ -224,7 +226,7 @@ export function responGalat(code, tab, pesan) {
   const g = GALAT[code] || GALAT.SOURCE_UNAVAILABLE;
   const extra = { retryable: g.retryable };
   if (tab) extra.sumber = { id: tab.id, label: tab.label };
-  if (code === 'SOURCE_UNAVAILABLE' || code === 'BATAS_PERMINTAAN') extra.retryAfter = 60;
+  if (code === 'SOURCE_UNAVAILABLE' || code === 'BATAS_PERMINTAAN') extra.retryAfter = COBA_LAGI_DETIK;
   return apiError(g.status, code, pesan || g.pesan, extra);
 }
 

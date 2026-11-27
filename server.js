@@ -76,7 +76,8 @@ function seed(){
 }
 function loadDB(){ try{ return JSON.parse(fs.readFileSync(DB,'utf8')); }catch(e){ const d=seed(); fs.writeFileSync(DB,JSON.stringify(d)); return d; } }
 let db=loadDB();
-const GSHEETS=require('./data/gsheets.json');
+// Katalog monitoring v2; server lama hanya memakai tab aktif (non-arsip) dalam bentuk tuple lama.
+const GSHEETS=require('./data/monitoring-katalog.json').sheets.filter(s=>!s.arsip).map(s=>[s.bidang,s.survei,s.label,s.sid,s.gid]);
 const gsCache=new Map(); // sid:gid → {t,data}
 async function fetchGSheet(sid,gid){
   const key=sid+':'+gid;

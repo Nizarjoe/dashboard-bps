@@ -2,7 +2,7 @@ import { apiError, apiOk } from './errors.js';
 import { bearer, readJson } from './http.js';
 import { deleteSession, getSession, newToken, putSession, SESSION_TTL_SECONDS } from './session.js';
 import { loadSumber, SLOTS, canonNama } from './sumber.js';
-import { readAllowedSheet, sheetCatalog } from './gsheet.js';
+import * as monitoring from './monitoring.js';
 import { createStore } from './store.js';
 import { deferWork, readAkunCache, resolveAkun, syncAkun } from './akun.js';
 import { indexFotoPayload, uploadsFor } from './foto-index.js';
@@ -778,10 +778,11 @@ export async function handleV1(request, env, execCtx) {
     if (user.role === 'pml' && path !== '/api/logout') return apiError(403, 'FORBIDDEN', 'PML tidak dapat mengubah data.');
   }
   if (path === '/api/me' && method === 'GET') return me(request, env, user, execCtx);
-  if ((path === '/api/gsheets' || path === '/api/gsheet') && method === 'GET') {
-    if (user.role !== 'admin') return apiError(403, 'FORBIDDEN', 'Hanya admin yang dapat membuka monitoring.');
-    if (path === '/api/gsheets') return apiOk({ sheets: sheetCatalog() });
-    return readAllowedSheet(env, url.searchParams.get('sid') || '', url.searchParams.get('gid') || '0');
+  if (method === 'GET') {
+    if (path === '/api/gsheets') return monitoring.katalogLama(url, user);
+    if (path === '/api/gsheet' || path === '/api/monitoring/tab') return monitoring.tab(url, env, user);
+    if (path === '/api/monitoring/katalog') return monitoring.katalog(url, user);
+    if (path === '/api/monitoring/ringkasan') return monitoring.ringkasan(url, env, user);
   }
   const ctx = await openContext(env, execCtx);
   if (ctx.error) {

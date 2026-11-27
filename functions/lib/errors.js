@@ -1,6 +1,8 @@
 export function apiError(status, code, message, extra) {
   const error = { code, message };
   if (extra && extra.fields) error.fields = extra.fields;
+  if (extra && typeof extra.retryable === 'boolean') error.retryable = extra.retryable;
+  if (extra && extra.sumber) error.sumber = extra.sumber;
   const headers = {
     'content-type': 'application/json; charset=utf-8',
     'cache-control': 'no-store',

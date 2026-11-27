@@ -1,0 +1,53 @@
+# Cloudflare Pages — SINTA PADI.
+# Bukan Worker Next.js dan bukan @opennextjs/cloudflare.
+#
+# Deploy advanced mode memakai dist/_worker.js (npm run build:worker).
+# Folder functions/ tetap ada untuk wrangler pages dev tanpa bundel,
+# dan diabaikan Pages bila dist/_worker.js ikut terunggah.
+#
+# Dashboard Pages:
+#   Framework preset : None
+#   Build command    : npm run build:worker
+#   Output directory : dist
+#   Root directory   : /
+#   Node.js version  : 20
+#
+# Binding (nama harus persis seperti ini):
+#   SESSIONS  KV   sesi login, cache Google Sheet (gs:), berkas kecil (up:).
+#                  Namespace preview: 3b0c0af482734b8ba8710a5f60412ae5
+#   DB        D1   sinta-padi
+#   UPLOADS   R2   sinta-padi-uploads
+# Lokal `wrangler pages dev` memakai simulasi di .wrangler/state,
+# bukan sumber daya remote, kecuali remote = true.
+
+name = "dashboard-bps"
+compatibility_date = "2026-11-18"
+pages_build_output_dir = "./dist"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 1
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "3b0c0af482734b8ba8710a5f60412ae5"
+
+# Ganti database_id setelah `wrangler d1 create sinta-padi`.
+# ID di bawah hanya placeholder agar `wrangler pages dev` lokal punya binding DB.
+[[d1_databases]]
+binding = "DB"
+database_name = "sinta-padi"
+database_id = "00000000-0000-0000-0000-000000000001"
+
+# Bucket harus dibuat di dashboard bila akun sudah punya metode pembayaran.
+# Tanpa R2, berkas sampai 200 KB disimpan di KV SESSIONS (awalan up:).
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "sinta-padi-uploads"

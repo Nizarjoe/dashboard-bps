@@ -1,44 +1,41 @@
-# Dashboard Monitoring Produksi 3305 — BPS Kebumen
+# SINTA PADI — SKGB Kebumen
 
-Reinkarnasi profesional Google Sites "Monitoring Produksi 3305" (Tim Statistik Produksi, BPS Kabupaten Kebumen) menjadi dashboard web production-ready.
+Dashboard untuk Kabupaten Kebumen. Halaman statis di `public/` dibangun ke `dist/`. API Pages ada di `dist/_worker.js`.
 
-## Menjalankan
+Kontrak lengkap: `docs/kontrak-api-mitra.md`. Langkah Google Apps Script: `apps-script/README.md`.
+
+## Login
+
+Password sama dengan ID akun. Tidak ada ubah password.
+
+| Peran | ID | Password |
+|---|---|---|
+| Admin Kebumen | `3305` | `3305` |
+| Mitra | `3305001` … | sama dengan ID |
+| PML | `3305P01` … | sama dengan ID |
+
+ID mitra dan PML dibentuk dari nama PCL/PML di Google Sheet. Nama di-trim, spasi ganda dipadatkan, lalu dijadikan huruf besar.
+
+## Perintah
 
 ```bash
-node server.js        # port 8200 (env PORT untuk ubah)
+npm run build            # dist/ statis saja
+npm run build:worker     # dist/ + dist/_worker.js
+npm test                 # cek build frontend dan server Node lama
+npm run test:api         # kontrak Admin/Mitra/PML
+npm run test:sessions    # sama dengan test:api
 ```
 
-- Dashboard: http://localhost:8200
-- API: /api/login, /api/me, /api/data, /api/survei, /api/progress, /api/users, /api/upload, /api/foto/delete, /api/meta, /api/export (CSV)
+`node server.js` masih menyalakan API provinsi yang lama di port 8200. API Pages tidak lagi memakai rute itu.
 
-## Login (ganti password di data/db.json untuk produksi)
+## Binding dan env
 
-| Role | Username | Password | Hak |
-|---|---|---|---|
-| Superadmin | superadmin | bps3305 | Semua + kelola pengguna |
-| Admin | admin | bps3305 | Kelola survei, upload/hapus foto, aktivitas, pengaturan |
-| Mitra BPS | mitra | mitra3305 | Lihat dashboard + update progres + upload foto |
+| Nama | Jenis | Kegunaan |
+|---|---|---|
+| `SESSIONS` | KV `3b0c0af482734b8ba8710a5f60412ae5` | sesi Bearer 7 hari, cache CSV 3 menit, salinan isian bila Apps Script kosong |
+| `APPS_SCRIPT_URL` | env | URL web app Apps Script |
+| `APPS_SCRIPT_SECRET` | env | rahasia HMAC. Jangan disimpan di repo |
 
-## Fitur (mengikuti situs Google Sites asli)
+Data sampel dibaca dari CSV publik Google Sheet, bukan dari D1. Bila `APPS_SCRIPT_URL` kosong, isian disimpan di KV supaya preview tetap bisa dicoba.
 
-- 3 bidang: Statistik Tanaman Pangan, INPEK, Horti/Perkebunan/Peternakan/Perikanan — 27 survei seed (KSA, Ubinan SR1-3, SKJG, SKGB, IMK, DPA/STPIM/IBSTR, Galian URT/BH, Konstruksi, SPT, SKP, Komstrat, VIP Horti, DPP DUTL)
-- Progres real-time per survei (target vs selesai, persen, status Belum Mulai/Berjalan/Selesai)
-- Link Google Sheet monitoring & Google Form per survei (dikelola admin, persis seperti situs lama)
-- Upload foto dokumentasi survei (magic-byte validation, maks 5 MB) menggantikan Google Form upload foto
-- KPI dashboard: total survei, progres keseluruhan, perlu perhatian, dokumentasi
-- Log aktivitas, manajemen pengguna (superadmin), export CSV rekap, pengaturan instansi
-
-## Teknis
-
-Node http murni tanpa dependensi; data di `data/db.json`; upload di `uploads/`. Auth token Bearer in-memory (SESS).
-
-
-## Revisi v2
-- Semua laporan progres langsung di website (tanpa Google Form/Sheet) — link eksternal dihapus
-- Mitra mobile-first (bottom nav + drawer); admin desktop (sidebar) & mobile sama-sama nyaman
-- Upload foto per nama mitra: nama file `foto_<mitra>_<ts>_<rand>.ext`, filter galeri per mitra & program
-- Dashboard progres setiap mitra di setiap program (tabel + filter + pencarian + peringkat mitra)
-- Impor mitra Excel/CSV (`/api/template.xlsx` template resmi): mitra baru + penugasan otomatis terintegrasi (login, lapor, upload)
-- Desain sidebar profesional mengikuti referensi (hero biru + KPI + quick actions + peringkat)
-- Superadmin kelola program penuh (nama, bidang, target, satuan, tenggat, wajib foto, status)
-- Verifikasi laporan oleh admin; aktivitas tercatat; bahasa Indonesia penuh
+Build Pages: `npm run build:worker`. Output: `dist`.

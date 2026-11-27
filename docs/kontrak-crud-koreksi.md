@@ -83,7 +83,9 @@ interface Koreksi {
   pml: { id: string; nama: string };
   versi: number;                     // naik tiap perubahan; kirim balik untuk cegah tabrakan
   dibuat: string; diubah: string;
-  dibacaAt: string | null; ditanggapiAt: string | null; ditutupAt: string | null;
+  dibacaAt: string | null; ditanggapiAt: string | null;
+  ditutupAt: string | null;          // hanya terisi saat status ditutup; dikosongkan jika dibuka lagi
+  dibatalkanAt: string | null;       // hanya terisi saat status dibatalkan; BUKAN ditutupAt
   dihapus?: true; dihapusAt?: string; // hanya terlihat admin
 }
 ```
@@ -106,7 +108,7 @@ interface Koreksi {
   └── PML buka lagi (wajib catatan) ◄── ditanggapi / diperbaiki / ditutup
       PML atau admin tutup (dari status non-final) ─► ditutup
 ```
-- PML boleh **ubah** dan **batal** hanya saat `terkirim` atau `dibaca` (belum ditanggapi). Mengubah koreksi yang sudah dibaca mengembalikannya ke `terkirim`.
+- PML boleh **ubah** dan **batal** hanya saat `terkirim` atau `dibaca` (belum ditanggapi). Mengubah koreksi yang sudah dibaca mengembalikannya ke `terkirim`. Membatalkan mengisi `dibatalkanAt` dan membiarkan `ditutupAt` kosong.
 - Mitra boleh **tandai dibaca** (idempoten) dan **menanggapi** selama status belum final.
 - PML boleh **tutup** dan **buka lagi**. Admin boleh **tutup**, **hapus lunak**, dan **pulihkan**.
 - Visibilitas: mitra hanya koreksi untuk dirinya, PML hanya koreksi yang ia kirim, admin semua. Selain itu **404** (keberadaan tidak dibocorkan). Koreksi terhapus hanya terlihat admin.
@@ -128,7 +130,7 @@ interface Koreksi {
 
 `rujukan` saat membuat:
 - Sampel: `{ "jenis": "pengeringan", "id": "S-003" }`. Sampel harus bimbingan PML; mitra tujuan diambil dari sampel.
-- Monitoring: `{ "tipe": "monitoring", "tabId": "tp-…", "baris": "KODE-UJI-01", "mitraId": "3305001" }`. Mitra harus bimbingan PML (`pml_id`). Isi `baris` dengan kode/kunci baris, **bukan** nama atau NIK.
+- Monitoring: `{ "tipe": "monitoring", "tabId": "tp-…", "baris": "KODE-UJI-01", "mitraId": "3305001" }`. Mitra harus bimbingan PML (`pml_id`). Isi `baris` dengan `kunciBaris[i]` dari `GET /api/monitoring/tab` (lihat `kontrak-monitoring-v2.md`), **bukan** nama, NIK, atau nomor baris yang diketik manual.
 
 Contoh:
 ```http
@@ -140,7 +142,7 @@ POST /api/koreksi
   "catatan": "Foto kadar air amatan 1 buram, mohon unggah ulang.", "status": "terkirim", "tanggapan": "",
   "mitra": { "id": "3305001", "nama": "MITRA DUA" }, "pml": { "id": "3305P02", "nama": "PENGAWAS SATU" },
   "versi": 1, "dibuat": "2026-11-27T04:15:17.442Z", "diubah": "2026-11-27T04:15:17.442Z",
-  "dibacaAt": null, "ditanggapiAt": null, "ditutupAt": null }
+  "dibacaAt": null, "ditanggapiAt": null, "ditutupAt": null, "dibatalkanAt": null }
 ```
 ```http
 POST /api/koreksi/K35cfe164243ee0d0/tanggapi
@@ -166,7 +168,7 @@ POST /api/koreksi/K35cfe164243ee0d0/tanggapi
 
 ## 5. Penyimpanan
 
-- Koreksi, audit, dan penanda hapus foto ada di **D1 baru, binding `APPDB`**, skema `migrations-app/0001_koreksi_audit.sql`. Database ini terpisah dari D1 `DB` lama (a5eb0932), yang tidak disentuh.
+- Koreksi, audit, dan penanda hapus foto ada di **D1 baru, binding `APPDB`**, skema `migrations-app/0001_koreksi_audit.sql` dan `migrations-app/0002_dibatalkan_at.sql` (`dibatalkan_at` terpisah dari `ditutup_at`). Database ini terpisah dari D1 `DB` lama (a5eb0932), yang tidak disentuh.
 - Preview: `APPDB` = `dashboard-bps-preview` (khusus env preview).
 - Produksi: belum ada `APPDB`, jadi endpoint di atas membalas 503 `FITUR_BELUM_AKTIF` sampai disetujui.
 - Isian dan akun tetap ditulis lewat Apps Script dengan operasi yang sudah ada (`appendIsian`, `upsertAkun`). Tidak ada perubahan Apps Script.

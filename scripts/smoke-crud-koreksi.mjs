@@ -39,7 +39,10 @@ const penggilingan = [
   '1,030,KEC UJI C,G-001,USAHA UJI,U,MITRA TIGA,PENGAWAS DUA,',
 ].join('\n');
 
-const schema = await readFile(path.join(root, 'migrations-app/0001_koreksi_audit.sql'), 'utf8');
+const schema = [
+  await readFile(path.join(root, 'migrations-app/0001_koreksi_audit.sql'), 'utf8'),
+  await readFile(path.join(root, 'migrations-app/0002_dibatalkan_at.sql'), 'utf8'),
+].join('\n');
 const storeMod = await imp('functions/lib/store.js');
 const handle = await imp('functions/lib/handle.js');
 const kv = new MemoryKV();
@@ -156,7 +159,7 @@ cek(r.status === 200 && r.json.status === 'ditanggapi', 'mitra menanggapi');
 r = await call('/api/koreksi/' + K1 + '/tutup', { method: 'POST', token: tM2 });
 cek(r.status === 403, 'mitra tidak bisa menutup');
 r = await call('/api/koreksi/' + K1 + '/tutup', { method: 'POST', token: tP1, json: { catatan: 'OK' } });
-cek(r.status === 200 && r.json.status === 'ditutup' && r.json.ditutupAt, 'PML menutup');
+cek(r.status === 200 && r.json.status === 'ditutup' && r.json.ditutupAt && !r.json.dibatalkanAt, 'PML menutup');
 r = await call('/api/koreksi/' + K1 + '/tanggapi', { method: 'POST', token: tM2, json: { tanggapan: 'lagi' } });
 cek(r.status === 409, 'tanggapi setelah ditutup 409');
 r = await call('/api/koreksi/' + K1, { token: tP1 });
@@ -168,7 +171,7 @@ r = await call('/api/koreksi', { method: 'POST', token: tP2, json: { rujukan: { 
 cek(r.status === 201 && r.json.mitra.id === M3, 'PML DUA ke MITRA TIGA');
 const K2 = r.json.id;
 r = await call('/api/koreksi/' + K2, { method: 'DELETE', token: tP2, json: { alasan: 'salah sampel' } });
-cek(r.status === 200 && r.json.status === 'dibatalkan', 'PML batal sebelum ditanggapi');
+cek(r.status === 200 && r.json.status === 'dibatalkan' && r.json.dibatalkanAt && !r.json.ditutupAt, 'PML batal: dibatalkanAt terisi, ditutupAt kosong');
 r = await call('/api/koreksi/' + K2, { token: tM3 });
 cek(r.status === 200 && r.json.status === 'dibatalkan', 'mitra melihat koreksi dibatalkan');
 

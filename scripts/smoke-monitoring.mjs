@@ -2,6 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { buatKunciBaris } from '../functions/lib/kunci-baris.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const imp = rel => import(pathToFileURL(path.join(root, rel)).href);
@@ -159,6 +160,23 @@ const pindai = samaran.pindaiNilai('catatan 9900110101990002 / 081200000002 / a.
 cek(pindai.nilai === 'catatan 9900********0002 / *********002 / ***@example.test', 'pindai pola di sel bebas');
 cek(samaran.pindaiNilai('-7.1234567890123456').berubah === false, 'koordinat desimal tidak dianggap NIK');
 
+// Kunci baris: tab fixture ini (INPEK) belum dipetakan -> fallback r{n}:hash, sama untuk admin dan PML.
+cek(full.kunci && full.kunci.sumber === 'baris+hash' && full.kunci.kolom === null, 'tab tanpa pemetaan memakai baris+hash');
+cek(full.kunciBaris.length === full.rows.length && full.kunciBaris[0] == null && full.kunciBaris[2] == null, 'judul dan header tanpa kunci');
+cek(/^r4:[0-9a-f]{8}$/.test(full.kunciBaris[3]) && full.kunciBaris[3] === pmlRes.kunciBaris[3], 'kunci fallback sama untuk admin dan PML');
+const petaKunci = buatKunciBaris({ ringkasan: { kunci: 'ID Sub Segmen' } }, gsheet.parseCsv([
+  'Judul,,,,',
+  'ID Sub Segmen,Nama,NIK,Ket,',
+  'S001,A,9900,ok',
+  'S002,B,9901,ok',
+  'S001,C,9902,dobel',
+  ',D,9903,tanpa kunci',
+].join('\n')), 2);
+cek(petaKunci.kunci.sumber === 'pemetaan' && petaKunci.kunci.kolom === 'ID Sub Segmen' && petaKunci.kunci.indeks === 0, 'sumber pemetaan');
+cek(petaKunci.kunciBaris[2] === 'S001' && petaKunci.kunciBaris[3] === 'S002' && petaKunci.kunciBaris[4] === 'S001#r5', 'nilai kolom + akhiran dobel');
+cek(/^r6:[0-9a-f]{8}$/.test(petaKunci.kunciBaris[5]), 'sel kunci kosong memakai fallback');
+cek(petaKunci.kunciBaris[0] == null && petaKunci.kunciBaris[1] == null, 'baris judul/header null');
+
 // ---------- 7. Ringkasan TP ----------
 const ksa = S.find(s => s.ringkasan && s.ringkasan.sudah.aturan === 'sama' && s.ringkasan.kunci === 'ID Sub Segmen');
 const csvKsa = [
@@ -221,6 +239,7 @@ const envB = {
 const b1 = await (await monitoring.ringkasan(u('?bidang=tp'), envB, admin)).json();
 cek(ambil === monitoring.BATAS_AMBIL_BATCH && b1.meta.diambilDariGoogle === 10, 'batch maksimal 10 ambil Google');
 cek(b1.meta.total === 12 && b1.meta.ok === 10 && b1.meta.ditunda === 2, 'sisa tab ditunda');
+cek(b1.data.filter(d => d.status === 'ditunda').every(d => d.cobaLagiDetik === 60 && d.error && d.error.code === 'BATAS_PERMINTAAN'), 'ditunda membawa cobaLagiDetik');
 cek(b1.data.filter(d => d.status === 'ok').every(d => d.total === 1 && d.sudah === 1), 'angka ringkasan batch');
 cek(b1.tanpaRingkasan.some(t => t.alasan === 'SHEET_FORMAT_UNSUPPORTED') && b1.tanpaRingkasan.some(t => t.alasan === 'SHEET_REMOVED'), 'tanpaRingkasan berisi tab dilewati');
 const b2 = await (await monitoring.ringkasan(u('?bidang=tp'), envB, admin)).json();

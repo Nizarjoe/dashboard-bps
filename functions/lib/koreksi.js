@@ -61,6 +61,7 @@ function bentuk(row, akun) {
     dibacaAt: row.dibaca_at || null,
     ditanggapiAt: row.ditanggapi_at || null,
     ditutupAt: row.ditutup_at || null,
+    dibatalkanAt: row.dibatalkan_at || null,
   };
   if (row.tipe === 'monitoring') {
     const tab = cariTab({ id: row.tab_id });
@@ -330,7 +331,7 @@ export async function hapus(request, ctx, user, id) {
   const body = await readJson(request);
   if (user.role === 'pml') {
     if (!BOLEH_UBAH_PML.has(row.status)) return ditolakStatus(row, 'Koreksi tidak bisa dibatalkan setelah ditanggapi');
-    const r = await perbarui(db, row, withEnv(user, ctx), { set: { status: 'dibatalkan', ditutup_at: w => w }, aksi: 'batal', ke: 'dibatalkan', catatanLog: teks(body.alasan, 300).slice(0, 300), versiKlien: body.versi });
+    const r = await perbarui(db, row, withEnv(user, ctx), { set: { status: 'dibatalkan', dibatalkan_at: w => w }, aksi: 'batal', ke: 'dibatalkan', catatanLog: teks(body.alasan, 300).slice(0, 300), versiKlien: body.versi });
     if (r.error) return r.error;
     return apiOk(bentuk(r.row, ctx.akun));
   }

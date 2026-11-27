@@ -11,8 +11,11 @@
     "seed": "node scripts/gen-users-seed.mjs",
     "test": "node scripts/smoke-frontend.mjs",
     "test:sessions": "node scripts/smoke-kontrak.mjs",
-    "test:api": "node scripts/smoke-kontrak.mjs",
-    "test:migration": "node scripts/smoke-migration.mjs"
+    "test:api": "node scripts/smoke-kontrak.mjs && node scripts/smoke-monitoring.mjs && node scripts/smoke-crud-koreksi.mjs",
+    "test:migration": "node scripts/smoke-migration.mjs",
+    "test:monitoring": "node scripts/smoke-monitoring.mjs",
+    "sync:katalog": "node scripts/sync-katalog.mjs",
+    "test:crud": "node scripts/smoke-crud-koreksi.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

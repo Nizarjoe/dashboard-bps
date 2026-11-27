@@ -15,7 +15,10 @@
 # Binding (nama harus persis seperti ini):
 #   SESSIONS  KV   sesi login, cache Google Sheet (gs:), berkas kecil (up:).
 #                  Namespace preview: 3b0c0af482734b8ba8710a5f60412ae5
-#   DB        D1   sinta-padi
+#   DB        D1   sinta-padi (lama; TIDAK dipakai koreksi/audit)
+#   APPDB     D1   database aplikasi: koreksi, audit, penanda hapus foto.
+#                  Skema: migrations-app/. Preview: dashboard-bps-preview.
+#                  Produksi: belum dipasang (menunggu persetujuan).
 #   UPLOADS   R2   sinta-padi-uploads
 # Lokal `wrangler pages dev` memakai simulasi di .wrangler/state,
 # bukan sumber daya remote, kecuali remote = true.
@@ -45,6 +48,13 @@ id = "3b0c0af482734b8ba8710a5f60412ae5"
 binding = "DB"
 database_name = "sinta-padi"
 database_id = "00000000-0000-0000-0000-000000000001"
+
+# Database aplikasi (koreksi/audit). ID placeholder untuk dev lokal saja.
+[[d1_databases]]
+binding = "APPDB"
+database_name = "dashboard-bps-app-local"
+database_id = "00000000-0000-0000-0000-000000000002"
+migrations_dir = "migrations-app"
 
 # Bucket harus dibuat di dashboard bila akun sudah punya metode pembayaran.
 # Tanpa R2, berkas sampai 200 KB disimpan di KV SESSIONS (awalan up:).

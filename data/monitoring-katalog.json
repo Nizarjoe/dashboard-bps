@@ -1,0 +1,1924 @@
+{
+  "versi": 2,
+  "sumber": "https://sites.google.com/view/monitoringproduksi3305",
+  "diperbarui": "2026-11-27",
+  "catatan": "Kurasi manual: survei, periode, jenis, label, tersedia/alasan, headerRow, ringkasan, samaran. Jalankan npm run sync:katalog untuk laporan beda dengan situs.",
+  "sheets": [
+    {
+      "id": "tp-1IzurELQ-0",
+      "bidang": "tp",
+      "survei": "KSA 2026 Amatan November",
+      "periode": "Amatan November",
+      "jenis": "Padi",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring KSA Padi (Amatan November)",
+      "sid": "1IzurELQa-XeEkVA0fov1h4f_0zRah0c_aVSldsYhfwA",
+      "gid": "0",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Evaluasi KSA",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeGT39cDtyEIzqMkecTnxZwzYOIL2Sx4XBqjqz4wt7AEZ_dxw/viewform"
+        }
+      ],
+      "ringkasan": {
+        "kunci": "ID Sub Segmen",
+        "kecamatan": "Nama Kec",
+        "pcl": "PCS",
+        "pml": "PML",
+        "sudah": {
+          "kolom": "Sudah Kirim Foto",
+          "aturan": "sama",
+          "nilai": [
+            "Sudah Kirim Foto"
+          ]
+        },
+        "catatan": "Sudah = kolom \"Sudah Kirim Foto\" bernilai persis \"Sudah Kirim Foto\". Kosong atau \"Belum Kirim Foto\" dihitung belum. Ini kepatuhan kirim foto KSA, bukan hasil amatan.",
+        "ragu": false
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-1IzurELQ-2089111908",
+      "bidang": "tp",
+      "survei": "KSA 2026 Amatan November",
+      "periode": "Amatan November",
+      "jenis": "Jagung",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring KSA Jagung (Amatan November)",
+      "sid": "1IzurELQa-XeEkVA0fov1h4f_0zRah0c_aVSldsYhfwA",
+      "gid": "2089111908",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Evaluasi KSA",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeGT39cDtyEIzqMkecTnxZwzYOIL2Sx4XBqjqz4wt7AEZ_dxw/viewform"
+        }
+      ],
+      "ringkasan": {
+        "kunci": "ID Sub Segmen",
+        "kecamatan": "Nama Kec",
+        "pcl": "PCS",
+        "pml": "PML",
+        "sudah": {
+          "kolom": "Sudah Kirim Foto",
+          "aturan": "sama",
+          "nilai": [
+            "Sudah Kirim Foto"
+          ]
+        },
+        "catatan": "Sudah = kolom \"Sudah Kirim Foto\" bernilai persis \"Sudah Kirim Foto\". Kosong atau \"Belum Kirim Foto\" dihitung belum. Ini kepatuhan kirim foto KSA, bukan hasil amatan.",
+        "ragu": false
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-16ztm4q4-1616870784",
+      "bidang": "tp",
+      "survei": "KSA 2026 Amatan Oktober",
+      "periode": "Amatan Oktober",
+      "jenis": "Padi",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring KSA Padi (Amatan Oktober)",
+      "sid": "16ztm4q46--f61gbFuduNpfTuZjFwW_66",
+      "gid": "1616870784",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Evaluasi KSA",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeQ3dJiEBv2X9SrNYUrp3JcgoArxoHlAL4Y58VszvJi496vJQ/viewform"
+        }
+      ],
+      "ringkasan": {
+        "kunci": "ID Sub Segmen",
+        "kecamatan": "Nama Kec",
+        "pcl": "PCS",
+        "pml": "PML",
+        "sudah": {
+          "kolom": "Sudah Kirim Foto",
+          "aturan": "sama",
+          "nilai": [
+            "Sudah Kirim Foto"
+          ]
+        },
+        "catatan": "Sudah = kolom \"Sudah Kirim Foto\" bernilai persis \"Sudah Kirim Foto\". Kosong atau \"Belum Kirim Foto\" dihitung belum. Ini kepatuhan kirim foto KSA, bukan hasil amatan.",
+        "ragu": false
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-16ztm4q4-933233012",
+      "bidang": "tp",
+      "survei": "KSA 2026 Amatan Oktober",
+      "periode": "Amatan Oktober",
+      "jenis": "Jagung",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring KSA Jagung (Amatan Oktober)",
+      "sid": "16ztm4q46--f61gbFuduNpfTuZjFwW_66",
+      "gid": "933233012",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Evaluasi KSA",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeQ3dJiEBv2X9SrNYUrp3JcgoArxoHlAL4Y58VszvJi496vJQ/viewform"
+        }
+      ],
+      "ringkasan": {
+        "kunci": "ID Sub Segmen",
+        "kecamatan": "Nama Kec",
+        "pcl": "PCS",
+        "pml": "PML",
+        "sudah": {
+          "kolom": "Sudah Kirim Foto",
+          "aturan": "sama",
+          "nilai": [
+            "Sudah Kirim Foto"
+          ]
+        },
+        "catatan": "Sudah = kolom \"Sudah Kirim Foto\" bernilai persis \"Sudah Kirim Foto\". Kosong atau \"Belum Kirim Foto\" dihitung belum. Ini kepatuhan kirim foto KSA, bukan hasil amatan.",
+        "ragu": false
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-11Y8pTPH-1291625725",
+      "bidang": "tp",
+      "survei": "Ubinan SR 3 2026",
+      "periode": "SR 3",
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Ubinan SR 3 2026",
+      "sid": "11Y8pTPHDuHcQlRfoNY-xJR0UoYhbKGLt",
+      "gid": "1291625725",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pelaksanaan Ubina SR 3",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSd_1Y8sdt_BXaF9bYsBmXkkSTYa_LGkacrGdAU809bHKpG9yw/viewform"
+        }
+      ],
+      "ringkasan": {
+        "kunci": "Kode Identitas",
+        "kecamatan": "Kecamatan",
+        "pcl": "PCL",
+        "pml": "PML",
+        "sudah": {
+          "kolom": "Hasil Pencacahan",
+          "aturan": "terisi"
+        },
+        "catatan": "Sudah = kolom \"Hasil Pencacahan\" terisi (kode apa pun, termasuk \"tidak berhasil\"). Total memuat semua baris termasuk sampel cadangan, jadi persentase bisa tampak rendah walau sampel utama selesai.",
+        "ragu": true
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-1hvIJxCL-593749477",
+      "bidang": "tp",
+      "survei": "Ubinan SR 3 2026",
+      "periode": "SR 3",
+      "jenis": "Pemutakhiran Palawija",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pemutakhiran Ubinan Palawija SR 3 2026",
+      "sid": "1hvIJ_CLCdsk6h-a60Cdsl4J-nNJXAVJm",
+      "gid": "593749477",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_FORMAT_UNSUPPORTED",
+        "pesan": "Google menolak ekspor CSV untuk tab ini (HTTP 400). File sumber berformat .xlsx (Office) sehingga tab ini tidak bisa dibaca per gid. Perlu disimpan ulang sebagai Google Sheets oleh pemilik file.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "drive",
+          "label": "Peta SLS Pemutakhiran Ubinan SR 2",
+          "url": "https://drive.google.com/drive/folders/1phN-m11_1nGTRWzkc2kmyWP_IHw0pRu3"
+        },
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pemutakhiran Ubinan Palawija SR 3",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLScBhNPyrKxYj5et92zSjI2mPWmCxgibALECLx-1ByyMStUAwQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1Br65cml-1436342918",
+      "bidang": "tp",
+      "survei": "SKJG 2026",
+      "periode": null,
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring SKJG 2026",
+      "sid": "1Br65cmlw-oL-4EVWruKRx-R41JV5R0DL",
+      "gid": "1436342918",
+      "tersedia": true,
+      "headerRow": 4,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pelaksanaan SKJG",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSd0bqBzNTQvOdlezDd5lIZkfHbYGmVOmuZMdqSHQINcnYueqg/viewform"
+        },
+        {
+          "jenis": "drive",
+          "label": "Bahan Ajar SKJG 2026",
+          "url": "https://drive.google.com/drive/folders/1GQw7DTGcf3p6Gw4obH0DttW892b5Q-XG"
+        }
+      ],
+      "ringkasan": {
+        "kunci": "Kode Identitas",
+        "kecamatan": "Kecamatan",
+        "pcl": "PCL",
+        "pml": "PML",
+        "sudah": {
+          "kolom": "Hasil Pencacahan",
+          "aturan": "terisi"
+        },
+        "catatan": "Sudah = kolom \"Hasil Pencacahan\" terisi (termasuk lewat/gagal panen, menolak). Total memuat sampel UTAMA, CADANGAN, dan LAINNYA.",
+        "ragu": true
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-1PFzZu6n-1040754140",
+      "bidang": "tp",
+      "survei": "Ubinan SR 2 2026",
+      "periode": "SR 2",
+      "jenis": "Padi",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Ubinan Padi SR 2 2026",
+      "sid": "1PFzZu6nZtp9Kt1ryooWxesdDi2Ruulny",
+      "gid": "1040754140",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_FORMAT_UNSUPPORTED",
+        "pesan": "Google menolak ekspor CSV untuk tab ini (HTTP 400). File sumber berformat .xlsx (Office) sehingga tab ini tidak bisa dibaca per gid. Perlu disimpan ulang sebagai Google Sheets oleh pemilik file.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Ubinan Padi SR 2",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfGlYHAlowUjQYQWhMUavpzYU9zmglQw8S7cIQ4YB_t2D6gNg/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-12jRW2dx-786824805",
+      "bidang": "tp",
+      "survei": "Ubinan SR 2 2026",
+      "periode": "SR 2",
+      "jenis": "Palawija",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Ubinan Palawija SR 2 2026",
+      "sid": "12jRW2d-y3TGp4qdaOO5tIy9bOzdT2iPl",
+      "gid": "786824805",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Ubinan Padi Palawija SR 2",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSe5B0ZpMX3DGpaZu__eSO8JuvZlY-nbPyKsbHNe0Cta_1OdGQ/viewform"
+        }
+      ],
+      "ringkasan": {
+        "kunci": "Kode Identitas",
+        "kecamatan": null,
+        "pcl": "PCL",
+        "pml": "PML",
+        "sudah": {
+          "kolom": "Status Sampel",
+          "aturan": "terisi"
+        },
+        "catatan": "Sudah = kolom \"Status Sampel\" terisi (1 berhasil diubin, 2/3 tidak berhasil). Kolom \"Hasil Pencacahan\" hanya berisi status FASIH \"OPEN\" sehingga tidak dipakai. Sheet tidak punya kolom kecamatan. Total memuat semua baris termasuk sampel cadangan, jadi persentase bisa tampak rendah walau sampel utama selesai.",
+        "ragu": true
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-1RXXYAWh-509519298",
+      "bidang": "tp",
+      "survei": "Ubinan SR 2 2026",
+      "periode": "SR 2",
+      "jenis": "Pemutakhiran Palawija",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pemutakhiran Ubinan Palawija SR 2 2026",
+      "sid": "1RXXYAWhp-UuSgW6DlZgf9c0LI3RA5RPb",
+      "gid": "509519298",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pemutakhiran Ubinan Palawija SR 2",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSe1lj0bBIIUAFEeosEqIJxfOOifDzWObapAykHoYxsYGJ6nJw/viewform"
+        }
+      ],
+      "ringkasan": {
+        "kunci": "NO.",
+        "kecamatan": "NAMA KECAMATAN",
+        "pcl": "PCL",
+        "pml": "PML",
+        "sudah": {
+          "kolom": "Satus Pemutakhiran",
+          "aturan": "sama",
+          "nilai": [
+            "Sudah Upload Foto"
+          ]
+        },
+        "catatan": "Sudah = kolom \"Satus Pemutakhiran\" (ejaan sesuai sheet) bernilai persis \"Sudah Upload Foto\".",
+        "ragu": false
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-1WwBuaCd-493107912",
+      "bidang": "tp",
+      "survei": "Ubinan SR 1 2026",
+      "periode": "SR 1",
+      "jenis": "Padi",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Ubinan Padi SR 1 2026",
+      "sid": "1WwBuaCdlgRd8EB5v-UqbE6AMAMZXDxID",
+      "gid": "493107912",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeyorAwEUXMB64m4M3iPsT8a5F4C_feWq70qnu44pCg3APFOA/viewform",
+          "perluCek": true
+        }
+      ],
+      "ringkasan": {
+        "kunci": "NKS",
+        "kecamatan": "Kecamatan",
+        "pcl": "PCL Ubinan",
+        "pml": "PML Ubinan",
+        "sudah": {
+          "kolom": "Status Sampel",
+          "aturan": "terisi"
+        },
+        "catatan": "Sudah = kolom \"Status Sampel\" terisi (berhasil diubin atau lewat panen). Kunci baris memakai NKS karena \"Kode Identitas\" tidak unik. Total memuat semua baris termasuk sampel cadangan, jadi persentase bisa tampak rendah walau sampel utama selesai.",
+        "ragu": true
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-1C9YN9GY-826230349",
+      "bidang": "tp",
+      "survei": "Ubinan SR 1 2026",
+      "periode": "SR 1",
+      "jenis": "Palawija",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Ubinan Palawija SR 1 2026",
+      "sid": "1C9YN9GYcd_dFCkjU1kEv_qIXp-sr599g",
+      "gid": "826230349",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Survei Ubinan Palawija SR 1",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfc-l8FdDYnHd56iwT7ET4yQ5JsDLJz1dPhHO528BMl5K4R8Q/viewform",
+          "perluCek": true
+        }
+      ],
+      "ringkasan": {
+        "kunci": "Kode Identitas",
+        "kecamatan": "Kecamatan",
+        "pcl": "PCL Ubinan",
+        "pml": "PML Ubinan",
+        "sudah": {
+          "kolom": "Status Sampel",
+          "aturan": "terisi"
+        },
+        "catatan": "Sudah = kolom \"Status Sampel\" terisi (berhasil, lewat panen, sampel pengganti). Total memuat semua baris termasuk sampel cadangan, jadi persentase bisa tampak rendah walau sampel utama selesai.",
+        "ragu": true
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-14gRhKiq-1304508934",
+      "bidang": "tp",
+      "survei": "Ubinan SR 1 2026",
+      "periode": "SR 1",
+      "jenis": "Pemutakhiran Palawija",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pemutakhiran Ubinan Palawija SR 1 2026",
+      "sid": "14gRhKiqt0UiovxLxPl1mYuS97G-Umd6Z",
+      "gid": "1304508934",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_REMOVED",
+        "pesan": "File sumber sudah dihapus pemiliknya (Google membalas HTTP 410). Perlu tautan pengganti dari pemilik.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pemutakhiran Ubinan Palawija SR 1",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdwVGdEFfZ79GSGDVk0AT9jqLjb_aHuFM_79ZolV4dd0ywsog/viewform",
+          "perluCek": true
+        },
+        {
+          "jenis": "form",
+          "label": "Upload Foto Survei Ubinan Palawija SR 1",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfc-l8FdDYnHd56iwT7ET4yQ5JsDLJz1dPhHO528BMl5K4R8Q/viewform",
+          "perluCek": true
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1GlyJLe8-347388062",
+      "bidang": "tp",
+      "survei": "SKGB 2026",
+      "periode": null,
+      "jenis": "Pengeringan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring SKGB Pengeringan 2026",
+      "sid": "1GlyJLe84fw2yRpZ4li46URdumwXpPLCM",
+      "gid": "347388062",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdrDDow5xK90QSaK664ZsgyFgdetZXWcsfW4Kb9rWHMTmqJzw/viewform"
+        }
+      ],
+      "ringkasan": {
+        "kunci": "idsubsegmen",
+        "kecamatan": "nmkec",
+        "pcl": "PCL",
+        "pml": "PML",
+        "sudah": {
+          "kolom": "Status Sampel",
+          "aturan": "terisi"
+        },
+        "catatan": "Sudah = kolom \"Status Sampel\" terisi (\"Berhasil dicacah\" atau \"Tidak Berhasil\"). Total 1.125 subsegmen memuat flag C (cadangan) dan U (utama); hanya subsegmen yang dialokasikan ke PCL yang realistis dicacah.",
+        "ragu": true
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-1xGc6KE5-1575781299",
+      "bidang": "tp",
+      "survei": "SKGB 2026",
+      "periode": null,
+      "jenis": "Penggilingan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring SKGB Penggilingan 2026",
+      "sid": "1xGc6KE53mbz0U-UaP82W8kNVT9n4aQxO",
+      "gid": "1575781299",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSe6QWp--Z8g8Up3O0BAlczzHMjckqKSZ7kO_nN43WlSSANodw/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Upload Foto Koordinasi dgn Desa Survei KSA",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdJqoZrxTKVDZF70WUv2gA8kD8wwiQiV7Yhg9eos7gLhG644Q/viewform"
+        },
+        {
+          "jenis": "lain",
+          "label": "SKGB 3305 Tahun 2025",
+          "url": "https://sites.google.com/view/monitoringskgb3305"
+        },
+        {
+          "jenis": "drive",
+          "label": "Drive Lomba Video",
+          "url": "https://drive.google.com/drive/folders/1WOa1KMFEyxsy28wUYbhC8MJ1D1hwhy4S"
+        }
+      ],
+      "ringkasan": {
+        "kunci": "ID SBR",
+        "kecamatan": "Nama Kecamatan",
+        "pcl": "PCL",
+        "pml": "PML",
+        "sudah": {
+          "kolom": "Hasil Pencacahan",
+          "aturan": "terisi"
+        },
+        "catatan": "Sudah = kolom \"Hasil Pencacahan\" terisi. Per 27-11-2026 kolom ini masih kosong di semua baris, jadi ringkasan 0. Isian SINTA PADI sendiri tidak dihitung di sini.",
+        "ragu": true
+      },
+      "diSitus": true
+    },
+    {
+      "id": "tp-1brWnwTp-271901239",
+      "bidang": "tp",
+      "survei": "Ubinan SR 3 2025",
+      "periode": "SR 3",
+      "jenis": "Padi",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Ubinan Padi SR 3 2025",
+      "sid": "1brWnwTpwMsbbpvZ2KKOsvJJSQCzXCBZx",
+      "gid": "271901239",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Ubinan Padi SR 3",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfCbPEMiJe3r_aLmYTJ-0Z-jClcROtiVJmLFARS51lSNUZkqA/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1vqLoXQH-1364632716",
+      "bidang": "tp",
+      "survei": "Ubinan SR 3 2025",
+      "periode": "SR 3",
+      "jenis": "Palawija",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Ubinan Palawija SR 3 2025",
+      "sid": "1vqLoXQHh3B7nFF7ALDxYdhZBFm9NFqOv",
+      "gid": "1364632716",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pengecekan Ruta & Foto Ubinan Palawija SR 3",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLScSKuWL9Yy-V25JLxrNvXohPCtfffl8rTvYQB0NAkK0c0CL7Q/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1xVtqNPg-760261915",
+      "bidang": "tp",
+      "survei": "Ubinan SR 3 2025",
+      "periode": "SR 3",
+      "jenis": "Listing Palawija",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Listing Ubinan Palawija SR 3 2025",
+      "sid": "1xVtqNPgspS05uHOpOQ8KyeGnsBLUni5I",
+      "gid": "760261915",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Listing Ruta Ubinan Palawija SR 3",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLScpWDiibS8fequ0trgsGa-baMJRUPQWZpqnrEaeBsho5Chl4g/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1qeTOlzK-204966678",
+      "bidang": "tp",
+      "survei": "Ubinan SR 2 2025",
+      "periode": "SR 2",
+      "jenis": "Padi",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Ubinan Padi SR 2 2025",
+      "sid": "1qeTOlzKE3M9iGMdFmDZ7XDQX-K9T1FSy",
+      "gid": "204966678",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Google Form Upload Foto Ubinan Padi SR 2 2025",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfOuQ5TDhGZ4RJfm3cwcPDbMbYgbJlPw235qGVlUO5qJ335bQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1rlZ1iSF-77295240",
+      "bidang": "tp",
+      "survei": "Ubinan SR 2 2025",
+      "periode": "SR 2",
+      "jenis": "Palawija",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Ubinan Palawija SR 2 2025",
+      "sid": "1rlZ1iSFv4CJjoTLim70CceY-EZDxFUMe",
+      "gid": "77295240",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Ubinan Palawija SR 2 2025",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfu5wDoDRfIS8987kSJYBRwFyEvW9DJO-Wo-vITf8fgi1aKoA/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1tcu5tmV-76132542",
+      "bidang": "tp",
+      "survei": "Ubinan SR 2 2025",
+      "periode": "SR 2",
+      "jenis": "Update Palawija",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Update Ubinan Palawija SR 2 2025",
+      "sid": "1tcu5tmVJI-4-dAilz7HD-3ispyi5sqyF",
+      "gid": "76132542",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1IR5Qi5N-898016783",
+      "bidang": "tp",
+      "survei": "Ubinan SR 1 2025",
+      "periode": "SR 1",
+      "jenis": "Padi",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Ubinan Padi SR 1 2025",
+      "sid": "1IR5Qi5N89ftVyTEv09nDKGwCPa988_KM",
+      "gid": "898016783",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1JQTlXAG-835545010",
+      "bidang": "tp",
+      "survei": "Ubinan SR 1 2025",
+      "periode": "SR 1",
+      "jenis": "Palawija",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Ubinan Palawija SR 1 2025",
+      "sid": "1JQTlXAG82f-kQWl82zunZfj9C_TqrUV9",
+      "gid": "835545010",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1A4V11nQ-1863566662",
+      "bidang": "tp",
+      "survei": "Ubinan SR 1 2025",
+      "periode": "SR 1",
+      "jenis": "Update Palawija",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Update Ubinan Palawija SR 1 2025",
+      "sid": "1A4V11nQJk-wt0Bj-WYtj-7KX-1_fsFnY",
+      "gid": "1863566662",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "tp-1HLxuy0G-1171457135",
+      "bidang": "tp",
+      "survei": "Ubinan SR 3 2024",
+      "periode": "SR 3",
+      "jenis": "Padi dan Palawija",
+      "tahun": 2024,
+      "arsip": true,
+      "label": "Monitoring Ubinan Padi dan Palawija SR 3 2024",
+      "sid": "1HL_uy0GoLdXHVMysAqJkqZm4mMiYHBm0",
+      "gid": "1171457135",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1vmkwvkx-1150403124",
+      "bidang": "inpek",
+      "survei": "IMK Tahunan 2026",
+      "periode": null,
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Survei IMK Tahunan 2026",
+      "sid": "1vmkwvk-bkE9w3D-5uzdRk1BrtAHnusTV",
+      "gid": "1150403124",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan IMK Tahunan 2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfgzRkIPJmVUKCSan5Vd8LiRJb7UHTFhyA48SIQVlb5JtxG3w/viewform"
+        },
+        {
+          "jenis": "lain",
+          "label": "Bahan Ajar Survei IMK Tahunan 2026",
+          "url": "http://s.bps.go.id/bahan_ajar_imk_tahunan",
+          "perluCek": true
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1Sq051xv-1201802820",
+      "bidang": "inpek",
+      "survei": "IMK Tahunan 2026",
+      "periode": null,
+      "jenis": "Pengecekan BS",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pengecekan BS Survei IMK Tahunan 2026",
+      "sid": "1Sq051_vYGHtakGvTYLi_ZQqpDuIkkJ-9",
+      "gid": "1201802820",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto2 Pengecekan BS IMK Tahunan",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdOjsVQpQeNMmcBXgJrGnsrCZCZnHyrTzfz2BP_BcNMwHoIRA/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1vq6fbiQ-140435694",
+      "bidang": "inpek",
+      "survei": "IMK Triwulanan 2026",
+      "periode": "TW 3",
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan IMK Triwulan 3 2026",
+      "sid": "1vq6fbiQNsg1wXdtQIVk8w7D--cgCcPma",
+      "gid": "140435694",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto2 Pencachan IMK Triwulan 3 2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSc9-PC_KfDyE3k7vYoyTprACA1wWVZRz_624G-yqNa7xXcwwA/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1vq6fbiQ-656784481",
+      "bidang": "inpek",
+      "survei": "IMK Triwulanan 2026",
+      "periode": "TW 2",
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan IMK Triwulan 2 2026",
+      "sid": "1vq6fbiQNsg1wXdtQIVk8w7D--cgCcPma",
+      "gid": "656784481",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_FORMAT_UNSUPPORTED",
+        "pesan": "Google menolak ekspor CSV untuk tab ini (HTTP 400). File sumber berformat .xlsx (Office) sehingga tab ini tidak bisa dibaca per gid. Perlu disimpan ulang sebagai Google Sheets oleh pemilik file.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto2 Pencachan IMK Triwulan 2 2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdMftEQyXmMtkOca9bgjfp676E8bBk7hGldPmOyUxvDF8GDNg/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1vq6fbiQ-782342447",
+      "bidang": "inpek",
+      "survei": "IMK Triwulanan 2026",
+      "periode": "TW 1",
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan IMK Triwulan 1 2026",
+      "sid": "1vq6fbiQNsg1wXdtQIVk8w7D--cgCcPma",
+      "gid": "782342447",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_FORMAT_UNSUPPORTED",
+        "pesan": "Google menolak ekspor CSV untuk tab ini (HTTP 400). File sumber berformat .xlsx (Office) sehingga tab ini tidak bisa dibaca per gid. Perlu disimpan ulang sebagai Google Sheets oleh pemilik file.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto2 Pencachan IMK Triwulan 1 2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeJldxgb4EV-4POehM3A_0CBFXTglCPS8b3u48gkrVqTbinPg/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1W9kKNFL-743406062",
+      "bidang": "inpek",
+      "survei": "IMK Triwulanan 2026",
+      "periode": null,
+      "jenis": "Pemutakhiran",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pemutakhiran IMK Triwulanan 2026",
+      "sid": "1W9kKNFLbN28yNqG9c1wTo7PQw-iLLlkO",
+      "gid": "743406062",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto2 Pemutakhiran IMK Triwulanan 2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSe5cM0FH-kFxYoxP-7ZiADO_8gLpfEmT9kViuafN-GKHv_7Aw/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1xdcx91u-743406062",
+      "bidang": "inpek",
+      "survei": "IMK Triwulanan 2026",
+      "periode": null,
+      "jenis": "Pengecekan BS",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pengecekan BS Survei IMK Triwulanan 2026",
+      "sid": "1-dcx91u47m2_3bhu3Q60QSC9kUl2wzsf",
+      "gid": "743406062",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto2 Pengecekan BS IMK 2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdUuwsjt-gmEMYRbIPVxOe4WBXhSUczqcnCksgKt87iEyPTuQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1k7le7PW-1488498084",
+      "bidang": "inpek",
+      "survei": "DPA, STPIM dan IBSTR 2026",
+      "periode": "TW 3",
+      "jenis": "Pencacahan IBS",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan IBS Triwulan 3 2026",
+      "sid": "1k7le7PW7gmJQGDB8nWOrZyN6H0aV7wv5",
+      "gid": "1488498084",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto2 Pencacahan IBS Triwulan 3",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfL5f2SWmXXdt484rV4yLRzraWXtTeDnKd5cGnP2TXy7NVZLA/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1k7le7PW-1360313027",
+      "bidang": "inpek",
+      "survei": "DPA, STPIM dan IBSTR 2026",
+      "periode": "TW 2",
+      "jenis": "Pencacahan IBS",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan IBS Triwulan 2 2026",
+      "sid": "1k7le7PW7gmJQGDB8nWOrZyN6H0aV7wv5",
+      "gid": "1360313027",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto2 Pelaksanaan",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSd2QBFc1hq1bdaI5Gtprprff9ZvkZt9E4hYUVBg0xz3AoUsAQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1k7le7PW-1647995354",
+      "bidang": "inpek",
+      "survei": "DPA, STPIM dan IBSTR 2026",
+      "periode": null,
+      "jenis": "Pemutakhiran",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pemutakhiran DPA, STPIM dan IBSTR 2026",
+      "sid": "1k7le7PW7gmJQGDB8nWOrZyN6H0aV7wv5",
+      "gid": "1647995354",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto2 Pelaksanaan",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSd2QBFc1hq1bdaI5Gtprprff9ZvkZt9E4hYUVBg0xz3AoUsAQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1z6rg97O-367109633",
+      "bidang": "inpek",
+      "survei": "Galian URT 2026",
+      "periode": null,
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan Galian URT 2026",
+      "sid": "1z6rg97ODOHsZEpgYFuNksOwYj2IpWLxG4Ib2patqZYM",
+      "gid": "367109633",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto2 Pencachan Galian URT 2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdAEdmAGERj6AoOYEccjm4Pj4ANlPbP8pLDePGn0e2h6Vv6HA/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1z6rg97O-0",
+      "bidang": "inpek",
+      "survei": "UDPE 2026",
+      "periode": null,
+      "jenis": "Updating direktori",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring UDPE 2026",
+      "sid": "1z6rg97ODOHsZEpgYFuNksOwYj2IpWLxG4Ib2patqZYM",
+      "gid": "0",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "UDPE 2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSf-vr5ZRRU9yXDmYPXQd5y4S1I4Zqlw7qgOIxGhVtc2JUSZwQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1z6rg97O-2022301518",
+      "bidang": "inpek",
+      "survei": "Konstruksi 2026",
+      "periode": null,
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Survei Konstruksi 2026",
+      "sid": "1z6rg97ODOHsZEpgYFuNksOwYj2IpWLxG4Ib2patqZYM",
+      "gid": "2022301518",
+      "tersedia": true,
+      "headerRow": 3,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSexDyWQ4SWWhvWETF2LT3U4A6jWZAvUlMWSH2w79aZj3VAyTQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1xegS3xr-100074558",
+      "bidang": "inpek",
+      "survei": "INPEK Triwulanan TW 4 2025",
+      "periode": "TW 4",
+      "jenis": "IBS",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei IBS Triwulan 4 2025",
+      "sid": "1-egS3_rCaUxP3UHDEvUtGAAwzPQ5yi9iam8welDX6J0",
+      "gid": "100074558",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Survei Inpek",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeaa2mTd1MnbTDChUCm3cW8RSxQ2H9Td98LmKJGyVw4YO9XrQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1xegS3xr-888320823",
+      "bidang": "inpek",
+      "survei": "INPEK Triwulanan TW 4 2025",
+      "periode": "TW 4",
+      "jenis": "IMK",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei IMK Triwulan 4 2025",
+      "sid": "1-egS3_rCaUxP3UHDEvUtGAAwzPQ5yi9iam8welDX6J0",
+      "gid": "888320823",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Survei Inpek",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeaa2mTd1MnbTDChUCm3cW8RSxQ2H9Td98LmKJGyVw4YO9XrQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1xegS3xr-1765522063",
+      "bidang": "inpek",
+      "survei": "INPEK Triwulanan TW 4 2025",
+      "periode": "TW 4",
+      "jenis": "Galian BH",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei Galian BH Triwulan 4 2025",
+      "sid": "1-egS3_rCaUxP3UHDEvUtGAAwzPQ5yi9iam8welDX6J0",
+      "gid": "1765522063",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Survei Inpek",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeaa2mTd1MnbTDChUCm3cW8RSxQ2H9Td98LmKJGyVw4YO9XrQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1xegS3xr-1264253882",
+      "bidang": "inpek",
+      "survei": "INPEK Triwulanan TW 4 2025",
+      "periode": "TW 4",
+      "jenis": "SKTR",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring SKTR Triwulan 4 2025",
+      "sid": "1-egS3_rCaUxP3UHDEvUtGAAwzPQ5yi9iam8welDX6J0",
+      "gid": "1264253882",
+      "tersedia": true,
+      "headerRow": 3,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Survei Inpek",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeaa2mTd1MnbTDChUCm3cW8RSxQ2H9Td98LmKJGyVw4YO9XrQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1oMKSoR5-262721995",
+      "bidang": "inpek",
+      "survei": "IBS Triwulan 3 2025",
+      "periode": "TW 3",
+      "jenis": "IBS",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei IBS Triwulan 3 2025",
+      "sid": "1oMKSoR5M7dQShjguVCrQ6sR3ffYE49ns",
+      "gid": "262721995",
+      "tersedia": true,
+      "headerRow": 4,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Survei IBS Triwulan 3",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdQqYvhdQnhKJD9X3gZkm9uVN68jMg0bPXrLFgtCUNPtIbIGg/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1xTJvtTx-914585671",
+      "bidang": "inpek",
+      "survei": "IMK Triwulan 3 2025",
+      "periode": "TW 3",
+      "jenis": "IMK",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei IMK Triwulan 3 2025",
+      "sid": "1xTJvtT_cOU9SGRZwAmlGyoo1xx6NVfle",
+      "gid": "914585671",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Survei IMK Triwulan 3",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLScuYDqAPgF0bQPgCW0gVA4mgRpmbApkYgE3OYLq4s--pZ9ySg/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1xQl6eVj-703878907",
+      "bidang": "inpek",
+      "survei": "Galian BH Triwulan 3 2025",
+      "periode": "TW 3",
+      "jenis": "Galian BH",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei Galian BH Triwulan 3 2025",
+      "sid": "1_Ql6eVjMVsE-p1S-OIug-9JjIuQ9IqBp",
+      "gid": "703878907",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Survei Galian BH Triwulan 3",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSetT1huyfqvRc6ZnmZ8DQJAtVDJk8HH6qKQSgJY1phcnGrIKg/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-11NXfTZo-1593870148",
+      "bidang": "inpek",
+      "survei": "Konstruksi Triwulan 3 2025",
+      "periode": "TW 3",
+      "jenis": "Konstruksi",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei Konstruksi Triwulan 3 2025",
+      "sid": "11NXfTZodgaNE8rnDIidfpcerDcQi-BRE",
+      "gid": "1593870148",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Survei Kontruksi Triwulan 3 2025",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLScw4CAgu9irjJ9Sq1jPeZSSS-01lpRpQ9f-STtjbsHzemtDzQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1fSzHAW2-0",
+      "bidang": "inpek",
+      "survei": "IMK Tahunan 2025",
+      "periode": null,
+      "jenis": "Pencacahan",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Pencacahan Survei IMK Tahunan 2025",
+      "sid": "1fSzHAW2KiJ47prn2R-bW9CHRCA5SUzGq",
+      "gid": "0",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_FORMAT_UNSUPPORTED",
+        "pesan": "Google menolak ekspor CSV untuk tab ini (HTTP 400). File sumber berformat .xlsx (Office) sehingga tab ini tidak bisa dibaca per gid. Perlu disimpan ulang sebagai Google Sheets oleh pemilik file.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Survei IMK Tahunan",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLScO0j-Jcl9h3F9UIcMj79HHivtDcrXOGnmaNqd70GL6rARe9w/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1mXooI3I-0",
+      "bidang": "inpek",
+      "survei": "IMK Tahunan 2025",
+      "periode": null,
+      "jenis": "Listing",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Listing Survei IMK Tahunan 2025",
+      "sid": "1mXooI3IQMuBItZFB9zi1ssYRTkoA3F0g",
+      "gid": "0",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_FORMAT_UNSUPPORTED",
+        "pesan": "Google menolak ekspor CSV untuk tab ini (HTTP 400). File sumber berformat .xlsx (Office) sehingga tab ini tidak bisa dibaca per gid. Perlu disimpan ulang sebagai Google Sheets oleh pemilik file.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto - Foto Listing IMK Tahunan",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSc-9PUKLn8od6Aa-JjUD_YbthLhac_hVMelmtVW3bmilYNNgA/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1YszFcfM-914585671",
+      "bidang": "inpek",
+      "survei": "IMK Triwulan 2 2025",
+      "periode": "TW 2",
+      "jenis": "IMK",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei IMK Triwulan 2 2025",
+      "sid": "1YszFcfMZIfZOOj2Xn_d6cUGz6EACM74b",
+      "gid": "914585671",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1Kpa3kJR-914585671",
+      "bidang": "inpek",
+      "survei": "IMK Triwulan 1 2025",
+      "periode": "TW 1",
+      "jenis": "IMK",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei IMK Triwulan 1 2025",
+      "sid": "1Kpa3kJRDZmAcwiiK-OXL7q-z_QbPo8w_",
+      "gid": "914585671",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [],
+      "tautanManual": true,
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1dj5vbpj-36344358",
+      "bidang": "inpek",
+      "survei": "Galian URT 2025",
+      "periode": null,
+      "jenis": "Galian URT",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei Galian URT 2025",
+      "sid": "1dj5vbpj6rL1Eh-aEyve-8zR27FoqNyKH",
+      "gid": "36344358",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto - Foto Survei Galian URT Tahun 2025",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSc8gsFA4UMeqgCAJlOWQi6V5w3nEoBelgVmjyhBC1a6YfYx-Q/viewform"
+        }
+      ],
+      "tautanManual": true,
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1xQl6eVj-94047034",
+      "bidang": "inpek",
+      "survei": "Galian BH 2025",
+      "periode": "TW 2 dan Tahunan",
+      "jenis": "Galian BH",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Survei Galian BH 2025 (TW 2 dan Tahunan)",
+      "sid": "1_Ql6eVjMVsE-p1S-OIug-9JjIuQ9IqBp",
+      "gid": "94047034",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto - Foto Survei Galian BH Tahun 2025",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfKaCI6uWJHh8mFKcWu9dFEHVmHDnubjIJhaIu5kaX6yQXPbA/viewform"
+        }
+      ],
+      "tautanManual": true,
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1N8pp0xd-0",
+      "bidang": "inpek",
+      "survei": "STPIM dan DPA 2025",
+      "periode": null,
+      "jenis": "STPIM",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring STPIM 2025",
+      "sid": "1N8pp0-dkmA94QjoxSvvbDwp59h56Yy2q",
+      "gid": "0",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_FORMAT_UNSUPPORTED",
+        "pesan": "Google menolak ekspor CSV untuk tab ini (HTTP 400). File sumber berformat .xlsx (Office) sehingga tab ini tidak bisa dibaca per gid. Perlu disimpan ulang sebagai Google Sheets oleh pemilik file.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Google Form Upload Foto Pencacahan STPIM",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLScDFr44NJUyPh7SrFeigFMSBwU4rZktr-A-Z3ToT1jFB6op0g/viewform"
+        }
+      ],
+      "tautanManual": true,
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "inpek-1r8Fkrhg-156873121",
+      "bidang": "inpek",
+      "survei": "STPIM dan DPA 2025",
+      "periode": null,
+      "jenis": "DPA",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring DPA 2025",
+      "sid": "1r8Fkrhg4_eRnBF_PgX3Ygv8yZ0hUnTuY",
+      "gid": "156873121",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Google Form Upload Foto Pencacahan DPA",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSd8189pnPCmrJrY7BnYj9PJPiymRDjgMGeHxrDqpcgOg3H_-A/viewform"
+        }
+      ],
+      "tautanManual": true,
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-13m3WwZ6-1315139431",
+      "bidang": "horti",
+      "survei": "Sitasi 2026",
+      "periode": null,
+      "jenis": "UTP",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Sitasi 2026 Unit Sampel UTP",
+      "sid": "13m3WwZ6cxZubPtAQgb1I0arDY0d2uveI",
+      "gid": "1315139431",
+      "tersedia": true,
+      "headerRow": 5,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Sitasi2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfNZAOA5lxgemwykovTn0YVY1paHKp_nYwHxd7mtZGa3ZGTVw/viewform"
+        },
+        {
+          "jenis": "drive",
+          "label": "Bahan Ajar Sitasi 2026",
+          "url": "https://drive.google.com/drive/folders/1oq62JrVsbK7gODsI67Yt8kHTWynNIQOh"
+        },
+        {
+          "jenis": "drive",
+          "label": "Instrumen Sitasi (Kuesioner,Buku Pedoman,dll)",
+          "url": "https://drive.google.com/drive/folders/1o5VQEtw1HKiHqrCdpU8-xQHo-mG2CByV"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1ZdxxkKH-1920802716",
+      "bidang": "horti",
+      "survei": "Sitasi 2026",
+      "periode": null,
+      "jenis": "UTL",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Sitasi 2026 Unit Sampel UTL",
+      "sid": "1Zd__kKHh3mjwSggaP9yhYNbDWsyUUoC5",
+      "gid": "1920802716",
+      "tersedia": true,
+      "headerRow": 5,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Sitasi2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfNZAOA5lxgemwykovTn0YVY1paHKp_nYwHxd7mtZGa3ZGTVw/viewform"
+        },
+        {
+          "jenis": "drive",
+          "label": "Bahan Ajar Sitasi 2026",
+          "url": "https://drive.google.com/drive/folders/1oq62JrVsbK7gODsI67Yt8kHTWynNIQOh"
+        },
+        {
+          "jenis": "drive",
+          "label": "Instrumen Sitasi (Kuesioner,Buku Pedoman,dll)",
+          "url": "https://drive.google.com/drive/folders/1o5VQEtw1HKiHqrCdpU8-xQHo-mG2CByV"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1I7CfKwr-1325705822",
+      "bidang": "horti",
+      "survei": "Sitasi 2026",
+      "periode": null,
+      "jenis": "UPB",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Sitasi 2026 Unit Sampel UPB",
+      "sid": "1I7CfKwr7ZvS_g0yKPluI9AXDkfJAutHH",
+      "gid": "1325705822",
+      "tersedia": true,
+      "headerRow": 5,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan Sitasi2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfNZAOA5lxgemwykovTn0YVY1paHKp_nYwHxd7mtZGa3ZGTVw/viewform"
+        },
+        {
+          "jenis": "drive",
+          "label": "Bahan Ajar Sitasi 2026",
+          "url": "https://drive.google.com/drive/folders/1oq62JrVsbK7gODsI67Yt8kHTWynNIQOh"
+        },
+        {
+          "jenis": "drive",
+          "label": "Instrumen Sitasi (Kuesioner,Buku Pedoman,dll)",
+          "url": "https://drive.google.com/drive/folders/1o5VQEtw1HKiHqrCdpU8-xQHo-mG2CByV"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1qNQv4Rl-143066916",
+      "bidang": "horti",
+      "survei": "SKP 2026",
+      "periode": null,
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Monitoring Pencacahan SKP 2026",
+      "sid": "1qNQv4Rl8u2LB_2n6bzOGIp1CNPVtrU4r",
+      "gid": "143066916",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan SKP 2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfO_uppJAvccC9jFyw3yWZBQS08NZqrrw1J2wZSXsauSrnJXA/viewform"
+        },
+        {
+          "jenis": "drive",
+          "label": "Upload File LK SKP 2026",
+          "url": "https://drive.google.com/drive/folders/1rhmIA27BukHwl1hvIE3NszjFaqoO8U12"
+        },
+        {
+          "jenis": "drive",
+          "label": "Bahan Ajar SKP 2026",
+          "url": "https://drive.google.com/drive/folders/1eZ7y-SsL7uGxkM-0SpitLAqB-o8rFk8F"
+        },
+        {
+          "jenis": "drive",
+          "label": "Instrumen SKP 2026 (Kuesioner, Buku Pedoman, dll)",
+          "url": "https://drive.google.com/drive/folders/150zwRbyKZlFtZgKvlfIr0JwBgS5_MWkn"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1hvKZxUJ-832224056",
+      "bidang": "horti",
+      "survei": "SKP 2026",
+      "periode": null,
+      "jenis": "QNA Pelatihan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "QNA Pelatihan SKP 2026",
+      "sid": "1hvKZ_UJ4c6tF5UsnkrhFKLewMkzK7LWv",
+      "gid": "832224056",
+      "tersedia": true,
+      "headerRow": 1,
+      "tautan": [],
+      "tautanManual": true,
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1IpmNKoy-2110239611",
+      "bidang": "horti",
+      "survei": "SKP 2025",
+      "periode": null,
+      "jenis": "Pencacahan",
+      "tahun": 2025,
+      "arsip": true,
+      "label": "Monitoring Pencacahan SKP 2025",
+      "sid": "1IpmNKoyzm24YIz2vAijfkZAbgWAfx3Qm",
+      "gid": "2110239611",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto Pencacahan SKP 2025",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1eb53dtP-1269991206",
+      "bidang": "horti",
+      "survei": "Komstrat 2026",
+      "periode": "TW 3",
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan Komstrat Triwulan 3 2026",
+      "sid": "1eb53dtPneNVF67RnmG4WCOsEberlOlAt",
+      "gid": "1269991206",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Pencacahan Komstrat 202",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfOUgGIVLWT6jDFRTGS_trkL2Nb_HprnTpnpsU5FcZ27Z22ug/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1eb53dtP-183050403",
+      "bidang": "horti",
+      "survei": "Komstrat 2026",
+      "periode": "TW 2",
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan Komstrat Triwulan 2 2026",
+      "sid": "1eb53dtPneNVF67RnmG4WCOsEberlOlAt",
+      "gid": "183050403",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Pencacahan Komstrat 202",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSc6cnZYFDtjq3CdUDqr3f8zpiuIAaiple9jdjQnFp3nD-fkcQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1eb53dtP-267484522",
+      "bidang": "horti",
+      "survei": "Komstrat 2026",
+      "periode": "TW 1",
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan Komstrat Triwulan 1 2026",
+      "sid": "1eb53dtPneNVF67RnmG4WCOsEberlOlAt",
+      "gid": "267484522",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_FORMAT_UNSUPPORTED",
+        "pesan": "Google menolak ekspor CSV untuk tab ini (HTTP 400). File sumber berformat .xlsx (Office) sehingga tab ini tidak bisa dibaca per gid. Perlu disimpan ulang sebagai Google Sheets oleh pemilik file.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Pencacahan Komstrat 202",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSeQPy8yLNOHZuybOieV3KiacNPdDc0eipVKjZzZnBV0gPDSUw/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1tJqIf0H-1125332351",
+      "bidang": "horti",
+      "survei": "Komstrat 2026",
+      "periode": null,
+      "jenis": "Pemutakhiran",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pemutakhiran Komstrat 2026",
+      "sid": "1tJqIf0HBp44tv2ylG_EFJn0ZcG3vBAWn",
+      "gid": "1125332351",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Pemutahiran Komstrat 202",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLScmw4Fs9mya-GnRRMvmmYU1XSd8meWWzqTeclmEsBNDu1PIEQ/viewform"
+        },
+        {
+          "jenis": "drive",
+          "label": "Bahan Ajar Komstrat2026",
+          "url": "https://drive.google.com/drive/folders/1b3Z4pzbkjnJC7jlrMU4HTi3lHRDrWmDH"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1mJraAiL-149566298",
+      "bidang": "horti",
+      "survei": "VIP-Horti 2026",
+      "periode": "TW 3",
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan VIP-Horti Triwulan 3 2026",
+      "sid": "1mJraAiLyNuyPfBvxgKfj9Omqf98fpFtE",
+      "gid": "149566298",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Pencacahan Vip-Horti 202",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSd4JlOI6U9u5NejMggBZEMmhacmKjlvpN0UJdL5b_zvn23Q1Q/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1mJraAiL-744307033",
+      "bidang": "horti",
+      "survei": "VIP-Horti 2026",
+      "periode": "TW 2",
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan VIP-Horti Triwulan 2 2026",
+      "sid": "1mJraAiLyNuyPfBvxgKfj9Omqf98fpFtE",
+      "gid": "744307033",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Pencacahan Vip-Horti 202",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfnZkh9u1RUT056c7_hM6l1A3wHvZEEIY6FzSw-5jY7R6t-AQ/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1mJraAiL-782006131",
+      "bidang": "horti",
+      "survei": "VIP-Horti 2026",
+      "periode": "TW 1",
+      "jenis": "Pencacahan",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pencacahan VIP-Horti Triwulan 1 2026",
+      "sid": "1mJraAiLyNuyPfBvxgKfj9Omqf98fpFtE",
+      "gid": "782006131",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Pencacahan Vip-Horti 202",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLScEvnakT2i18SVFi9kDXnTMwAJoJbbaf30Tq6j2SZfJAq5V2A/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1tJqIf0H-161131113",
+      "bidang": "horti",
+      "survei": "VIP-Horti 2026",
+      "periode": null,
+      "jenis": "Pemutakhiran",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Pemutakhiran VIP-Horti 2026",
+      "sid": "1tJqIf0HBp44tv2ylG_EFJn0ZcG3vBAWn",
+      "gid": "161131113",
+      "tersedia": true,
+      "headerRow": 2,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Pemutahiran Vip-Horti 202",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSd-191kKP3MZnyWrY0d49TwT1YP5Ug1U_JeNMWWsaUhO5OEbQ/viewform"
+        },
+        {
+          "jenis": "lain",
+          "label": "Bahan Ajar VIP - HORTI 2026",
+          "url": "http://s.bps.go.id/MateriVIP3305",
+          "perluCek": true
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1NxxxHsT-1767659517",
+      "bidang": "horti",
+      "survei": "DPP/DUTL 2026",
+      "periode": null,
+      "jenis": "Updating DPP",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Updating DPP 2026",
+      "sid": "1N--_HsTOfwx62aw5T-S1lfpEUQVCkmno",
+      "gid": "1767659517",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_FORMAT_UNSUPPORTED",
+        "pesan": "Google menolak ekspor CSV untuk tab ini (HTTP 400). File sumber berformat .xlsx (Office) sehingga tab ini tidak bisa dibaca per gid. Perlu disimpan ulang sebagai Google Sheets oleh pemilik file.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Updating DPP 202",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdboDF_D2lndJDUf-bHvCuG-cdx4la05dzELDrzwYgB-nLYxA/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    },
+    {
+      "id": "horti-1NxxxHsT-672564915",
+      "bidang": "horti",
+      "survei": "DPP/DUTL 2026",
+      "periode": null,
+      "jenis": "Updating DUTL",
+      "tahun": 2026,
+      "arsip": false,
+      "label": "Updating DUTL 2026",
+      "sid": "1N--_HsTOfwx62aw5T-S1lfpEUQVCkmno",
+      "gid": "672564915",
+      "tersedia": false,
+      "alasan": {
+        "kode": "SHEET_FORMAT_UNSUPPORTED",
+        "pesan": "Google menolak ekspor CSV untuk tab ini (HTTP 400). File sumber berformat .xlsx (Office) sehingga tab ini tidak bisa dibaca per gid. Perlu disimpan ulang sebagai Google Sheets oleh pemilik file.",
+        "dicek": "2026-11-27"
+      },
+      "headerRow": null,
+      "tautan": [
+        {
+          "jenis": "form",
+          "label": "Upload Foto",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSfUx4LzRhk28p_UERZdzOP2e7lIiJNT2aMZmT6ObBcMXhOV7A/viewform"
+        },
+        {
+          "jenis": "form",
+          "label": "Updating DUTL 2026",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSd58Ol9U-sZxgh-S68H8fvbCPprzhkXxBpEN_6NSnN6s-Hh5Q/viewform"
+        }
+      ],
+      "ringkasan": null,
+      "diSitus": true
+    }
+  ]
+}

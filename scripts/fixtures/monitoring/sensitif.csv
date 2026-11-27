@@ -1,0 +1,6 @@
+DATA SINTETIS UNTUK UJI,,,,,,,,,,
+Rekap Monitoring Contoh,,,,,,,,,,
+No.,Kode Identitas,Nama Responden,NIK,No HP,Email PCL,Alamat,PCL,PML,Hasil Pencacahan,
+1,1234567890123456,Contoh Satu Dua,9900110101990001,081200000001,petugas.contoh@example.test,Jl. Contoh No 1,Petugas Uji A,Pengawas Uji A,1. Berhasil,x
+2,1234567890123457,Tunggal,-,#N/A,,Jl. Contoh No 2,Petugas Uji A,Pengawas Uji A,,catat 9900110101990002 hub 081200000002
+3,1234567890123458,Contoh Tiga,9900110101990003,+6281200000003,lain@example.test,,Petugas Uji B,Pengawas Uji B,2. Menolak,

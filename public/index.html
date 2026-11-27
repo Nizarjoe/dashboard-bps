@@ -940,8 +940,40 @@ function koreksiMark(st) {
 }
 function rujukanTeks(k) {
   const r = k.rujukan || {};
-  if (k.tipe === 'monitoring' || r.tabId) return 'Monitoring ' + (r.label || r.tabId || '') + (r.baris ? ' · baris ' + r.baris : '');
+  if (k.tipe === 'monitoring' || r.tabId) return 'Monitoring ' + (r.label || r.tabId || '') + (r.baris ? ' · kunci ' + r.baris : '');
   return jenisLabel(r.jenis) + ' ' + (r.id || '');
+}
+function jejakWaktu(doc) {
+  if (!doc) return '';
+  if (doc.status === 'dibatalkan' && doc.dibatalkanAt) return 'Dibatalkan ' + fmtWib(doc.dibatalkanAt);
+  if (doc.status === 'ditutup' && doc.ditutupAt) return 'Ditutup ' + fmtWib(doc.ditutupAt);
+  if ((doc.status === 'ditanggapi' || doc.status === 'diperbaiki') && doc.ditanggapiAt) return 'Ditanggapi ' + fmtWib(doc.ditanggapiAt);
+  if (doc.status === 'dibaca' && doc.dibacaAt) return 'Dibaca ' + fmtWib(doc.dibacaAt);
+  return '';
+}
+function sisaCoba(detik, sejak) {
+  const n = Number(detik);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.max(0, Math.ceil(n - (Date.now() - Number(sejak)) / 1000));
+}
+function tickDitunda() {
+  if (S.tickDitunda) clearTimeout(S.tickDitunda);
+  if (!S.view || S.view.page !== 'mon') return;
+  const nodes = document.querySelectorAll('[data-coba]');
+  if (!nodes.length) return;
+  let lagi = false;
+  nodes.forEach(n => {
+    const sisa = sisaCoba(n.dataset.coba, n.dataset.sejak);
+    const teks = n.querySelector('[data-sisa]');
+    const btn = n.matches('button') ? n : n.querySelector('button[data-act="ringkas-ulang"]');
+    if (teks) teks.textContent = sisa > 0 ? 'Coba lagi dalam ' + sisa + ' detik' : 'Bisa dimuat ulang.';
+    if (btn) {
+      btn.disabled = sisa > 0;
+      if (n.matches('button')) btn.textContent = sisa > 0 ? 'Coba lagi dalam ' + sisa + ' detik' : 'Muat ulang';
+    }
+    if (sisa > 0) lagi = true;
+  });
+  if (lagi) S.tickDitunda = setTimeout(tickDitunda, 1000);
 }
 async function blokKoreksiSampel(jenis, id, role) {
   let res;
@@ -1176,15 +1208,35 @@ async function pageMon(bidang) {
   const cur = group.find(t => t.id === st.tabId) || null;
   let ringkas = '';
   if (bidang === 'tp') {
+    const ringKey = 'tp' + (st.arsip ? ':arsip' : '');
     try {
-      const ring = await api('/api/monitoring/ringkasan?bidang=tp' + (st.arsip ? '&arsip=1' : ''));
+      if (!S.ringkasCache || S.ringkasCache.key !== ringKey) {
+        const body = await api('/api/monitoring/ringkasan?bidang=tp' + (st.arsip ? '&arsip=1' : ''));
+        S.ringkasCache = { key: ringKey, body, sejak: Date.now() };
+      }
+      const ring = S.ringkasCache.body;
+      const sejak = S.ringkasCache.sejak;
       const items = ring.data || [];
-      ringkas = `<section class="panel"><div class="panel-h"><h2>Progres Tanaman Pangan</h2><button type="button" class="btn ghost" data-act="reload">Muat ulang</button></div><div class="ringkas">
-        ${items.map(it => it.status === 'ok'
-          ? `<div class="goal"><div class="goal-top"><b>${esc(it.label || '')}</b><span>${fmt(it.sudah)}/${fmt(it.total)} · ${fmt(it.persen)}%</span></div><div class="track"><i style="width:${Math.max(0, Math.min(100, Number(it.persen) || 0))}%"></i></div></div>`
-          : `<div class="goal"><div class="goal-top"><b>${esc(it.label || '')}</b><span>${esc(it.status || '')}</span></div><p class="hint">${esc(it.error && it.error.message || '')}</p></div>`).join('') || '<p class="hint">Belum ada ringkasan.</p>'}
+      let detikMaks = 0;
+      items.forEach(it => {
+        if (it.status === 'ditunda' && Number(it.cobaLagiDetik) > 0) detikMaks = Math.max(detikMaks, Number(it.cobaLagiDetik));
+      });
+      const tunggu = detikMaks ? sisaCoba(detikMaks, sejak) : 0;
+      const tombol = tunggu > 0
+        ? `<button type="button" class="btn ghost" data-act="ringkas-ulang" data-coba="${detikMaks}" data-sejak="${sejak}" disabled>Coba lagi dalam ${tunggu} detik</button>`
+        : '<button type="button" class="btn ghost" data-act="ringkas-ulang">Muat ulang</button>';
+      ringkas = `<section class="panel"><div class="panel-h"><h2>Progres Tanaman Pangan</h2>${tombol}</div><div class="ringkas">
+        ${items.map(it => {
+          if (it.status === 'ok') return `<div class="goal"><div class="goal-top"><b>${esc(it.label || '')}</b><span>${fmt(it.sudah)}/${fmt(it.total)} · ${fmt(it.persen)}%</span></div><div class="track"><i style="width:${Math.max(0, Math.min(100, Number(it.persen) || 0))}%"></i></div></div>`;
+          if (it.status === 'ditunda') {
+            const detik = Number(it.cobaLagiDetik);
+            const ada = Number.isFinite(detik) && detik > 0;
+            const sisa = ada ? sisaCoba(detik, sejak) : 0;
+            return `<div class="goal"${ada ? ` data-coba="${detik}" data-sejak="${sejak}"` : ''}><div class="goal-top"><b>${esc(it.label || '')}</b><span>Ditunda</span></div><p class="hint">${esc(it.error && it.error.message || '')}</p>${ada ? `<p class="hint" data-sisa>${sisa > 0 ? 'Coba lagi dalam ' + sisa + ' detik' : 'Bisa dimuat ulang.'}</p><button type="button" class="btn ghost" data-act="ringkas-ulang"${sisa > 0 ? ' disabled' : ''}>Coba lagi</button>` : ''}</div>`;
+          }
+          return `<div class="goal"><div class="goal-top"><b>${esc(it.label || '')}</b><span>${esc(it.status || '')}</span></div><p class="hint">${esc(it.error && it.error.message || '')}</p></div>`;
+        }).join('') || '<p class="hint">Belum ada ringkasan.</p>'}
         ${(ring.tanpaRingkasan || []).length ? `<p class="hint">Tanpa peta ringkasan: ${(ring.tanpaRingkasan || []).map(t => esc(t.label || t.alasan || '')).join(', ')}</p>` : ''}
-        ${ring.meta && ring.meta.ditunda ? `<p class="hint">${fmt(ring.meta.ditunda)} tab ditunda karena batas permintaan. Muat ulang beberapa detik lagi.</p>` : ''}
       </div></section>`;
     } catch (e) {
       if (e.status === 401) throw e;
@@ -1220,14 +1272,25 @@ async function pageMon(bidang) {
       if (st.page >= pages) st.page = pages - 1;
       if (st.page < 0) st.page = 0;
       const slice = filtered.slice(st.page * 40, st.page * 40 + 40);
+      const kunciBaris = Array.isArray(pack.kunciBaris) ? pack.kunciBaris : [];
       S.sheetRows = { title: pack.label || cur.label, header, rows: filtered };
       const tautan = (pack.tautan || cur.tautan || []).map(t => `<a class="btn ${t.jenis === 'form' ? '' : 'ghost'}" target="_blank" rel="noopener" href="${esc(t.url)}">${esc(t.label)}</a>${t.perluCek ? '<span class="warn-note">Tautan terakhir gagal dicek.</span>' : ''}`).join('');
       const samar = meta && meta.disamarkan ? '<div class="lock">Data disamarkan. Nilai nama, NIK, telepon, dan alamat ditampilkan persis seperti yang dikirim server.</div>' : '';
       const staleErr = meta && meta.error ? errBlock({ message: meta.error.message, retryAfter: '' }) : '';
-      const table = `<div class="scroller-x"><table class="tbl"><thead><tr>${header.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>
-        ${slice.map(r => `<tr>${header.map((_, i) => `<td>${esc(r[i] == null ? '' : r[i])}</td>`).join('')}</tr>`).join('') || '<tr><td>Tidak ada baris.</td></tr>'}
+      const pml = S.user.role === 'pml';
+      const awal = start + st.page * 40;
+      const table = `<div class="scroller-x"><table class="tbl"><thead><tr>${pml ? '<th>Koreksi</th>' : ''}${header.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>
+        ${slice.map((r, i) => {
+          const kunci = kunciBaris[awal + i] || '';
+          const dipilih = pml && kunci && S.barisPilih && S.barisPilih.tabId === cur.id && S.barisPilih.kunci === kunci;
+          const pilih = pml ? `<td>${kunci ? `<button type="button" class="btn ghost" data-act="pilih-baris" data-tab="${esc(cur.id)}" data-kunci="${esc(kunci)}">${dipilih ? 'Terpilih' : 'Pilih'}</button>` : ''}</td>` : '';
+          return `<tr>${pilih}${header.map((_, c) => `<td>${esc(r[c] == null ? '' : r[c])}</td>`).join('')}</tr>`;
+        }).join('') || '<tr><td>Tidak ada baris.</td></tr>'}
       </tbody></table></div>`;
-      const koreksiBaris = S.user.role === 'pml' ? `<form id="kor-mon" class="actions" style="margin-top:12px"><label>Kode baris<input class="inp" name="baris" placeholder="Kode atau kunci baris, bukan nama atau NIK"></label><label>ID mitra<input class="inp" name="mitraId" placeholder="3305001"></label><label>Catatan<input class="inp" name="catatan" maxlength="1000"></label><button class="btn" type="submit">Kirim koreksi</button></form>` : '';
+      const terpilih = pml && S.barisPilih && S.barisPilih.tabId === cur.id ? S.barisPilih.kunci : '';
+      const kolomKunci = pack.kunci && pack.kunci.kolom ? 'Kolom kunci: ' + pack.kunci.kolom + '.' : (pack.kunci && pack.kunci.sumber === 'baris+hash' ? 'Kunci dihitung dari isi baris.' : '');
+      const draf = S.korMon || {};
+      const koreksiBaris = pml ? `<form id="kor-mon" class="fld" style="margin-top:12px"><p><b>Kirim koreksi untuk baris</b></p><p class="hint">${esc(kolomKunci)} Pilih satu baris di tabel. Nilai yang dikirim adalah kunciBaris.</p><p>Baris terpilih: <b>${terpilih ? esc(terpilih) : 'belum dipilih'}</b></p><label>ID mitra<input class="inp" id="kor-mitra" name="mitraId" value="${esc(draf.mitraId || '')}" autocomplete="off"></label><label>Catatan<textarea class="inp" id="kor-catatan" name="catatan" maxlength="1000">${esc(draf.catatan || '')}</textarea></label><button class="btn" type="submit"${terpilih ? '' : ' disabled'}>Kirim koreksi</button></form>` : '';
       isi = `<section class="panel"><div class="panel-h"><h2>${esc(pack.label || cur.label)}</h2></div>
         ${samar}${staleErr}
         <div class="actions" style="margin-bottom:10px">${tautan}<button type="button" class="btn ghost" data-act="mon-pdf">Unduh PDF</button><button type="button" class="btn ghost" data-act="mon-xlsx">Unduh Excel</button></div>
@@ -1301,9 +1364,16 @@ async function pageKoreksiDetail(id) {
   }
   if (role === 'admin' && !doc.dihapus) aksi += '<button type="button" class="btn ghost" data-act="ask-hapus-kor" data-id="' + esc(doc.id) + '">Hapus</button>';
   if (role === 'admin' && doc.dihapus) aksi += '<button type="button" class="btn ghost" data-act="pulih-kor" data-id="' + esc(doc.id) + '">Pulihkan</button>';
-  const riw = (doc.riwayat || []).map(v => `<tr><td>${esc(fmtWib(v.waktu))}</td><td>${esc(orangText(v.oleh))}</td><td>${esc(v.aksi || '')}</td><td>${esc(v.dari || '')} → ${esc(v.ke || '')}</td><td>${esc(v.catatan || '')}</td></tr>`).join('') || '<tr><td colspan="5">Belum ada riwayat.</td></tr>';
+  const namaAksi = { buat: 'Buat', ubah: 'Ubah', baca: 'Tandai dibaca', tanggapi: 'Tanggapi', perbaiki: 'Tandai diperbaiki', tutup: 'Tutup', buka: 'Buka lagi', batal: 'Batal', hapus: 'Hapus', pulihkan: 'Pulihkan' };
+  const riw = (doc.riwayat || []).map(v => {
+    const batal = v.aksi === 'batal' || v.ke === 'dibatalkan';
+    const tutup = v.aksi === 'tutup' || v.ke === 'ditutup';
+    const waktu = batal && doc.dibatalkanAt ? doc.dibatalkanAt : (tutup && doc.ditutupAt ? doc.ditutupAt : v.waktu);
+    return `<tr><td>${esc(fmtWib(waktu))}</td><td>${esc(orangText(v.oleh))}</td><td>${esc(namaAksi[v.aksi] || v.aksi || '')}</td><td>${esc(v.dari || '')} → ${esc(v.ke || '')}</td><td>${esc(v.catatan || '')}</td></tr>`;
+  }).join('') || '<tr><td colspan="5">Belum ada riwayat.</td></tr>';
   S.koreksiDoc = doc;
-  const html = `<p><a href="#koreksi">Kembali</a></p><h1>${esc(doc.id)}</h1><p class="sub">${koreksiMark(st)} · versi ${esc(doc.versi)} · ${esc(rujukanTeks(doc))}</p>
+  const jejak = jejakWaktu(doc);
+  const html = `<p><a href="#koreksi">Kembali</a></p><h1>${esc(doc.id)}</h1><p class="sub">${koreksiMark(st)} · versi ${esc(doc.versi)} · ${esc(rujukanTeks(doc))}${jejak ? ' · ' + esc(jejak) : ''}</p>
     <section class="panel"><h2>Catatan</h2><p>${esc(doc.catatan || '')}</p>${doc.bagian ? `<p class="hint">Bagian: ${esc(doc.bagian)}</p>` : ''}<p class="hint">Mitra ${esc(orangText(doc.mitra))} · PML ${esc(orangText(doc.pml))}</p>
     ${doc.tanggapan ? `<h2 style="margin-top:12px">Tanggapan</h2><p>${esc(doc.tanggapan)}</p>` : ''}${aksi}</section>
     <section class="panel"><h2>Riwayat</h2><div class="scroller-x"><table class="tbl"><tr><th>Waktu</th><th>Oleh</th><th>Aksi</th><th>Status</th><th>Catatan</th></tr>${riw}</table></div></section>`;
@@ -1447,6 +1517,7 @@ async function render() {
   if (S.keepScroll) window.scrollTo(0, y);
   S.keepScroll = false;
   loadPreviews(mine);
+  tickDitunda();
 }
 async function doLogin() {
   const id = document.getElementById('lu').value.trim();
@@ -1826,17 +1897,19 @@ async function kirimKoreksiMonitoring(form) {
   const bidang = S.view.bidang;
   const st = S.mon[bidang];
   const tabId = st && st.tabId;
-  const baris = String(form.baris.value || '').trim();
+  const baris = S.barisPilih && S.barisPilih.tabId === tabId ? S.barisPilih.kunci : '';
   const catatan = String(form.catatan.value || '').trim();
   const mitraId = String(form.mitraId ? form.mitraId.value : '').trim();
   if (!tabId || !baris || !catatan || !mitraId) {
-    S.banner = Object.assign(new Error('Isi kode baris, ID mitra, dan catatan.'), { code: 'LOCAL' });
+    S.banner = Object.assign(new Error('Pilih baris di tabel, lalu isi ID mitra dan catatan.'), { code: 'LOCAL' });
     render();
     return;
   }
   try {
     await api('/api/koreksi', { method: 'POST', json: { rujukan: { tipe: 'monitoring', tabId, baris, mitraId }, catatan } });
     S.banner = null;
+    S.barisPilih = null;
+    S.korMon = null;
     render();
   } catch (e) { gagalAksi(e); }
 }
@@ -1939,6 +2012,19 @@ function onClick(e) {
     if (lbl) lbl.textContent = S.sbmin ? 'Bentangkan menu' : 'Ciutkan menu';
     return;
   }
+  if (act === 'pilih-baris') {
+    S.barisPilih = { tabId: t.dataset.tab, kunci: t.dataset.kunci };
+    S.keepScroll = true;
+    render();
+    return;
+  }
+  if (act === 'ringkas-ulang') {
+    if (t.disabled) return;
+    S.ringkasCache = null;
+    S.keepScroll = true;
+    render();
+    return;
+  }
   if (act === 'logout') { logout(); return; }
   if (act === 'reload' || act === 'retry') {
     const page = S.view && S.view.page;
@@ -1965,6 +2051,7 @@ function onClick(e) {
     S.listHold = null;
     S.monCat = null;
     S.tabCache = null;
+    S.ringkasCache = null;
     S.banner = null;
     S.holdFetch = false;
     S.keepScroll = true;
@@ -2156,6 +2243,12 @@ function onInput(e) {
     bag.page = 0;
     S.keepScroll = true;
     render();
+    return;
+  }
+  if (t.id === 'kor-mitra' || t.id === 'kor-catatan') {
+    S.korMon = S.korMon || {};
+    if (t.id === 'kor-mitra') S.korMon.mitraId = t.value;
+    else S.korMon.catatan = t.value;
     return;
   }
   if (t.id === 'f-akun') {

@@ -2,6 +2,7 @@
 
 Untuk: GIBRAN (frontend). Dari: SITI (backend). Branch: `siti/monitoring-katalog-v2`.
 Semua contoh memakai data SINTETIS. Tidak ada data pribadi di dokumen ini.
+CRUD dan koreksi PML ada di `kontrak-crud-koreksi.md`. Monitoring tetap BACA-SAJA (tidak ada POST/PUT/PATCH/DELETE).
 
 ## Ringkas
 

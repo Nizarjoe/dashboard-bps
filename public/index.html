@@ -5,72 +5,86 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="api-base" content="">
 <title>SINTA PADI — Kabupaten Kebumen</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230f172a'/%3E%3Crect x='3' y='3' width='10' height='10' fill='%23047857'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23b6d94c'/%3E%3Crect x='3' y='10' width='10' height='2' fill='%238d5a3c'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
-:root{--navy:#0f172a;--green:#047857;--green-ink:#065f46;--bg:#f3f6f4;--line:#e2e8f0;--ink:#0f172a;--muted:#64748b;--paper:#fff;--amber:#b45309;--red:#b91c1c}
+:root{--bg:#efefef;--paper:#fff;--ink:#1c1c1c;--muted:#8d8d8d;--line:#e6e6e6;--lime:#b6d94c;--lime-2:#d7ec86;--grain:#e2b340;--soil:#8d5a3c;--clay:#c4503a;--track:#ececec;--radius:18px}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 html{color-scheme:light}
 html.dark{color-scheme:dark}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
-a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+body{font-family:Outfit,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #6d8a1e;outline-offset:2px}
 .skip{position:absolute;left:-999px;top:8px;background:#fff;color:#0f172a;padding:8px 12px;z-index:90}
 .skip:focus{left:8px}
 button,input,select,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
-.sb{position:fixed;z-index:50;top:0;bottom:0;left:0;width:232px;background:var(--navy);color:#e2e8f0;display:flex;flex-direction:column}
-.brand{padding:16px 16px 10px}
-.brand b{display:block;font-size:16px;letter-spacing:.04em}
-.brand small{display:block;color:#94a3b8;font-size:12px;margin-top:2px}
-.sb nav{flex:1;overflow:auto;padding:6px 0 12px}
-.sb .grp{margin:12px 16px 4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b}
-.sb a{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;color:#cbd5e1;text-decoration:none;font-size:14px;font-weight:600;border-left:3px solid transparent}
-.sb a:hover{color:#fff;background:rgba(255,255,255,.05)}
-.sb a.on{color:#fff;background:#123024;border-left-color:#34d399}
-.sb .foot{border-top:1px solid rgba(255,255,255,.08);padding:12px 14px;font-size:12px;color:#94a3b8}
-.sb .foot b{color:#e2e8f0;font-size:13px}
-.hdr{position:fixed;z-index:40;top:0;left:232px;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;background:var(--paper);border-bottom:1px solid var(--line)}
-.hdr .who{font-size:13px;color:var(--muted)}
-.hdr .who b{color:var(--ink);font-weight:700}
-.hdr .tools{display:flex;align-items:center;gap:8px}
-.main{margin-left:232px;margin-top:56px;padding:16px 16px 40px}
+.sb{position:fixed;z-index:50;top:0;bottom:0;left:0;width:248px;background:#fff;color:var(--ink);display:flex;flex-direction:column;border-right:1px solid var(--line)}
+.sb.min{width:76px}
+.sb.min .lbl,.sb.min .grp,.sb.min .brand small,.sb.min .foot .meta,.sb.min .badge-n{display:none}
+.brand{padding:22px 18px 8px}
+.brand b{display:block;font-size:15px;letter-spacing:.08em;font-weight:700}
+.brand small{display:block;color:var(--muted);font-size:12px;margin-top:2px;font-weight:500}
+.sb nav{flex:1;overflow:auto;padding:8px 0 12px}
+.sb .grp{margin:16px 18px 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#a3a3a3;font-weight:600}
+.sb a,.sb .textbtn{display:flex;align-items:center;gap:10px;min-height:42px;margin:2px 10px;padding:0 12px;color:#3a3a3a;text-decoration:none;font-size:14px;font-weight:560;border:0;background:transparent;border-radius:12px;text-align:left;cursor:pointer;width:calc(100% - 20px)}
+.sb a.sub{margin-left:18px;width:calc(100% - 28px);font-weight:500}
+.sb a:hover,.sb .textbtn:hover{background:#f6f6f6}
+.sb a.on{background:#f1f1f1;color:#111;font-weight:650}
+.badge-n{margin-left:auto;background:#161616;color:#fff;border-radius:999px;font-size:10px;line-height:1;padding:3px 6px;font-weight:700}
+.sb .foot{padding:8px 10px 16px}
+.sb .foot .meta{padding:8px 12px 10px;font-size:12px;color:var(--muted)}
+.sb .foot .meta b{display:block;color:var(--ink);font-size:13px}
+.hdr{position:fixed;z-index:40;top:0;left:248px;right:0;height:72px;display:flex;align-items:center;gap:12px;padding:0 22px;background:var(--bg)}
+.sb.min~.hdr{left:76px}
+.search{flex:1;min-width:0}
+.search-inp{width:100%;height:44px;border:0;border-radius:999px;background:#fff;padding:0 18px;font-size:14px}
+.hdr .tools{display:flex;align-items:center;gap:8px;margin-left:auto}
+.chip{display:flex;align-items:center;gap:8px;background:#fff;border-radius:14px;padding:6px 12px 6px 6px;min-height:44px}
+.chip b{display:block;font-size:13px;line-height:1.15}
+.chip small{display:block;color:var(--muted);font-size:11px}
+.ava{width:32px;height:32px;border-radius:8px;background:var(--lime);color:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none}
+.main{margin-left:248px;margin-top:72px;padding:6px 22px 48px}
+.sb.min~.main{margin-left:76px}
 .backdrop{position:fixed;inset:0;z-index:45;border:0;background:rgba(15,23,42,.45)}
-h1{font-size:22px;line-height:1.2;margin:0 0 4px;font-weight:700}
-h2{font-size:16px;margin:0 0 8px}
-.sub{color:var(--muted);margin:0 0 14px;font-size:14px}
-.panel{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 0 14px}
+h1{font-size:28px;line-height:1.15;margin:0 0 4px;font-weight:700;letter-spacing:-.03em}
+h2{font-size:16px;margin:0;font-weight:700}
+.sub{color:var(--muted);margin:0 0 16px;font-size:14px}
+.panel{background:var(--paper);border-radius:var(--radius);padding:18px 20px 20px;margin:0 0 18px}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.mini{height:34px;min-height:34px;border:1px solid #e4e4e4;border-radius:10px;background:#fff;padding:0 10px;font-size:13px;font-weight:600}
 .rowline{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .filters label,.fld{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--muted)}
-.inp,select.inp,textarea.inp{min-height:44px;border:1px solid #cbd5e1;border-radius:6px;padding:8px 10px;background:#fff;width:100%}
+.inp,select.inp,textarea.inp{min-height:44px;border:1px solid #e4e4e4;border-radius:12px;padding:8px 12px;background:#fff;width:100%}
 textarea.inp{min-height:96px;resize:vertical}
-.btn{min-height:44px;padding:0 14px;border-radius:6px;border:1px solid transparent;background:var(--green);color:#fff;font-weight:700;cursor:pointer}
-.btn.ghost{background:#fff;color:var(--ink);border-color:#cbd5e1}
-.btn.warn{background:var(--red)}
+.btn{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid transparent;background:var(--lime);color:#1a1a1a;font-weight:700;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid #e4e4e4}
+.btn.warn{background:var(--clay);color:#fff}
 .btn:disabled{opacity:.55;cursor:not-allowed}
-.iconbtn{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #cbd5e1;background:#fff;border-radius:6px;color:inherit;cursor:pointer}
+.iconbtn{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;border:0;background:#fff;border-radius:12px;color:inherit;cursor:pointer}
 .ico{width:18px;height:18px;display:block}
 .st{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;white-space:nowrap}
 .st i{width:8px;height:8px;background:currentColor;display:block}
-.st-belum{color:#475569}
-.st-draf{color:var(--amber)}
-.st-sudah{color:var(--green-ink)}
-.st-ditolak{color:var(--red)}
+.st-belum{color:#6e6e6e}
+.st-draf{color:#9a7420}
+.st-sudah{color:#4d6b12}
+.st-ditolak{color:var(--clay)}
 .prog{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;font-size:14px}
-.hit{display:flex;align-items:center;gap:10px;width:100%;text-align:left;min-height:52px;padding:8px 10px;border:0;border-bottom:1px solid var(--line);background:transparent;cursor:pointer;color:inherit;text-decoration:none}
-.hit:hover{background:#f8fafc}
+.hit{display:flex;align-items:center;gap:12px;width:100%;text-align:left;min-height:56px;padding:8px 4px;border:0;border-bottom:1px solid #f0f0f0;background:transparent;cursor:pointer;color:inherit;text-decoration:none;border-radius:10px}
+.hit:hover{background:#fafafa}
+.sq{width:36px;height:36px;border-radius:10px;background:#f3f3f3;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
 .hit .grow{flex:1;min-width:0}
 .hit small{display:block;color:var(--muted);font-size:12px}
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
 .tbl th,.tbl td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-.tbl th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:#f8fafc;position:sticky;top:0}
-.tbl a{color:var(--green-ink);font-weight:700}
+.tbl th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:#fff;position:sticky;top:0}
+.tbl a{color:#3f5c10;font-weight:700}
 .scroller{overflow:auto;max-height:70vh}
 .kv{display:grid;grid-template-columns:minmax(120px,180px) 1fr;gap:6px 12px;margin:0}
 .kv dt{color:var(--muted);font-size:13px}
@@ -91,7 +105,7 @@ textarea.inp{min-height:96px;resize:vertical}
 .filebtn{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;font-weight:700;cursor:pointer}
 .filebtn input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
 .meter{height:8px;background:#e2e8f0;margin-top:8px}
-.meter i{display:block;height:100%;width:0;background:var(--green)}
+.meter i{display:block;height:100%;width:0;background:var(--lime)}
 .hint{color:var(--muted);font-size:12px;margin:4px 0 0}
 .modal{position:fixed;inset:0;z-index:80;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:16px}
 .modal .panel{width:min(440px,100%);margin:0}
@@ -101,32 +115,79 @@ textarea.inp{min-height:96px;resize:vertical}
 .pager span{white-space:nowrap}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .tabs button{min-height:44px;padding:0 12px;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer;font-weight:600}
-.tabs button.on{background:#123024;color:#fff;border-color:#123024}
-html.dark body{background:#020617;color:#e2e8f0}
-html.dark .hdr,html.dark .panel,html.dark .inp,html.dark select.inp,html.dark textarea.inp,html.dark .btn.ghost,html.dark .iconbtn,html.dark .filebtn,html.dark .tabs button{background:#0f172a;color:#e2e8f0;border-color:#334155}
-html.dark .tbl th{background:#1e293b;color:#94a3b8}
-html.dark .tbl td,html.dark .tbl th{border-color:#1e293b}
-.sb .btn.ghost{background:#fff;color:#0f172a}
-html.dark .hit:hover{background:#1e293b}
-html.dark .sub,html.dark .hint,html.dark .hdr .who,html.dark .kv dt,html.dark .filters label,html.dark .fld{color:#94a3b8}
-html.dark .hdr .who b{color:#e2e8f0}
-html.dark .stale{background:#3f2d12;color:#fde68a;border-color:#854d0e}
-html.dark .err,html.dark .reject{background:#450a0a;color:#fecaca;border-color:#7f1d1d}
-html.dark .lock{background:#0f172a;border-color:#334155}
-html.dark .st-belum{color:#cbd5e1}
-html.dark .st-draf{color:#fbbf24}
-html.dark .st-sudah{color:#34d399}
-html.dark .st-ditolak{color:#fca5a5}
-html.dark .tbl a{color:#6ee7b7}
-html.dark .meter{background:#1e293b}
-html.dark .slot img{background:#1e293b}
+.tabs button{border-radius:999px}
+.tabs button.on{background:#f1f1f1;color:#111;border-color:#f1f1f1}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 16px;background:var(--bg)}
+.login-card{width:min(420px,100%)}
+.login-card h1{letter-spacing:.08em;font-size:26px}
+.dash{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(240px,.75fr);gap:18px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:18px}
+.stack .panel{margin:0}
+.kpi b{display:block;font-size:40px;line-height:1;letter-spacing:-.04em;font-weight:700}
+.kpi span{display:block;margin-top:6px;color:var(--muted);font-size:13px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:190px;padding-top:28px}
+.barcol{position:relative;flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.barstack{width:100%;max-width:28px;border-radius:8px 8px 3px 3px;background:var(--track);display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.bar-done{display:block;width:100%;background:repeating-linear-gradient(-45deg,#b6d94c,#b6d94c 3px,#c8e56a 3px,#c8e56a 6px)}
+.bar-rest{display:block;width:100%;flex:1;background:#e4e4e4}
+.barcol.on .bar-done{background:repeating-linear-gradient(-45deg,#e2b340,#e2b340 3px,#b6d94c 3px,#b6d94c 6px)}
+.barcol small{display:block;margin-top:6px;font-size:10px;color:var(--muted);text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tip{display:none;position:absolute;left:50%;bottom:calc(100% - 22px);transform:translateX(-50%);background:#fff;border-radius:12px;padding:8px 10px;font-size:12px;white-space:nowrap;z-index:3;box-shadow:0 8px 20px rgba(0,0,0,.06)}
+.barcol:hover .tip,.barcol:focus-within .tip{display:block}
+.segbar{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--track)}
+.segbar i{display:block;height:100%}
+.legend{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.legend li{display:flex;align-items:center;gap:8px}
+.sw{width:10px;height:10px;border-radius:2px;flex:none}
+.gauge{position:relative;height:118px}
+.gauge svg{width:100%;height:110px;display:block}
+.gauge-n{position:absolute;left:0;right:0;bottom:8px;text-align:center}
+.gauge-n b{font-size:32px;letter-spacing:-.04em}
+.gauge-n small{display:block;color:var(--muted);font-size:12px}
+.goal{margin:0 0 12px}
+.goal-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px}
+.track{height:8px;border-radius:999px;background:var(--track);overflow:hidden}
+.track i{display:block;height:100%;background:repeating-linear-gradient(-45deg,#b6d94c,#b6d94c 3px,#c8e56a 3px,#c8e56a 6px)}
+.tx{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f2f2f2}
+.tx .grow{flex:1;min-width:0}
+.tx small{display:block;color:var(--muted)}
+.tx .side{text-align:right;font-size:12px;font-weight:600;max-width:46%}
+html.dark{color-scheme:dark}
+html.dark body{background:#171714;color:#f3f3ee}
+html.dark .sb,html.dark .panel,html.dark .hdr,html.dark .chip,html.dark .iconbtn,html.dark .search-inp,html.dark .btn.ghost,html.dark .filebtn,html.dark .inp,html.dark select.inp,html.dark textarea.inp,html.dark .tabs button,html.dark .mini,html.dark .tip{background:#22221f;color:#f3f3ee;border-color:#34342f}
+html.dark .sb{border-right-color:#34342f}
+html.dark .sb a,html.dark .sb .textbtn{color:#ddd}
+html.dark .sb a.on,html.dark .sb a:hover,html.dark .sb .textbtn:hover,html.dark .tabs button.on{background:#2e2e2a;color:#fff}
+html.dark .tbl th{background:#22221f;color:#aaa}
+html.dark .tbl td,html.dark .tbl th{border-color:#34342f}
+html.dark .hit:hover{background:#2a2a26}
+html.dark .sub,html.dark .hint,html.dark .kv dt,html.dark .filters label,html.dark .fld,html.dark .kpi span,html.dark .chip small{color:#a9a9a0}
+html.dark .sq{background:#2e2e2a}
+html.dark .stale{background:#3a3218;color:#f0d48a;border-color:#6a5420}
+html.dark .err,html.dark .reject{background:#3a221c;color:#fecaca;border-color:#6a3328}
+html.dark .lock{background:#22221f;border:1px solid #34342f}
+html.dark .st-sudah{color:#d7ec86}
+html.dark .st-draf{color:#e2b340}
+html.dark .st-ditolak{color:#f0a090}
+html.dark .tbl a{color:#d7ec86}
+html.dark .meter,html.dark .track,html.dark .segbar{background:#333}
+html.dark .bar-rest{background:#3a3a36}
+html.dark .login-wrap{background:#171714}
+@media(max-width:900px){
+  .dash{grid-template-columns:1fr}
+  .chip .who2{display:none}
+}
 @media(max-width:800px){
   .mob{display:inline-flex}
   .sb{transform:translateX(-105%);width:min(280px,88vw)}
   .sb.open{transform:none}
-  .hdr,.main{left:0;margin-left:0}
-  .main{padding:12px 12px 32px}
+  .sb.min{width:min(280px,88vw)}
+  .hdr,.main,.sb.min~.hdr,.sb.min~.main{left:0;margin-left:0}
+  .hdr{height:auto;flex-wrap:wrap;padding:10px 12px}
+  .main{padding:8px 12px 36px}
+  .search{flex:1 1 140px}
   .kv{grid-template-columns:1fr}
+  .kpi b{font-size:34px}
 }
 @media print{.sb,.hdr,.btn,.iconbtn,.filters{display:none!important}.main{margin:0}}
 </style>
@@ -158,6 +219,9 @@ const S = {
   holdFetch: false,
   fotoRetry: {},
   busy: false,
+  sbmin: localStorage.getItem('sp_min') === '1',
+  kecSort: 'sudah',
+  dashQ: '',
   view: { page: '' },
   mon: {},
   sheetRows: null,
@@ -351,15 +415,16 @@ function parts() {
 }
 function navItems() {
   const role = S.user.role;
+  const anom = S.dash && Array.isArray(S.dash.anomali) ? S.dash.anomali.length : null;
   if (role === 'mitra') return [{ href: 'kerja', label: 'Pekerjaan', icon: 'list' }];
-  if (role === 'pml') return [{ href: 'dasbor', label: 'Dasbor', icon: 'dash' }];
+  if (role === 'pml') return [{ href: 'dasbor', label: 'Dasbor', icon: 'dash', badge: anom }];
   return [
-    { href: 'dasbor', label: 'Dasbor', icon: 'dash', group: 'Utama' },
+    { href: 'dasbor', label: 'Dasbor', icon: 'dash', group: 'Utama', badge: anom },
     { href: 'sampel', label: 'Sampel', icon: 'list' },
     { href: 'akun', label: 'Akun', icon: 'users' },
-    { href: 'mon/tp', label: 'Tanaman Pangan', icon: 'sheet', group: 'Monitoring' },
-    { href: 'mon/inpek', label: 'INPEK', icon: 'sheet' },
-    { href: 'mon/horti', label: 'Horti, Perkebunan, Peternakan, Perikanan', icon: 'sheet' },
+    { href: 'mon/tp', label: 'Tanaman Pangan', icon: 'sheet', group: 'Monitoring', sub: true },
+    { href: 'mon/inpek', label: 'INPEK', icon: 'sheet', sub: true },
+    { href: 'mon/horti', label: 'Horti, Perkebunan, Peternakan, Perikanan', icon: 'sheet', sub: true },
   ];
 }
 function navOn(href) {
@@ -378,22 +443,30 @@ function shell(content, meta) {
       grp = `<div class="grp">${esc(it.group)}</div>`;
     }
     const on = navOn(it.href) ? ' on' : '';
-    return `${grp}<a class="${on.trim()}" href="#${esc(it.href)}" aria-current="${on ? 'page' : 'false'}">${icon(it.icon)}<span>${esc(it.label)}</span></a>`;
+    const sub = it.sub ? ' sub' : '';
+    const badge = it.badge == null ? '' : `<span class="badge-n">${fmt(it.badge)}</span>`;
+    return `${grp}<a class="${(on + sub).trim()}" href="#${esc(it.href)}" aria-current="${on ? 'page' : 'false'}">${icon(it.icon)}<span class="lbl">${esc(it.label)}</span>${badge}</a>`;
   }).join('');
   const pml = u.role === 'mitra' && S.me && S.me.pml && S.me.pml.nama ? `<div>PML ${esc(S.me.pml.nama)}</div>` : '';
-  return `<aside class="sb${S.navOpen ? ' open' : ''}" id="sb">
-    <div class="brand"><b>SINTA PADI</b><small>Kabupaten Kebumen</small></div>
+  const initials = String(u.nama || u.id || 'K').split(/\s+/).slice(0, 2).map(w => w.slice(0, 1)).join('').toUpperCase();
+  const qNow = (S.view.page === 'mitra' ? S.drill.q : (S.view.page === 'dasbor' ? S.dashQ : (S.view.page === 'akun' ? (S.listUi.akunQ || '') : S.listUi.q))) || '';
+  return `<aside class="sb${S.navOpen ? ' open' : ''}${S.sbmin ? ' min' : ''}" id="sb">
+    <div class="brand"><b class="lbl">SINTA PADI</b><small>Kabupaten Kebumen</small></div>
     <nav aria-label="Menu utama">${links}</nav>
-    <div class="foot"><b>${esc(u.nama || '')}</b><div>${esc(u.id)} · ${esc(roleLabel(u.role))}</div>${pml}
-      <button type="button" class="btn ghost" data-act="logout" style="margin-top:8px">Keluar</button>
+    <div class="foot">
+      <div class="grp">Tampilan</div>
+      <button type="button" class="textbtn" data-act="dark">${S.dark ? icon('sun') : icon('moon')}<span class="lbl">${S.dark ? 'Mode terang' : 'Mode gelap'}</span></button>
+      <button type="button" class="textbtn" data-act="collapse">${icon('menu')}<span class="lbl">${S.sbmin ? 'Bentangkan menu' : 'Ciutkan menu'}</span></button>
+      <div class="meta"><b>${esc(u.nama || '')}</b><span>${esc(u.id)} · ${esc(roleLabel(u.role))}</span>${pml}</div>
     </div>
   </aside>
   ${S.navOpen ? '<button type="button" class="backdrop mob" data-act="close-nav" aria-label="Tutup menu"></button>' : ''}
   <header class="hdr">
-    <div class="who"><b>SINTA PADI</b> · Kabupaten Kebumen</div>
+    <button type="button" class="iconbtn mob" data-act="nav" aria-label="Buka menu">${icon('menu')}</button>
+    <form class="search" id="topsearch"><input class="search-inp" id="topq" value="${esc(qNow)}" placeholder="Cari desa, ID, atau nama" autocomplete="off" aria-label="Cari"></form>
     <div class="tools">
-      <button type="button" class="iconbtn mob" data-act="nav" aria-label="Buka menu">${icon('menu')}</button>
       <button type="button" class="iconbtn" id="darkbtn" data-act="dark" aria-label="Mode gelap">${S.dark ? icon('sun') : icon('moon')}</button>
+      <div class="chip"><span class="ava" aria-hidden="true">${esc(initials)}</span><span class="who2"><b>${esc(u.nama || '')}</b><small>${esc(u.id)}</small></span></div>
       <button type="button" class="btn ghost" data-act="logout">Keluar</button>
     </div>
   </header>
@@ -444,8 +517,8 @@ function paintLogin(err) {
   epoch++;
   revokePreviews();
   const retry = err ? errBlock(err) : '';
-  document.getElementById('app').innerHTML = `<div class="main" style="margin:0;max-width:420px;padding:32px 16px">
-    <div class="panel">
+  document.getElementById('app').innerHTML = `<div class="login-wrap">
+    <div class="panel login-card">
       <h1>SINTA PADI</h1>
       <p class="sub">Kabupaten Kebumen. Masuk dengan ID akun.</p>
       <form id="login">
@@ -563,7 +636,9 @@ async function pageSampelList(cfg) {
   }
   const hits = slice.map(r => {
     const nama = r.nama ? ` · ${esc(r.nama)}` : '';
+    const mark = r.jenis === 'penggilingan' ? 'G' : 'K';
     return `<a class="hit" href="#sampel/${esc(r.jenis)}/${encodeURIComponent(r.id)}">
+      <span class="sq">${mark}</span>
       <span class="grow"><b>${esc(r.id)}</b><small>${esc(r.desa || '—')} · ${esc(r.kecamatan || '—')} · ${esc(jenisLabel(r.jenis))} · ${esc(flagLabel(r.flagSampel))}${nama}</small></span>
       ${statusMark(r.status)}
       <span class="hint">${fmt(r.fotoTerisi)}/${fmt(r.fotoTotal)}</span>
@@ -575,7 +650,8 @@ async function pageSampelList(cfg) {
       <button type="button" class="btn ghost" data-act="pdf">Unduh PDF</button>
       <button type="button" class="btn ghost" data-act="xlsx">Unduh Excel</button>
     </div>` : '';
-  const html = `${listErr ? failBox(listErr) : ''}${back}<h1>${esc(cfg.title)}</h1>${cfg.sub ? `<p class="sub">${cfg.sub}</p>` : ''}
+  const hero = cfg.visual === 'mitra' ? mitraBoard(progres) : '';
+  const html = `${listErr ? failBox(listErr) : ''}${back}<h1>${esc(cfg.title)}</h1>${cfg.sub ? `<p class="sub">${cfg.sub}</p>` : ''}${hero}
     <section class="panel">${(cfg.clientMitra || !ui.mitra) ? progresHtml(progres) : ''}
       <div class="filters" style="margin-top:10px">
         <label>Jenis<select class="inp" id="flt-jenis" data-ui="${esc(cfg.uiName)}" data-k="jenis">
@@ -615,18 +691,83 @@ async function pageKerja() {
     ui: S.listUi,
     uiName: 'listUi',
     showMitra: false,
+    visual: 'mitra',
     view: { page: 'kerja' },
   });
 }
-function kpiTable(kpi) {
-  const rows = [
-    ['Sampel', 'sampel'], ['Utama', 'utama'], ['Cadangan', 'cadangan'],
-    ['Sudah', 'sudah'], ['Draf', 'draf'], ['Ditolak', 'ditolak'], ['Belum', 'belum'], ['Foto lengkap', 'fotoLengkap'],
+function sumFields(a, b) {
+  const add = (k) => (Number(a && a[k]) || 0) + (Number(b && b[k]) || 0);
+  return { sampel: add('sampel'), utama: add('utama'), cadangan: add('cadangan'), sudah: add('sudah'), draf: add('draf'), ditolak: add('ditolak'), belum: add('belum'), fotoLengkap: add('fotoLengkap') };
+}
+function pctOf(n, d) { const den = Number(d) || 0; return den ? Math.round((Number(n) || 0) / den * 100) : 0; }
+function qok(q, parts) {
+  const n = String(q || '').trim().toLowerCase();
+  if (!n) return true;
+  return parts.some(p => String(p || '').toLowerCase().includes(n));
+}
+function segBar(parts) {
+  const total = parts.reduce((a, p) => a + p.n, 0);
+  if (!total) return '<p class="hint">Belum ada sampel.</p>';
+  const bar = `<div class="segbar">${parts.map(p => `<i style="width:${(p.n / total * 100).toFixed(2)}%;background:${p.color}"></i>`).join('')}</div>`;
+  const legend = `<ul class="legend">${parts.map(p => `<li><i class="sw" style="background:${p.color}"></i><span>${esc(p.label)}</span><b style="margin-left:auto">${fmt(p.n)}</b><span>${pctOf(p.n, total)}%</span></li>`).join('')}</ul>`;
+  return bar + legend;
+}
+function gauge(pct, caption) {
+  const p = Math.max(0, Math.min(100, Number(pct) || 0));
+  const r = 54;
+  const len = Math.PI * r;
+  const dash = (p / 100) * len;
+  return `<div class="gauge"><svg viewBox="0 0 140 86" aria-hidden="true">
+      <path d="M16 74 A54 54 0 0 1 124 74" fill="none" stroke="#ececec" stroke-width="12"/>
+      <path d="M16 74 A54 54 0 0 1 124 74" fill="none" stroke="#b6d94c" stroke-width="12" stroke-dasharray="${dash} ${len}"/>
+    </svg><div class="gauge-n"><b>${p}%</b><small>${esc(caption || 'sudah')}</small></div></div>`;
+}
+function kecChart(rows) {
+  const list = (rows || []).slice();
+  const sort = S.kecSort || 'sudah';
+  list.sort((a, b) => sort === 'nama' ? String(a.nmkec || '').localeCompare(String(b.nmkec || ''), 'id') : (Number(b[sort]) || 0) - (Number(a[sort]) || 0));
+  if (!list.length) return '<p class="hint">Belum ada data kecamatan.</p>';
+  const max = Math.max(1, ...list.map(r => Number(r.total) || 0));
+  const top = Math.max(...list.map(r => Number(r.sudah) || 0));
+  return `<div class="bars">${list.map(r => {
+    const total = Number(r.total) || 0;
+    const sudah = Number(r.sudah) || 0;
+    const h = Math.max(8, Math.round(total / max * 100));
+    const done = total ? Math.round(sudah / total * 100) : 0;
+    const on = sudah === top && top > 0 ? ' on' : '';
+    return `<div class="barcol${on}"><div class="tip"><b>${esc(r.nmkec || '—')}</b><div>${fmt(sudah)} sudah · ${fmt(total)} sampel</div></div>
+      <div class="barstack" style="height:${h}%"><i class="bar-done" style="height:${done}%"></i><i class="bar-rest"></i></div>
+      <small>${esc(r.nmkec || '—')}</small></div>`;
+  }).join('')}</div>`;
+}
+function goalList(rows, nameOf, valueOf) {
+  if (!rows.length) return '<p class="hint">Tidak ada data.</p>';
+  return rows.slice(0, 12).map(r => {
+    const total = Number(r.total) || 0;
+    const sudah = Number(r.sudah) || 0;
+    const w = total ? Math.round(sudah / total * 100) : 0;
+    return `<div class="goal"><div class="goal-top"><b>${esc(nameOf(r))}</b><span>${fmt(sudah)}/${fmt(total)}</span></div><div class="track"><i style="width:${w}%"></i></div></div>`;
+  }).join('') + (rows.length > 12 ? `<p class="hint">Menampilkan 12 dari ${fmt(rows.length)}.</p>` : '');
+}
+function txList(rows) {
+  if (!rows.length) return '<p class="hint">Tidak ada anomali.</p>';
+  return rows.map(r => `<a class="tx" href="#sampel/${esc(r.jenis)}/${encodeURIComponent(r.id)}">
+      <span class="sq">${esc(String(r.jenis || 'A').slice(0, 1).toUpperCase())}</span>
+      <span class="grow"><b>${esc(r.id)}</b><small>${esc(orangText(r.mitra))} · ${esc(r.kode || '')}</small></span>
+      <span class="side">${esc(r.pesan || '')}</span>
+    </a>`).join('');
+}
+function mitraBoard(p) {
+  if (!p) return '';
+  const parts = [
+    { n: p.sudah || 0, label: 'Sudah', color: '#b6d94c' },
+    { n: p.draf || 0, label: 'Draf', color: '#e2b340' },
+    { n: p.ditolak || 0, label: 'Ditolak', color: '#c4503a' },
+    { n: p.belum || 0, label: 'Belum', color: '#d9d3cc' },
   ];
-  const mark = { sudah: 'sudah', draf: 'draf', ditolak: 'ditolak', belum: 'belum' };
-  return `<table class="tbl"><tr><th></th><th>Pengeringan</th><th>Penggilingan</th></tr>
-    ${rows.map(([lab, key]) => `<tr><th>${mark[key] ? statusMark(key) : esc(lab)}</th><td>${fmt(kpi.pengeringan[key])}</td><td>${fmt(kpi.penggilingan[key])}</td></tr>`).join('')}
-  </table>`;
+  return `<div class="dash"><section class="panel"><div class="panel-h"><h2>Komposisi status</h2></div>${segBar(parts)}</section>
+    <div class="stack"><section class="panel kpi"><b>${fmt(p.total)}</b><span>Sampel</span></section>
+    <section class="panel">${gauge(pctOf(p.sudah, p.total), 'sudah dari sampel')}</section></div></div>`;
 }
 async function pageAdmin() {
   const err = await ensureDash('/api/admin/dashboard');
@@ -635,35 +776,58 @@ async function pageAdmin() {
   }
   const d = S.dash;
   S.listMeta = { syncedAt: d.syncedAt, stale: d.stale === true };
-  const anom = d.anomali || [];
+  const q = S.dashQ || '';
+  const tot = sumFields(d.kpi.pengeringan, d.kpi.penggilingan);
+  const parts = [
+    { n: tot.sudah, label: 'Sudah', color: '#b6d94c' },
+    { n: tot.draf, label: 'Draf', color: '#e2b340' },
+    { n: tot.ditolak, label: 'Ditolak', color: '#c4503a' },
+    { n: tot.belum, label: 'Belum', color: '#d9d3cc' },
+  ];
+  const kec = (d.perKecamatan || []).filter(r => qok(q, [r.nmkec, r.kdkec]));
+  const mitra = (d.perMitra || []).filter(r => qok(q, [r.mitra && r.mitra.nama, r.mitra && r.mitra.id, r.pml && r.pml.nama]));
+  const anom = (d.anomali || []).filter(r => qok(q, [r.id, r.pesan, r.kode, r.mitra && r.mitra.nama, r.jenis]));
   const aPages = Math.max(1, Math.ceil(anom.length / PAGE));
   if (S.anomPage >= aPages) S.anomPage = aPages - 1;
   if (S.anomPage < 0) S.anomPage = 0;
   const aSlice = anom.slice(S.anomPage * PAGE, S.anomPage * PAGE + PAGE);
-  const mitraRows = (d.perMitra || []).map(r => `<tr>
-      <td><a href="#sampel" data-set-mitra="${esc(r.mitra && r.mitra.id || '')}">${esc(r.mitra && r.mitra.nama || '—')}</a><div class="hint">${esc(r.mitra && r.mitra.id || '')}</div></td>
-      <td>${esc(orangText(r.pml))}</td>
-      <td>${fmt(r.total)}</td><td>${fmt(r.sudah)}</td><td>${fmt(r.draf)}</td><td>${fmt(r.ditolak)}</td><td>${fmt(r.belum)}</td>
-    </tr>`).join('') || '<tr><td colspan="7">Tidak ada mitra.</td></tr>';
-  const kecRows = (d.perKecamatan || []).map(r => `<tr><td>${esc(r.nmkec)}</td><td>${esc(r.kdkec)}</td><td>${fmt(r.total)}</td><td>${fmt(r.sudah)}</td></tr>`).join('') || '<tr><td colspan="4">Tidak ada kecamatan.</td></tr>';
-  const anomRows = aSlice.map(r => `<tr>
-      <td>${esc(jenisLabel(r.jenis))}</td>
-      <td><a href="#sampel/${esc(r.jenis)}/${encodeURIComponent(r.id)}">${esc(r.id)}</a></td>
-      <td>${esc(orangText(r.mitra))}</td><td>${esc(r.kode)}</td><td>${esc(r.pesan)}</td>
-    </tr>`).join('') || '<tr><td colspan="5">Tidak ada anomali.</td></tr>';
   const html = `${err ? failBox(err) : ''}<h1>Dasbor</h1><p class="sub">Kabupaten Kebumen · Admin ${esc(S.user.id)}</p>
-    <div class="actions" style="margin-bottom:10px">
+    <div class="actions" style="margin-bottom:16px">
       <button type="button" class="btn ghost" data-act="csv">Unduh CSV</button>
       <button type="button" class="btn ghost" data-act="pdf">Unduh PDF</button>
       <button type="button" class="btn ghost" data-act="xlsx">Unduh Excel</button>
       <button type="button" class="btn ghost" data-act="reload">Muat ulang</button>
     </div>
-    <section class="panel"><h2>Pengeringan dan penggilingan</h2>${kpiTable(d.kpi)}</section>
-    <section class="panel"><h2>Per mitra</h2><div class="scroller"><table class="tbl"><tr><th>Mitra</th><th>PML</th><th>Total</th><th>Sudah</th><th>Draf</th><th>Ditolak</th><th>Belum</th></tr>${mitraRows}</table></div></section>
-    <section class="panel"><h2>Per kecamatan</h2><div class="scroller"><table class="tbl"><tr><th>Kecamatan</th><th>Kode</th><th>Total</th><th>Sudah</th></tr>${kecRows}</table></div></section>
-    <section class="panel"><h2>Anomali</h2><div class="scroller"><table class="tbl"><tr><th>Jenis</th><th>ID</th><th>Mitra</th><th>Kode</th><th>Pesan</th></tr>${anomRows}</table></div>
-      <div class="pager"><button type="button" class="btn ghost" data-act="anom" data-dir="-1">Sebelumnya</button><span>${fmt(S.anomPage + 1)} / ${fmt(aPages)}</span><button type="button" class="btn ghost" data-act="anom" data-dir="1">Berikutnya</button></div>
-    </section>`;
+    <div class="dash">
+      <section class="panel">
+        <div class="panel-h"><h2>Sampel per kecamatan</h2>
+          <select class="mini" id="kec-sort" aria-label="Urutkan kecamatan">
+            <option value="sudah"${S.kecSort === 'sudah' ? ' selected' : ''}>Sudah</option>
+            <option value="total"${S.kecSort === 'total' ? ' selected' : ''}>Total</option>
+            <option value="nama"${S.kecSort === 'nama' ? ' selected' : ''}>Nama</option>
+          </select>
+        </div>
+        ${kecChart(kec)}
+        <p class="hint">Batang = jumlah sampel. Isi bergaris = bagian yang sudah.</p>
+      </section>
+      <div class="stack">
+        <section class="panel kpi"><b>${fmt(tot.sampel)}</b><span>Sampel</span></section>
+        <section class="panel kpi"><b>${fmt(tot.sudah)}</b><span>Sudah</span><div class="hint">${fmt(tot.draf)} draf · ${fmt(tot.ditolak)} ditolak · ${fmt(tot.belum)} belum</div></section>
+        <section class="panel kpi"><b>${fmt(tot.fotoLengkap)}</b><span>Foto lengkap</span></section>
+      </div>
+    </div>
+    <div class="dash">
+      <section class="panel"><div class="panel-h"><h2>Selesai</h2></div>${gauge(pctOf(tot.sudah, tot.sampel), 'sudah dari seluruh sampel')}</section>
+      <section class="panel"><div class="panel-h"><h2>Komposisi status</h2></div>${segBar(parts)}
+        <p class="hint" style="margin-top:12px">Pengeringan ${fmt(d.kpi.pengeringan.sampel)} · Penggilingan ${fmt(d.kpi.penggilingan.sampel)} · Utama ${fmt(tot.utama)} · Cadangan ${fmt(tot.cadangan)}</p>
+      </section>
+    </div>
+    <div class="dash">
+      <section class="panel"><div class="panel-h"><h2>Progres mitra</h2></div>${goalList(mitra, r => (r.mitra && r.mitra.nama) || '—')}</section>
+      <section class="panel"><div class="panel-h"><h2>Anomali</h2></div>${txList(aSlice)}
+        <div class="pager"><button type="button" class="btn ghost" data-act="anom" data-dir="-1">Sebelumnya</button><span>${fmt(S.anomPage + 1)} / ${fmt(aPages)}</span><button type="button" class="btn ghost" data-act="anom" data-dir="1">Berikutnya</button></div>
+      </section>
+    </div>`;
   return { html, meta: S.listMeta, view: { page: 'dasbor' } };
 }
 async function pagePml() {
@@ -674,26 +838,36 @@ async function pagePml() {
   const d = S.dash;
   S.listMeta = { syncedAt: d.syncedAt, stale: d.stale === true };
   const n = S.me && typeof S.me.jumlahMitra === 'number' ? fmt(S.me.jumlahMitra) + ' mitra' : '';
-  const rows = (d.mitra || []).map(r => `<tr>
-      <td><a href="#mitra/${encodeURIComponent(r.mitra && r.mitra.id || '')}">${esc(r.mitra && r.mitra.nama || '—')}</a><div class="hint">${esc(r.mitra && r.mitra.id || '')}</div></td>
-      <td>${fmt(r.total)}</td><td>${fmt(r.sudah)}</td><td>${fmt(r.draf)}</td><td>${fmt(r.ditolak)}</td><td>${fmt(r.belum)}</td><td>${fmt(r.fotoLengkap)}</td>
-    </tr>`).join('') || '<tr><td colspan="7">Tidak ada mitra bawahan.</td></tr>';
-  const anom = d.anomali || [];
+  const q = S.dashQ || '';
+  const mitra = (d.mitra || []).filter(r => qok(q, [r.mitra && r.mitra.nama, r.mitra && r.mitra.id]));
+  const sum = mitra.reduce((a, r) => { a.total += r.total || 0; a.sudah += r.sudah || 0; a.draf += r.draf || 0; a.ditolak += r.ditolak || 0; a.belum += r.belum || 0; a.foto += r.fotoLengkap || 0; return a; }, { total: 0, sudah: 0, draf: 0, ditolak: 0, belum: 0, foto: 0 });
+  const parts = [
+    { n: sum.sudah, label: 'Sudah', color: '#b6d94c' },
+    { n: sum.draf, label: 'Draf', color: '#e2b340' },
+    { n: sum.ditolak, label: 'Ditolak', color: '#c4503a' },
+    { n: sum.belum, label: 'Belum', color: '#d9d3cc' },
+  ];
+  const anom = (d.anomali || []).filter(r => qok(q, [r.id, r.pesan, r.kode, r.mitra && r.mitra.nama]));
   const aPages = Math.max(1, Math.ceil(anom.length / PAGE));
   if (S.anomPage >= aPages) S.anomPage = 0;
   const aSlice = anom.slice(S.anomPage * PAGE, S.anomPage * PAGE + PAGE);
-  const anomRows = aSlice.map(r => `<tr>
-      <td>${esc(jenisLabel(r.jenis))}</td>
-      <td><a href="#sampel/${esc(r.jenis)}/${encodeURIComponent(r.id)}">${esc(r.id)}</a></td>
-      <td>${esc(orangText(r.mitra))}</td><td>${esc(r.kode)}</td><td>${esc(r.pesan)}</td>
-    </tr>`).join('') || '<tr><td colspan="5">Tidak ada anomali.</td></tr>';
+  const goals = mitra.map(r => `<a class="goal" href="#mitra/${encodeURIComponent(r.mitra && r.mitra.id || '')}" style="display:block;color:inherit;text-decoration:none"><div class="goal-top"><b>${esc(r.mitra && r.mitra.nama || '—')}</b><span>${fmt(r.sudah)}/${fmt(r.total)} · foto ${fmt(r.fotoLengkap)}</span></div><div class="track"><i style="width:${r.total ? Math.round((r.sudah || 0) / r.total * 100) : 0}%"></i></div></a>`).join('') || '<p class="hint">Tidak ada mitra bawahan.</p>';
   const html = `${err ? failBox(err) : ''}<h1>Dasbor PML</h1><p class="sub">${esc(S.user.nama)} · ${esc(S.user.id)}${n ? ' · ' + n : ''}</p>
-    <section class="panel"><h2>Mitra bawahan</h2><div class="scroller"><table class="tbl">
-      <tr><th>Mitra</th><th>Total</th><th>Sudah</th><th>Draf</th><th>Ditolak</th><th>Belum</th><th>Foto lengkap</th></tr>${rows}
-    </table></div><button type="button" class="btn ghost" data-act="reload" style="margin-top:8px">Muat ulang</button></section>
-    <section class="panel"><h2>Anomali</h2><div class="scroller"><table class="tbl"><tr><th>Jenis</th><th>ID</th><th>Mitra</th><th>Kode</th><th>Pesan</th></tr>${anomRows}</table></div>
-      <div class="pager"><button type="button" class="btn ghost" data-act="anom" data-dir="-1">Sebelumnya</button><span>${fmt(S.anomPage + 1)} / ${fmt(aPages)}</span><button type="button" class="btn ghost" data-act="anom" data-dir="1">Berikutnya</button></div>
-    </section>`;
+    <div class="actions" style="margin-bottom:16px"><button type="button" class="btn ghost" data-act="reload">Muat ulang</button></div>
+    <div class="dash">
+      <section class="panel"><div class="panel-h"><h2>Mitra bawahan</h2></div>${goals}</section>
+      <div class="stack">
+        <section class="panel kpi"><b>${fmt(sum.total)}</b><span>Sampel bawahan</span></section>
+        <section class="panel">${gauge(pctOf(sum.sudah, sum.total), 'sudah')}</section>
+        <section class="panel kpi"><b>${fmt(sum.foto)}</b><span>Foto lengkap</span></section>
+      </div>
+    </div>
+    <div class="dash">
+      <section class="panel"><div class="panel-h"><h2>Komposisi status</h2></div>${segBar(parts)}</section>
+      <section class="panel"><div class="panel-h"><h2>Anomali</h2></div>${txList(aSlice)}
+        <div class="pager"><button type="button" class="btn ghost" data-act="anom" data-dir="-1">Sebelumnya</button><span>${fmt(S.anomPage + 1)} / ${fmt(aPages)}</span><button type="button" class="btn ghost" data-act="anom" data-dir="1">Berikutnya</button></div>
+      </section>
+    </div>`;
   return { html, meta: S.listMeta, view: { page: 'dasbor' } };
 }
 function optionList(list, current) {
@@ -1390,7 +1564,16 @@ function onClick(e) {
     S.dark = !S.dark;
     localStorage.setItem('sp_dark', S.dark ? '1' : '0');
     document.documentElement.classList.toggle('dark', S.dark);
-    document.querySelectorAll('[data-act="dark"]').forEach(b => { b.innerHTML = S.dark ? icon('sun') : icon('moon'); });
+    render();
+    return;
+  }
+  if (act === 'collapse') {
+    S.sbmin = !S.sbmin;
+    localStorage.setItem('sp_min', S.sbmin ? '1' : '0');
+    const sb = document.getElementById('sb');
+    if (sb) sb.classList.toggle('min', S.sbmin);
+    const lbl = t.querySelector('.lbl');
+    if (lbl) lbl.textContent = S.sbmin ? 'Bentangkan menu' : 'Ciutkan menu';
     return;
   }
   if (act === 'logout') { logout(); return; }
@@ -1518,6 +1701,7 @@ function onChange(e) {
     render();
     return;
   }
+  if (t.id === 'kec-sort') { S.kecSort = t.value; S.keepScroll = true; render(); return; }
   if (t.id === 'mon-sheet') {
     const st = S.mon[t.dataset.bidang];
     if (!st) return;
@@ -1532,6 +1716,17 @@ function onInput(e) {
     const n = document.getElementById('acount');
     if (n) n.textContent = String(t.value.length);
     if (S.modal) S.modal.alasan = t.value;
+    return;
+  }
+  if (t.id === 'topq') {
+    const q = t.value;
+    const page = S.view.page;
+    if (page === 'mitra') { S.drill.q = q; S.drill.page = 0; }
+    else if (page === 'akun') S.listUi.akunQ = q;
+    else if (page === 'dasbor') S.dashQ = q;
+    else { S.listUi.q = q; S.listUi.page = 0; }
+    S.keepScroll = true;
+    render();
     return;
   }
   if (t.id === 'flt-q') {
@@ -1559,6 +1754,7 @@ function onInput(e) {
 }
 function onSubmit(e) {
   const formId = e.target && e.target.getAttribute ? e.target.getAttribute('id') : '';
+  if (formId === 'topsearch') { e.preventDefault(); return; }
   if (formId === 'login') { e.preventDefault(); doLogin(); }
   if (formId === 'dlg') {
     e.preventDefault();

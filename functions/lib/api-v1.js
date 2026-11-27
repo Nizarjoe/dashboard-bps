@@ -6,6 +6,8 @@ import * as monitoring from './monitoring.js';
 import { createStore } from './store.js';
 import { deferWork, readAkunCache, resolveAkun, syncAkun } from './akun.js';
 import { indexFotoPayload, uploadsFor } from './foto-index.js';
+import { appDb, belumAktif, catatAudit, daftarAudit, muatPenandaFoto, pulihkanFoto, saringFoto, tandaiFotoHapus, waktuSekarang } from './appdb.js';
+import * as koreksi from './koreksi.js';
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_FOTO = 2 * 1024 * 1024;
@@ -66,10 +68,36 @@ function maskNik(nik) {
 async function openContext(env, execCtx) {
   const sumber = await loadSumber(env);
   if (sumber.error) return sumber;
-  const store = createStore(env);
+  const store = bungkusPenandaFoto(createStore(env), env);
   const akun = await resolveAkun(env, store, sumber.records, execCtx);
   if (akun.error) return akun;
   return { sumber, store, akun: akun.list, env, execCtx };
+}
+
+// Foto yang dihapus (soft delete) disaring di sini, tanpa mengubah Apps Script/Drive.
+function bungkusPenandaFoto(store, env) {
+  if (!appDb(env)) return store;
+  return {
+    ...store,
+    kind: store.kind,
+    async listFoto(jenis, id) {
+      const [rows, penanda] = await Promise.all([store.listFoto(jenis, id), muatPenandaFoto(env, jenis, id)]);
+      return saringFoto(rows, penanda, jenis, id);
+    },
+    async listFotoAll() {
+      const [rows, penanda] = await Promise.all([store.listFotoAll(), muatPenandaFoto(env)]);
+      if (!penanda.size) return rows;
+      if (rows.length && Array.isArray(rows[0].slots)) {
+        return rows.map(g => ({ ...g, slots: saringFoto(g.slots, penanda, g.jenis, g.id) }));
+      }
+      return rows.filter(f => saringFoto([f], penanda, f.jenis, f.id).length);
+    },
+    async getFoto(jenis, id, slot) {
+      const [file, penanda] = await Promise.all([store.getFoto(jenis, id, slot), muatPenandaFoto(env, jenis, id)]);
+      if (!file) return null;
+      return saringFoto([{ slot, waktu: file.waktu }], penanda, jenis, id).length ? file : null;
+    },
+  };
 }
 
 function findRecord(ctx, jenis, id) {
@@ -246,9 +274,13 @@ async function requireUser(request, env) {
   if (!env || !env.SESSIONS) return { error: apiError(401, 'UNAUTHENTICATED', 'Sesi tidak ada atau sudah berakhir.') };
   const session = await getSession(env.SESSIONS, bearer(request));
   if (!session) return { error: apiError(401, 'UNAUTHENTICATED', 'Sesi tidak ada atau sudah berakhir.') };
+  if (session.role !== 'admin' && await env.SESSIONS.get(NONAKTIF + session.id)) {
+    return { error: apiError(401, 'AKUN_NONAKTIF', 'Akun ini sudah dinonaktifkan admin.') };
+  }
   return { user: session };
 }
 
+const NONAKTIF = 'akun:nonaktif:';
 const AKUN_SYNC_LOCK = 'akun:sync-lock';
 const AKUN_SYNC_LOCK_TTL = 60;
 
@@ -306,7 +338,7 @@ async function login(request, env, execCtx) {
       }
     }
   }
-  const ok = found && found.aktif !== false && password === id;
+  const ok = found && found.aktif !== false && password === id && !(id !== '3305' && await env.SESSIONS.get(NONAKTIF + id));
   if (!ok) {
     if (!rl || now >= rl.until) rl = { count: 0, until: now + WINDOW_MS };
     rl.count += 1;
@@ -421,7 +453,7 @@ async function detail(ctx, user, jenis, id) {
     alasanDitolak: latest && latest.status === 'ditolak' ? (latest.alasan || '') : null,
     meta: { syncedAt: ctx.sumber.syncedAt, stale: ctx.sumber.stale },
   };
-  if (user.role === 'admin') {
+  {
     body.riwayat = versions.map(v => ({
       versi: Number(v.versi),
       oleh: orang(ctx.akun.find(a => a.id === v.oleh)),
@@ -764,6 +796,188 @@ function akunPublik(ctx) {
   };
 }
 
+// ===== CRUD tambahan (soft delete + jejak audit) =====
+
+async function auditBila(ctx, user, entitas, entitasId, aksi, data) {
+  const db = appDb(ctx.env);
+  if (!db) return;
+  await catatAudit(db, { waktu: waktuSekarang(ctx.env), oleh: user.id, peran: user.role, entitas, entitasId, aksi, data });
+}
+
+function upstream(e) {
+  if (e && e.code === 'UPSTREAM_ERROR') return apiError(502, 'UPSTREAM_ERROR', 'Penyimpanan isian gagal dihubungi.');
+  throw e;
+}
+
+// DELETE isian = versi baru aksi "hapus" status "belum" (riwayat lama tetap ada).
+async function hapusIsian(request, ctx, user, jenis, id) {
+  if (user.role === 'pml') return apiError(403, 'FORBIDDEN', 'PML tidak dapat menghapus isian.');
+  const rec = findRecord(ctx, jenis, id);
+  if (!rec) return apiError(404, 'NOT_FOUND', 'Sampel tidak ditemukan.');
+  if (!canRead(user, rec, ctx)) return apiError(403, 'FORBIDDEN', 'Anda tidak berhak mengakses sampel ini.');
+  const body = await readJson(request);
+  let isianAll;
+  try { isianAll = await ctx.store.listIsian(); } catch (e) { return upstream(e); }
+  const latest = latestOf(versionsFor(isianAll, jenis, id));
+  if (!latest || latest.aksi === 'hapus') return apiError(404, 'NOT_FOUND', 'Belum ada isian untuk dihapus.');
+  const statusNow = workflow(latest);
+  if (user.role === 'mitra' && !['draf', 'ditolak'].includes(statusNow)) {
+    return apiError(409, 'LOCKED', 'Isian yang sudah dikirim tidak bisa dihapus mitra.');
+  }
+  const current = Number(latest.versi);
+  if (Number(body.versi) !== current) return apiError(409, 'CONFLICT', 'Versi isian sudah berubah. Muat ulang lalu coba lagi.');
+  const alasan = String(body.alasan || '').trim();
+  if (alasan.length > 300) return apiError(422, 'VALIDATION', 'Alasan tidak valid.', { fields: { alasan: 'Maksimal 300 karakter.' } });
+  const waktu = waktuSekarang(ctx.env);
+  const row = { key: jenis + ':' + id, versi: current + 1, oleh: user.id, aksi: 'hapus', waktu, status: 'belum', alasan, isian: {} };
+  try { await ctx.store.appendIsian(row); } catch (e) { return upstream(e); }
+  await auditBila(ctx, user, 'isian', jenis + ':' + id, 'hapus', { versi: row.versi, dariStatus: statusNow });
+  return apiOk({ status: 'belum', versi: row.versi, dihapus: true, updatedAt: waktu });
+}
+
+// Admin: pulihkan isian sebelum "hapus" terakhir sebagai versi baru.
+async function pulihkanIsian(request, ctx, user, jenis, id) {
+  if (user.role !== 'admin') return apiError(403, 'FORBIDDEN', 'Hanya admin yang dapat memulihkan isian.');
+  const rec = findRecord(ctx, jenis, id);
+  if (!rec) return apiError(404, 'NOT_FOUND', 'Sampel tidak ditemukan.');
+  const body = await readJson(request);
+  let isianAll;
+  try { isianAll = await ctx.store.listIsian(); } catch (e) { return upstream(e); }
+  const versions = versionsFor(isianAll, jenis, id).slice().sort((a, b) => Number(a.versi) - Number(b.versi));
+  const latest = versions[versions.length - 1];
+  if (!latest || latest.aksi !== 'hapus') return apiError(409, 'STATUS_TIDAK_SESUAI', 'Isian terakhir bukan hasil hapus.');
+  if (Number(body.versi) !== Number(latest.versi)) return apiError(409, 'CONFLICT', 'Versi isian sudah berubah. Muat ulang lalu coba lagi.');
+  const sebelum = versions.slice(0, -1).reverse().find(v => v.aksi !== 'hapus');
+  if (!sebelum) return apiError(404, 'NOT_FOUND', 'Tidak ada versi isian untuk dipulihkan.');
+  const waktu = waktuSekarang(ctx.env);
+  const row = {
+    key: jenis + ':' + id, versi: Number(latest.versi) + 1, oleh: user.id, aksi: 'pulihkan', waktu,
+    status: sebelum.status || 'draf', alasan: 'dipulihkan dari versi ' + sebelum.versi, isian: sebelum.isian || {},
+  };
+  try { await ctx.store.appendIsian(row); } catch (e) { return upstream(e); }
+  await auditBila(ctx, user, 'isian', jenis + ':' + id, 'pulihkan', { versi: row.versi, dariVersi: Number(sebelum.versi) });
+  return apiOk({ status: row.status, versi: row.versi, locked: row.status === 'sudah', updatedAt: waktu });
+}
+
+async function hapusFoto(request, ctx, user, jenis, id, slot) {
+  if (user.role === 'pml') return apiError(403, 'FORBIDDEN', 'PML tidak dapat menghapus foto.');
+  const db = appDb(ctx.env);
+  if (!db) return belumAktif();
+  if (!SLOTS.some(([name]) => name === slot)) return apiError(404, 'NOT_FOUND', 'Slot foto tidak dikenal.');
+  const rec = findRecord(ctx, jenis, id);
+  if (!rec) return apiError(404, 'NOT_FOUND', 'Sampel tidak ditemukan.');
+  if (!canRead(user, rec, ctx)) return apiError(403, 'FORBIDDEN', 'Anda tidak berhak mengakses sampel ini.');
+  let latest;
+  let uploads;
+  try {
+    latest = latestOf(versionsFor(await ctx.store.listIsian(), jenis, id));
+    uploads = fotosFor(await ctx.store.listFoto(jenis, id), slot);
+  } catch (e) { return upstream(e); }
+  if (user.role === 'mitra' && workflow(latest) === 'sudah') return apiError(409, 'LOCKED', 'Isian sudah dikirim dan terkunci.');
+  if (!uploads.length) return apiError(404, 'NOT_FOUND', 'Tidak ada foto unggahan di slot ini.');
+  const body = await readJson(request);
+  const alasan = String(body.alasan || '').trim().slice(0, 300);
+  const waktu = waktuSekarang(ctx.env);
+  await tandaiFotoHapus(db, { jenis, id, slot, waktu, oleh: user.id, alasan });
+  await catatAudit(db, { waktu, oleh: user.id, peran: user.role, entitas: 'foto', entitasId: jenis + ':' + id + ':' + slot, aksi: 'hapus', data: { alasan } });
+  await dropFotoFresh(ctx);
+  const sisa = await ctx.store.listFoto(jenis, id);
+  const fotos = fotoView(rec, sisa, user);
+  const f = fotos.find(x => x.slot === slot);
+  return apiOk({ slot, dihapus: true, terisi: f ? f.terisi : false, url: f ? f.url : null, fotoTerisi: fotos.filter(x => x.terisi).length });
+}
+
+async function pulihkanFotoAdmin(ctx, user, jenis, id, slot) {
+  if (user.role !== 'admin') return apiError(403, 'FORBIDDEN', 'Hanya admin yang dapat memulihkan foto.');
+  const db = appDb(ctx.env);
+  if (!db) return belumAktif();
+  if (!SLOTS.some(([name]) => name === slot)) return apiError(404, 'NOT_FOUND', 'Slot foto tidak dikenal.');
+  if (!findRecord(ctx, jenis, id)) return apiError(404, 'NOT_FOUND', 'Sampel tidak ditemukan.');
+  const waktu = waktuSekarang(ctx.env);
+  const n = await pulihkanFoto(db, { jenis, id, slot, waktu, oleh: user.id });
+  if (!n) return apiError(404, 'NOT_FOUND', 'Tidak ada foto terhapus di slot ini.');
+  await catatAudit(db, { waktu, oleh: user.id, peran: user.role, entitas: 'foto', entitasId: jenis + ':' + id + ':' + slot, aksi: 'pulihkan', data: {} });
+  await dropFotoFresh(ctx);
+  return apiOk({ slot, dipulihkan: true });
+}
+
+function akunSatu(ctx, a) {
+  return akunPublik({ ...ctx, akun: [a] }).data[0];
+}
+
+async function ubahAkun(request, ctx, user, id, method) {
+  if (user.role !== 'admin') return apiError(403, 'FORBIDDEN', 'Hanya admin yang dapat mengubah akun.');
+  const a = ctx.akun.find(x => x.id === id);
+  if (!a) return apiError(404, 'NOT_FOUND', 'Akun tidak ditemukan.');
+  if (method === 'GET') return apiOk(akunSatu(ctx, a));
+  const db = appDb(ctx.env);
+  if (!db) return belumAktif();
+  if (id === '3305') return apiError(409, 'AKUN_TERKUNCI', 'Akun admin utama tidak bisa diubah.');
+  const body = method === 'DELETE' ? { aktif: false, ...(await readJson(request)) } : await readJson(request);
+  const fields = {};
+  const tak = Object.keys(body).filter(k => !['aktif', 'alasan'].includes(k));
+  if (tak.length) fields.lain = 'Hanya field aktif yang bisa diubah (' + tak.join(', ') + ' ditolak). Nama, peran, dan PML diambil dari sheet sumber; password = ID.';
+  if (typeof body.aktif !== 'boolean') fields.aktif = 'aktif harus true atau false.';
+  if (Object.keys(fields).length) return apiError(422, 'VALIDATION', 'Perubahan akun tidak valid.', { fields });
+  const alasan = String(body.alasan || '').trim().slice(0, 300);
+  const kv = ctx.env.SESSIONS;
+  if (a.aktif === body.aktif && !!(await kv.get(NONAKTIF + id)) === !body.aktif) return apiOk(akunSatu(ctx, a));
+  try {
+    await ctx.store.upsertAkun({ id: a.id, nama: a.nama, peran: a.role, role: a.role, pml_id: a.pml_id || '', aktif: body.aktif });
+  } catch (e) { return upstream(e); }
+  if (body.aktif) await kv.delete(NONAKTIF + id);
+  else await kv.put(NONAKTIF + id, waktuSekarang(ctx.env));
+  for (const k of ['akun:fresh', 'akun:last']) {
+    const raw = await kv.get(k);
+    if (!raw) continue;
+    try {
+      const data = JSON.parse(raw);
+      data.akun = (data.akun || []).map(x => (x.id === id ? { ...x, aktif: body.aktif } : x));
+      await kv.put(k, JSON.stringify(data), { expirationTtl: k === 'akun:fresh' ? 300 : 7 * 24 * 60 * 60 });
+    } catch { await kv.delete(k); }
+  }
+  await catatAudit(db, { waktu: waktuSekarang(ctx.env), oleh: user.id, peran: user.role, entitas: 'akun', entitasId: id, aksi: body.aktif ? 'aktifkan' : 'nonaktifkan', data: { alasan } });
+  return apiOk(akunSatu(ctx, { ...a, aktif: body.aktif }));
+}
+
+async function lihatAudit(url, ctx, user) {
+  if (user.role !== 'admin') return apiError(403, 'FORBIDDEN', 'Hanya admin yang dapat melihat audit.');
+  const db = appDb(ctx.env);
+  if (!db) return belumAktif();
+  const data = await daftarAudit(db, {
+    entitas: url.searchParams.get('entitas') || '',
+    entitasId: url.searchParams.get('id') || '',
+    limit: url.searchParams.get('limit'),
+  });
+  return apiOk({ data, meta: { total: data.length } });
+}
+
+const BANTU_KOREKSI = { findRecord, link, canRead };
+
+async function ruteKoreksi(request, url, ctx, user, path, method) {
+  if (user.role !== 'admin' && user.role !== 'pml' && user.role !== 'mitra') return apiError(403, 'FORBIDDEN', 'Tidak berhak.');
+  if (path === '/api/koreksi') {
+    if (method === 'GET') return koreksi.daftar(url, ctx, user);
+    if (method === 'POST') return koreksi.buat(request, ctx, user, BANTU_KOREKSI);
+    return apiError(405, 'METHOD_NOT_ALLOWED', 'Metode tidak didukung.');
+  }
+  const m = path.match(/^\/api\/koreksi\/(K[0-9a-f]{16})(?:\/(baca|tanggapi|tutup|buka|pulihkan))?$/);
+  if (!m) return apiError(404, 'NOT_FOUND', 'Koreksi tidak ditemukan.');
+  const [, id, aksi] = m;
+  if (!aksi) {
+    if (method === 'GET') return koreksi.detailKoreksi(ctx, user, id);
+    if (method === 'PATCH') return koreksi.ubah(request, ctx, user, id);
+    if (method === 'DELETE') return koreksi.hapus(request, ctx, user, id);
+    return apiError(405, 'METHOD_NOT_ALLOWED', 'Metode tidak didukung.');
+  }
+  if (method !== 'POST') return apiError(405, 'METHOD_NOT_ALLOWED', 'Metode tidak didukung.');
+  if (aksi === 'baca') return koreksi.baca(request, ctx, user, id);
+  if (aksi === 'tanggapi') return koreksi.tanggapi(request, ctx, user, id);
+  if (aksi === 'tutup') return koreksi.tutup(request, ctx, user, id);
+  if (aksi === 'buka') return koreksi.bukaLagi(request, ctx, user, id);
+  return koreksi.pulihkan(request, ctx, user, id);
+}
+
 export async function handleV1(request, env, execCtx) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -774,8 +988,9 @@ export async function handleV1(request, env, execCtx) {
   const auth = await requireUser(request, env);
   if (auth.error) return auth.error;
   const user = auth.user;
-  if (method === 'PUT' || method === 'POST') {
-    if (user.role === 'pml' && path !== '/api/logout') return apiError(403, 'FORBIDDEN', 'PML tidak dapat mengubah data.');
+  if (method === 'PUT' || method === 'POST' || method === 'PATCH' || method === 'DELETE') {
+    const rutePml = path === '/api/logout' || path === '/api/koreksi' || path.startsWith('/api/koreksi/');
+    if (user.role === 'pml' && !rutePml) return apiError(403, 'FORBIDDEN', 'PML tidak dapat mengubah data.');
   }
   if (path === '/api/me' && method === 'GET') return me(request, env, user, execCtx);
   if (method === 'GET') {
@@ -810,7 +1025,19 @@ export async function handleV1(request, env, execCtx) {
     if (user.role !== 'pml') return apiError(403, 'FORBIDDEN', 'Dashboard ini hanya untuk PML.');
     return pmlDashboard(ctx, user);
   }
-  let m = path.match(/^\/api\/sampel\/(pengeringan|penggilingan)\/([^/]+)$/);
+  if (path === '/api/koreksi' || path.startsWith('/api/koreksi/')) return ruteKoreksi(request, url, ctx, user, path, method);
+  if (path === '/api/admin/audit' && method === 'GET') return lihatAudit(url, ctx, user);
+  let m = path.match(/^\/api\/admin\/akun\/([^/]+)$/);
+  if (m && ['GET', 'PATCH', 'DELETE'].includes(method)) return ubahAkun(request, ctx, user, decodeURIComponent(m[1]), method);
+  m = path.match(/^\/api\/sampel\/(pengeringan|penggilingan)\/([^/]+)\/isian$/);
+  if (m && method === 'DELETE') return hapusIsian(request, ctx, user, m[1], decodeURIComponent(m[2]));
+  m = path.match(/^\/api\/admin\/sampel\/(pengeringan|penggilingan)\/([^/]+)\/isian\/pulihkan$/);
+  if (m && method === 'POST') return pulihkanIsian(request, ctx, user, m[1], decodeURIComponent(m[2]));
+  m = path.match(/^\/api\/sampel\/(pengeringan|penggilingan)\/([^/]+)\/foto\/([a-z0-9_]+)$/);
+  if (m && method === 'DELETE') return hapusFoto(request, ctx, user, m[1], decodeURIComponent(m[2]), m[3]);
+  m = path.match(/^\/api\/admin\/sampel\/(pengeringan|penggilingan)\/([^/]+)\/foto\/([a-z0-9_]+)\/pulihkan$/);
+  if (m && method === 'POST') return pulihkanFotoAdmin(ctx, user, m[1], decodeURIComponent(m[2]), m[3]);
+  m = path.match(/^\/api\/sampel\/(pengeringan|penggilingan)\/([^/]+)$/);
   if (m && method === 'GET') return detail(ctx, user, m[1], decodeURIComponent(m[2]));
   m = path.match(/^\/api\/sampel\/(pengeringan|penggilingan)\/([^/]+)\/isian$/);
   if (m && method === 'PUT') return putIsian(request, ctx, user, m[1], decodeURIComponent(m[2]));

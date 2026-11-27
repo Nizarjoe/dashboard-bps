@@ -85,7 +85,12 @@ textarea.inp{min-height:96px;resize:vertical}
 .tbl th,.tbl td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .tbl th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:#fff;position:sticky;top:0}
 .tbl a{color:#3f5c10;font-weight:700}
-.scroller{overflow:auto;max-height:70vh}
+.scroller,.scroller-x{overflow:auto;max-height:68vh}
+.scroller-x .tbl{min-width:720px}
+.ringkas{max-height:240px;overflow:auto}
+.feat{background:#f6f4ef;border-radius:18px;padding:16px 18px;margin:0 0 18px}
+.feat h2{margin:0 0 6px}
+.warn-note{color:#8d5a3c;font-size:13px;font-weight:600}
 .kv{display:grid;grid-template-columns:minmax(120px,180px) 1fr;gap:6px 12px;margin:0}
 .kv dt{color:var(--muted);font-size:13px}
 .kv dd{margin:0}
@@ -370,9 +375,9 @@ async function api(path, opt) {
     let json = {};
     try { json = await res.json(); } catch { json = {}; }
     const err = errFrom(json, 401, res.headers);
-    if (err.code === 'UNAUTHENTICATED' || !err.code) {
+    if (err.code === 'UNAUTHENTICATED' || err.code === 'AKUN_NONAKTIF' || !err.code) {
       clearSession();
-      paintLogin();
+      paintLogin(err.code === 'AKUN_NONAKTIF' ? err : undefined);
     }
     throw err;
   }
@@ -397,14 +402,15 @@ function routeAllowed(route) {
   const role = S.user.role;
   const top = (route || '').split('/')[0];
   if (!top) return false;
-  if (role === 'mitra') return top === 'kerja' || top === 'sampel';
-  if (role === 'pml') return top === 'dasbor' || top === 'mitra' || top === 'sampel';
+  const monOk = () => { const b = (route || '').split('/')[1]; return b === 'tp' || b === 'inpek' || b === 'horti'; };
+  if (role === 'mitra') return top === 'kerja' || top === 'sampel' || top === 'koreksi';
+  if (role === 'pml') {
+    if (top === 'mon') return monOk();
+    return top === 'dasbor' || top === 'mitra' || top === 'sampel' || top === 'koreksi';
+  }
   if (role === 'admin') {
-    if (top === 'mon') {
-      const b = (route || '').split('/')[1];
-      return b === 'tp' || b === 'inpek' || b === 'horti';
-    }
-    return top === 'dasbor' || top === 'sampel' || top === 'akun';
+    if (top === 'mon') return monOk();
+    return top === 'dasbor' || top === 'sampel' || top === 'akun' || top === 'koreksi' || top === 'audit';
   }
   return false;
 }
@@ -416,20 +422,33 @@ function parts() {
 function navItems() {
   const role = S.user.role;
   const anom = S.dash && Array.isArray(S.dash.anomali) ? S.dash.anomali.length : null;
-  if (role === 'mitra') return [{ href: 'kerja', label: 'Pekerjaan', icon: 'list' }];
-  if (role === 'pml') return [{ href: 'dasbor', label: 'Dasbor', icon: 'dash', badge: anom }];
-  return [
-    { href: 'dasbor', label: 'Dasbor', icon: 'dash', group: 'Utama', badge: anom },
-    { href: 'sampel', label: 'Sampel', icon: 'list' },
-    { href: 'akun', label: 'Akun', icon: 'users' },
+  const mon = [
     { href: 'mon/tp', label: 'Tanaman Pangan', icon: 'sheet', group: 'Monitoring', sub: true },
     { href: 'mon/inpek', label: 'INPEK', icon: 'sheet', sub: true },
     { href: 'mon/horti', label: 'Horti, Perkebunan, Peternakan, Perikanan', icon: 'sheet', sub: true },
   ];
+  const belum = S.belumDibaca == null ? null : S.belumDibaca;
+  if (role === 'mitra') return [
+    { href: 'kerja', label: 'Pekerjaan', icon: 'list' },
+    { href: 'koreksi', label: 'Koreksi', icon: 'list', badge: belum },
+  ];
+  if (role === 'pml') return [
+    { href: 'dasbor', label: 'Dasbor', icon: 'dash', badge: anom },
+    { href: 'koreksi', label: 'Koreksi', icon: 'list', badge: belum },
+  ].concat(mon);
+  return [
+    { href: 'dasbor', label: 'Dasbor', icon: 'dash', group: 'Utama', badge: anom },
+    { href: 'sampel', label: 'Sampel', icon: 'list' },
+    { href: 'koreksi', label: 'Koreksi', icon: 'list', badge: belum },
+    { href: 'akun', label: 'Akun', icon: 'users' },
+    { href: 'audit', label: 'Audit', icon: 'sheet' },
+  ].concat(mon);
 }
 function navOn(href) {
   const h = hashRoute();
   if (href === 'sampel') return h === 'sampel' || h.startsWith('sampel/');
+  if (href === 'koreksi') return h === 'koreksi' || h.startsWith('koreksi/');
+  if (href === 'akun') return h === 'akun' || h.startsWith('akun/');
   return h === href;
 }
 function shell(content, meta) {
@@ -470,7 +489,7 @@ function shell(content, meta) {
       <button type="button" class="btn ghost" data-act="logout">Keluar</button>
     </div>
   </header>
-  <main class="main" id="isi">${staleHtml(meta)}${S.banner ? errBlock(S.banner) : ''}${content}</main>`;
+  <main class="main" id="isi">${staleHtml(meta)}${S.fiturTampil ? fiturBox(S.fiturTampil) : ''}${S.banner && !fiturMati(S.banner) ? errBlock(S.banner) : ''}${content}</main>`;
 }
 function emptySource(err) {
   return `<section class="panel"><h1>Sumber tidak tersedia</h1><p>${esc(err && err.message || '')}</p><button type="button" class="btn" data-act="reload">Muat ulang</button></section>`;
@@ -481,6 +500,14 @@ function pageFail(err) {
 }
 function failBox(err) {
   return `<section class="panel" role="alert">${errBlock(err)}<button type="button" class="btn" data-act="retry">Coba lagi</button></section>`;
+}
+function fiturMati(err) { return !!(err && err.code === 'FITUR_BELUM_AKTIF'); }
+function fiturBox(err) {
+  return `<section class="feat" role="status"><h2>Fitur belum aktif</h2><p>${esc(err && err.message || 'Fitur ini belum aktif di lingkungan ini.')}</p><p class="hint">Menu lain tetap bisa dipakai.</p></section>`;
+}
+function tangkapFitur(err) {
+  if (fiturMati(err)) return { html: fiturBox(err), mati: true };
+  return null;
 }
 function paintBusy(msg) {
   const app = document.getElementById('app');
@@ -881,6 +908,55 @@ function readForm() {
   const g = n => { const el = f.elements[n]; return el ? el.value : ''; };
   return { namaResponden: g('namaResponden'), nik: g('nik'), statusSampel: g('statusSampel'), hasilPencacahan: g('hasilPencacahan') };
 }
+function aksiTerakhir(doc) {
+  const r = (doc.riwayat || []).slice().sort((a, b) => Number(a.versi) - Number(b.versi));
+  return r.length ? r[r.length - 1].aksi : '';
+}
+function tombolHapusIsian(role, sampel, doc) {
+  if (role === 'pml') return '';
+  if (role === 'mitra') {
+    if (sampel.status === 'sudah') return '<p class="lock">Hapus isian tidak tersedia. Isian sudah dikirim dan terkunci.</p>';
+    if (sampel.status === 'draf' || sampel.status === 'ditolak') {
+      return '<div class="actions" style="margin-top:12px"><button type="button" class="btn ghost" data-act="ask-hapus-isian">Hapus isian</button></div>';
+    }
+    return '';
+  }
+  const hapus = doc.versi ? '<button type="button" class="btn ghost" data-act="ask-hapus-isian">Hapus isian</button>' : '';
+  const pulih = aksiTerakhir(doc) === 'hapus' ? '<button type="button" class="btn ghost" data-act="ask-pulih-isian">Pulihkan isian</button>' : '';
+  return (hapus || pulih) ? `<div class="actions" style="margin-top:12px">${hapus}${pulih}</div>` : '';
+}
+function tombolFoto(role, canEdit, f) {
+  if (f.hidden) return '';
+  if (role === 'admin') {
+    return `${f.terisi ? '<button type="button" class="btn ghost" data-act="ask-hapus-foto" data-slot="' + esc(f.slot) + '">Hapus</button>' : ''}<button type="button" class="btn ghost" data-act="ask-pulih-foto" data-slot="${esc(f.slot)}">Pulihkan</button>`;
+  }
+  if (role === 'mitra' && canEdit && f.terisi) return `<button type="button" class="btn ghost" data-act="ask-hapus-foto" data-slot="${esc(f.slot)}">Hapus</button>`;
+  return '';
+}
+function koreksiMark(st) {
+  const cls = { terkirim: 'st-draf', dibaca: 'st-belum', ditanggapi: 'st-draf', diperbaiki: 'st-sudah', ditutup: 'st-belum', dibatalkan: 'st-ditolak' };
+  const label = { terkirim: 'Terkirim', dibaca: 'Dibaca', ditanggapi: 'Ditanggapi', diperbaiki: 'Diperbaiki', ditutup: 'Ditutup', dibatalkan: 'Dibatalkan' };
+  return `<span class="st ${cls[st] || 'st-belum'}"><i></i>${esc(label[st] || st || '')}</span>`;
+}
+function rujukanTeks(k) {
+  const r = k.rujukan || {};
+  if (k.tipe === 'monitoring' || r.tabId) return 'Monitoring ' + (r.label || r.tabId || '') + (r.baris ? ' · baris ' + r.baris : '');
+  return jenisLabel(r.jenis) + ' ' + (r.id || '');
+}
+async function blokKoreksiSampel(jenis, id, role) {
+  let res;
+  try { res = await api('/api/koreksi?jenis=' + jenis + '&sampel=' + encodeURIComponent(id)); }
+  catch (e) {
+    if (e.status === 401) throw e;
+    if (fiturMati(e)) return `<section class="panel"><h2>Koreksi</h2>${fiturBox(e)}</section>`;
+    return `<section class="panel"><h2>Koreksi</h2>${errBlock(e)}</section>`;
+  }
+  if (res.meta && res.meta.belumDibaca != null) S.belumDibaca = res.meta.belumDibaca;
+  const items = res.data || [];
+  const list = items.map(k => `<a class="tx" href="#koreksi/${esc(k.id)}"><span class="grow"><b>${esc(k.bagian || 'Umum')}</b><small>${esc(k.catatan || '')}</small></span>${koreksiMark(k.status)}${role === 'mitra' && k.status === 'terkirim' && !k.dibacaAt ? '<span class="badge-n">Baru</span>' : ''}</a>`).join('') || '<p class="hint">Belum ada koreksi untuk sampel ini.</p>';
+  const kirim = role === 'pml' ? '<button type="button" class="btn" data-act="ask-koreksi">Kirim koreksi</button>' : '';
+  return `<section class="panel"><div class="panel-h"><h2>Koreksi</h2>${kirim}</div>${list}</section>`;
+}
 async function pageDetail(jenis, id) {
   const key = jenis + ':' + id;
   if (S.detailKey !== key) {
@@ -956,6 +1032,7 @@ async function pageDetail(jenis, id) {
       ${canEdit ? `<div class="actions" style="margin-top:12px">${role === 'mitra'
         ? '<button type="button" class="btn ghost" data-act="save">Simpan draf</button><button type="button" class="btn" data-act="ask-kirim">Kirim</button>'
         : '<button type="button" class="btn" data-act="koreksi">Simpan koreksi</button><button type="button" class="btn warn" data-act="ask-tolak">Tolak</button>'}</div>` : ''}
+      ${tombolHapusIsian(role, sampel, doc)}
     </form>`;
   }
   const fotos = (doc.foto || []).map(f => {
@@ -968,21 +1045,21 @@ async function pageDetail(jenis, id) {
     const again = canEdit ? `<button type="button" class="btn ghost" data-act="retry-foto" data-slot="${esc(f.slot)}"${retry ? '' : ' hidden'}>Coba lagi</button>` : '';
     return `<div class="slot"><div class="top"><b>${esc(f.label)}</b><span>${f.terisi ? 'Sudah ada' : 'Kosong'}</span></div>
       ${img}${f.uploadedAt ? `<p class="hint">${esc(fmtWib(f.uploadedAt))}</p>` : ''}
-      <div class="actions" style="margin-top:8px">${pick}${again}</div>
+      <div class="actions" style="margin-top:8px">${pick}${again}${tombolFoto(role, canEdit, f)}</div>
       <div class="meter" data-meter="${esc(f.slot)}" hidden><i></i></div>
       <p class="hint" data-foto-msg="${esc(f.slot)}">${retry ? esc(retry.message || '') : ''}</p>
       ${f.slot === 'ktp' ? fieldMsg('ktp') : ''}
     </div>`;
   }).join('');
   let riwayat = '';
-  if (role === 'admin' && Array.isArray(doc.riwayat)) {
-    const aksiLabel = { simpan: 'Simpan', kirim: 'Kirim', tolak: 'Tolak' };
+  if (Array.isArray(doc.riwayat)) {
+    const aksiLabel = { simpan: 'Simpan', kirim: 'Kirim', tolak: 'Tolak', hapus: 'Hapus', pulihkan: 'Pulihkan' };
     const body = doc.riwayat.map(v => `<tr><td>${esc(v.versi)}</td><td>${esc(orangText(v.oleh))}</td><td>${esc(aksiLabel[v.aksi] || v.aksi || '')}</td><td>${esc(fmtWib(v.waktu))}</td></tr>`).join('') || '<tr><td colspan="4">Belum ada riwayat.</td></tr>';
     riwayat = `<section class="panel"><h2>Riwayat</h2><div class="scroller"><table class="tbl"><tr><th>Versi</th><th>Oleh</th><th>Aksi</th><th>Waktu</th></tr>${body}</table></div></section>`;
   }
   const modal = modalHtml();
   return {
-    html: head + form + `<section class="panel"><h2>Foto</h2><p class="hint">12 slot berurutan. Sisi terpanjang 1600 px, JPEG.</p>${fotos}</section>` + riwayat + modal,
+    html: head + form + `<section class="panel"><h2>Foto</h2><p class="hint">12 slot berurutan. Sisi terpanjang 1600 px, JPEG.</p>${role === 'mitra' && locked ? '<p class="lock">Foto terkunci. Hapus tidak tersedia.</p>' : ''}${fotos}</section>` + (await blokKoreksiSampel(jenis, id, role)) + riwayat + modal,
     meta: S.listMeta,
     view: { page: 'detail', jenis, id },
   };
@@ -1007,6 +1084,22 @@ function modalHtml() {
       <div class="actions" style="margin-top:10px"><button type="button" class="btn ghost" data-act="close-modal">Batal</button><button type="submit" class="btn warn">Tolak isian</button></div>
     </form></div>`;
   }
+  if (m.type === 'confirm' || m.type === 'buka-kor') {
+    const catatan = m.type === 'buka-kor' ? `<div class="fld"><label>Catatan</label><textarea class="inp" name="catatan" required></textarea></div>` : '';
+    return `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="dlg-title"><form id="dlg" class="panel">
+      <h2 id="dlg-title">${esc(m.title || 'Konfirmasi')}</h2>
+      <p>${esc(m.text || '')}</p>${catatan}
+      <div class="actions"><button type="button" class="btn ghost" data-act="close-modal">Batal</button><button type="submit" class="btn warn">${esc(m.yes || 'Lanjutkan')}</button></div>
+    </form></div>`;
+  }
+  if (m.type === 'koreksi-baru') {
+    return `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="dlg-title"><form id="dlg" class="panel">
+      <h2 id="dlg-title">Kirim koreksi</h2>
+      <div class="fld"><label>Bagian</label><input class="inp" name="bagian" maxlength="60" placeholder="isian.nik atau foto.ka_sebelum_1"></div>
+      <div class="fld" style="margin-top:8px"><label>Catatan</label><textarea class="inp" name="catatan" required maxlength="1000"></textarea></div>
+      <div class="actions" style="margin-top:10px"><button type="button" class="btn ghost" data-act="close-modal">Batal</button><button type="submit" class="btn">Kirim</button></div>
+    </form></div>`;
+  }
   if (m.type === 'conflict' || m.type === 'locked') {
     return `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="dlg-title"><div class="panel">
       <h2 id="dlg-title">${m.type === 'conflict' ? 'Data sudah berubah' : 'Isian terkunci'}</h2>
@@ -1025,7 +1118,7 @@ async function pageAkun() {
   const body = rows.map(a => `<tr>
       <td><b>${esc(a.id)}</b></td><td>${esc(a.nama)}</td><td>${esc(roleLabel(a.role))}</td>
       <td>${a.pml ? esc(orangText(a.pml)) : '—'}</td><td>${a.aktif ? 'Aktif' : 'Nonaktif'}</td><td>${fmt(a.jumlahSampel)}</td>
-      <td><button type="button" class="btn ghost" data-act="copy" data-id="${esc(a.id)}">Salin ID</button></td>
+      <td><a href="#akun/${esc(a.id)}">Rincian</a> <button type="button" class="btn ghost" data-act="copy" data-id="${esc(a.id)}">Salin ID</button></td>
     </tr>`).join('') || '<tr><td colspan="7">Tidak ada akun.</td></tr>';
   const html = `<h1>Akun</h1><p class="sub">Bagikan ID ke petugas. Password sama dengan ID dan tidak ditampilkan di sini.</p>
     <section class="panel">
@@ -1042,68 +1135,220 @@ const MON_TITLE = {
   inpek: 'INPEK',
   horti: 'Horti, Perkebunan, Peternakan, dan Perikanan',
 };
+function monGalat(e) {
+  if (!e) return '';
+  if (fiturMati(e)) return fiturBox(e);
+  if (e.code === 'SOURCE_UNAVAILABLE') return emptySource(e);
+  const judul = {
+    SHEET_FORMAT_UNSUPPORTED: 'Tab berformat xlsx',
+    SHEET_REMOVED: 'Tab sudah dihapus',
+    SHEET_NOT_PUBLIC: 'Sheet tidak publik',
+    SHEET_EXPORT_REJECTED: 'Ekspor ditolak',
+    SHEET_TOO_LARGE: 'Berkas terlalu besar',
+    RINGKASAN_BELUM_DIPETAKAN: 'Ringkasan belum dipetakan',
+    RINGKASAN_KOLOM_HILANG: 'Kolom ringkasan tidak ada',
+    NOT_FOUND: 'Tab tidak ada di katalog',
+    VALIDATION: 'Parameter tidak valid',
+    FORBIDDEN: 'Tidak berhak',
+  }[e.code] || 'Gagal memuat';
+  const retry = e.code === 'SOURCE_UNAVAILABLE' || e.retryAfter;
+  return `<section class="panel"><h2>${esc(judul)}</h2>${errBlock(e)}${retry ? '<button type="button" class="btn" data-act="reload">Coba lagi</button>' : ''}</section>`;
+}
 async function pageMon(bidang) {
   const title = MON_TITLE[bidang] || bidang;
-  let catalog;
-  try { catalog = await api('/api/gsheets'); }
+  const st = S.mon[bidang] || (S.mon[bidang] = { arsip: false, q: '', survei: '', tabId: '', page: 0 });
+  const catKey = bidang + (st.arsip ? ':arsip' : '');
+  if (!S.monCat || S.monCat.key !== catKey) {
+    try {
+      const cat = await api('/api/monitoring/katalog?bidang=' + encodeURIComponent(bidang) + (st.arsip ? '&arsip=1' : ''));
+      S.monCat = { key: catKey, data: cat.data || [], meta: cat.meta || {} };
+    } catch (e) {
+      if (e.status === 401) throw e;
+      return { html: `<h1>Monitoring</h1><p class="sub">${esc(title)}</p>${monGalat(e)}`, meta: null, view: { page: 'mon', bidang } };
+    }
+  }
+  const q = String(st.q || '').trim().toLowerCase();
+  const all = S.monCat.data.filter(t => !q || [t.label, t.survei, t.periode, t.jenis, t.tahun].some(v => String(v || '').toLowerCase().includes(q)));
+  const surv = [...new Set(all.map(t => t.survei))];
+  if (!surv.includes(st.survei)) st.survei = surv[0] || '';
+  const group = all.filter(t => t.survei === st.survei);
+  if (!group.some(t => t.id === st.tabId)) st.tabId = (group[0] && group[0].id) || '';
+  const cur = group.find(t => t.id === st.tabId) || null;
+  let ringkas = '';
+  if (bidang === 'tp') {
+    try {
+      const ring = await api('/api/monitoring/ringkasan?bidang=tp' + (st.arsip ? '&arsip=1' : ''));
+      const items = ring.data || [];
+      ringkas = `<section class="panel"><div class="panel-h"><h2>Progres Tanaman Pangan</h2><button type="button" class="btn ghost" data-act="reload">Muat ulang</button></div><div class="ringkas">
+        ${items.map(it => it.status === 'ok'
+          ? `<div class="goal"><div class="goal-top"><b>${esc(it.label || '')}</b><span>${fmt(it.sudah)}/${fmt(it.total)} · ${fmt(it.persen)}%</span></div><div class="track"><i style="width:${Math.max(0, Math.min(100, Number(it.persen) || 0))}%"></i></div></div>`
+          : `<div class="goal"><div class="goal-top"><b>${esc(it.label || '')}</b><span>${esc(it.status || '')}</span></div><p class="hint">${esc(it.error && it.error.message || '')}</p></div>`).join('') || '<p class="hint">Belum ada ringkasan.</p>'}
+        ${(ring.tanpaRingkasan || []).length ? `<p class="hint">Tanpa peta ringkasan: ${(ring.tanpaRingkasan || []).map(t => esc(t.label || t.alasan || '')).join(', ')}</p>` : ''}
+        ${ring.meta && ring.meta.ditunda ? `<p class="hint">${fmt(ring.meta.ditunda)} tab ditunda karena batas permintaan. Muat ulang beberapa detik lagi.</p>` : ''}
+      </div></section>`;
+    } catch (e) {
+      if (e.status === 401) throw e;
+      ringkas = monGalat(e);
+    }
+  }
+  const pohon = surv.map(sv => `<button type="button" class="${sv === st.survei ? 'on' : ''}" data-act="mon-survei" data-bidang="${esc(bidang)}" data-survei="${esc(sv)}">${esc(sv)}</button>`).join('');
+  const daun = group.map(t => `<button type="button" class="${t.id === st.tabId ? 'on' : ''}" data-act="mon-tab" data-bidang="${esc(bidang)}" data-id="${esc(t.id)}">${esc(t.label)}${t.tersedia ? '' : ' · tidak tersedia'}</button>`).join('');
+  let isi = '<p class="hint">Pilih survei.</p>';
+  let meta = null;
+  if (cur && cur.tersedia === false) {
+    isi = `<section class="panel"><h2>${esc(cur.label)}</h2><p>${esc(cur.alasan && cur.alasan.pesan || 'Tab ini tidak diambil dari Google.')}</p></section>`;
+  } else if (cur) {
+    let pack = S.tabCache && S.tabCache.id === cur.id ? S.tabCache.pack : null;
+    let tabErr = null;
+    if (!pack) {
+      try {
+        pack = await api('/api/monitoring/tab?id=' + encodeURIComponent(cur.id));
+        S.tabCache = { id: cur.id, pack };
+      } catch (e) {
+        if (e.status === 401) throw e;
+        tabErr = e;
+      }
+    }
+    if (tabErr) isi = monGalat(tabErr);
+    else if (pack) {
+      meta = pack.meta || null;
+      const header = Array.isArray(pack.header) ? pack.header : [];
+      const start = Number(pack.headerRow) || 0;
+      const dataRows = start ? (pack.rows || []).slice(start) : [];
+      const filtered = dataRows;
+      const pages = Math.max(1, Math.ceil(filtered.length / 40));
+      if (st.page >= pages) st.page = pages - 1;
+      if (st.page < 0) st.page = 0;
+      const slice = filtered.slice(st.page * 40, st.page * 40 + 40);
+      S.sheetRows = { title: pack.label || cur.label, header, rows: filtered };
+      const tautan = (pack.tautan || cur.tautan || []).map(t => `<a class="btn ${t.jenis === 'form' ? '' : 'ghost'}" target="_blank" rel="noopener" href="${esc(t.url)}">${esc(t.label)}</a>${t.perluCek ? '<span class="warn-note">Tautan terakhir gagal dicek.</span>' : ''}`).join('');
+      const samar = meta && meta.disamarkan ? '<div class="lock">Data disamarkan. Nilai nama, NIK, telepon, dan alamat ditampilkan persis seperti yang dikirim server.</div>' : '';
+      const staleErr = meta && meta.error ? errBlock({ message: meta.error.message, retryAfter: '' }) : '';
+      const table = `<div class="scroller-x"><table class="tbl"><thead><tr>${header.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>
+        ${slice.map(r => `<tr>${header.map((_, i) => `<td>${esc(r[i] == null ? '' : r[i])}</td>`).join('')}</tr>`).join('') || '<tr><td>Tidak ada baris.</td></tr>'}
+      </tbody></table></div>`;
+      const koreksiBaris = S.user.role === 'pml' ? `<form id="kor-mon" class="actions" style="margin-top:12px"><label>Kode baris<input class="inp" name="baris" placeholder="Kode atau kunci baris, bukan nama atau NIK"></label><label>ID mitra<input class="inp" name="mitraId" placeholder="3305001"></label><label>Catatan<input class="inp" name="catatan" maxlength="1000"></label><button class="btn" type="submit">Kirim koreksi</button></form>` : '';
+      isi = `<section class="panel"><div class="panel-h"><h2>${esc(pack.label || cur.label)}</h2></div>
+        ${samar}${staleErr}
+        <div class="actions" style="margin-bottom:10px">${tautan}<button type="button" class="btn ghost" data-act="mon-pdf">Unduh PDF</button><button type="button" class="btn ghost" data-act="mon-xlsx">Unduh Excel</button></div>
+        ${table}
+        <div class="pager"><button type="button" class="btn ghost" data-act="mon-page" data-bidang="${esc(bidang)}" data-dir="-1">Sebelumnya</button><span>${fmt(st.page + 1)} / ${fmt(pages)} · ${fmt(filtered.length)} baris</span><button type="button" class="btn ghost" data-act="mon-page" data-bidang="${esc(bidang)}" data-dir="1">Berikutnya</button></div>
+        ${koreksiBaris}
+      </section>`;
+    }
+  }
+  const html = `<h1>Monitoring</h1><p class="sub">${esc(title)}. ${S.monCat.meta && S.monCat.meta.arsipDitampilkan ? 'Arsip ikut ditampilkan.' : 'Arsip 2024–2025 disembunyikan.'}</p>
+    ${ringkas}
+    <section class="panel">
+      <div class="filters">
+        <label>Cari survei atau tab<input class="inp" id="mon-q" data-bidang="${esc(bidang)}" value="${esc(st.q || '')}" autocomplete="off"></label>
+        <label style="flex-direction:row;align-items:center;gap:8px;min-height:44px"><input type="checkbox" id="mon-arsip" data-bidang="${esc(bidang)}" ${st.arsip ? 'checked' : ''}> Tampilkan arsip</label>
+      </div>
+      <div class="tabs">${pohon || '<span class="hint">Tidak ada survei untuk saringan ini.</span>'}</div>
+      <div class="tabs">${daun}</div>
+    </section>
+    ${isi}`;
+  return { html, meta, view: { page: 'mon', bidang } };
+}
+async function pageKoreksi() {
+  const q = new URLSearchParams();
+  if (S.koreksiStatus) q.set('status', S.koreksiStatus);
+  let res;
+  try { res = await api('/api/koreksi' + (q.toString() ? '?' + q.toString() : '')); }
   catch (e) {
-    if (e.code === 'SOURCE_UNAVAILABLE' || e.status === 503) return { html: `<h1>Monitoring</h1><p class="sub">${esc(title)}</p>` + emptySource(e), meta: null, view: { page: 'mon', bidang } };
+    if (e.status === 401) throw e;
+    if (fiturMati(e)) return { html: `<h1>Koreksi</h1>${fiturBox(e)}`, meta: null, view: { page: 'koreksi' } };
     throw e;
   }
-  const sheets = (catalog.sheets || []).filter(s => s.bidang === bidang);
-  if (!sheets.length) {
-    return { html: `<h1>Monitoring</h1><p class="sub">${esc(title)}</p><div class="panel">Tidak ada sheet untuk bidang ini.</div>`, meta: null, view: { page: 'mon', bidang } };
+  S.belumDibaca = res.meta && res.meta.belumDibaca != null ? res.meta.belumDibaca : null;
+  const data = res.data || [];
+  const opts = ['', 'terkirim', 'dibaca', 'ditanggapi', 'diperbaiki', 'ditutup', 'dibatalkan'].map(s => `<option value="${s}"${S.koreksiStatus === s ? ' selected' : ''}>${s ? ({ terkirim: 'Terkirim', dibaca: 'Dibaca', ditanggapi: 'Ditanggapi', diperbaiki: 'Diperbaiki', ditutup: 'Ditutup', dibatalkan: 'Dibatalkan' }[s]) : 'Semua status'}</option>`).join('');
+  const rows = data.map(k => `<a class="tx" href="#koreksi/${esc(k.id)}">
+      <span class="grow"><b>${esc(rujukanTeks(k))}</b><small>${esc(k.bagian || 'Umum')} · ${esc(k.catatan || '')}</small></span>
+      ${S.user.role === 'mitra' && k.status === 'terkirim' && !k.dibacaAt ? '<span class="badge-n">Baru</span>' : ''}
+      ${koreksiMark(k.status)}
+    </a>`).join('') || '<p class="hint">Tidak ada koreksi.</p>';
+  return { html: `<h1>Koreksi</h1><p class="sub">${S.belumDibaca ? fmt(S.belumDibaca) + ' belum dibaca.' : 'Daftar koreksi dalam cakupan Anda.'}</p>
+    <section class="panel"><label>Status<select class="inp" id="kor-status">${opts}</select></label><div style="margin-top:12px">${rows}</div></section>`, meta: null, view: { page: 'koreksi' } };
+}
+async function pageKoreksiDetail(id) {
+  let doc;
+  try { doc = await api('/api/koreksi/' + encodeURIComponent(id)); }
+  catch (e) {
+    if (e.status === 401) throw e;
+    if (fiturMati(e)) return { html: `<h1>Koreksi</h1>${fiturBox(e)}`, meta: null, view: { page: 'koreksi', id } };
+    if (e.status === 404) return { html: `<h1>Koreksi</h1>${errBlock(e)}`, meta: null, view: { page: 'koreksi', id } };
+    throw e;
   }
-  const surv = [...new Set(sheets.map(s => s.survei))];
-  const st = S.mon[bidang] || (S.mon[bidang] = { survei: surv[0], idx: 0, page: 0, q: '' });
-  if (!surv.includes(st.survei)) { st.survei = surv[0]; st.idx = 0; }
-  const group = sheets.filter(s => s.survei === st.survei);
-  if (st.idx < 0 || st.idx >= group.length) st.idx = 0;
-  const cur = group[st.idx];
-  const tabs = surv.map(sv => `<button type="button" class="${sv === st.survei ? 'on' : ''}" data-act="mon-survei" data-bidang="${esc(bidang)}" data-survei="${esc(sv)}">${esc(sv)}</button>`).join('');
-  const sheetSel = group.length > 1
-    ? `<label>Lembar<select class="inp" id="mon-sheet" data-bidang="${esc(bidang)}">${group.map((c, i) => `<option value="${i}"${i === st.idx ? ' selected' : ''}>${esc(c.label)}</option>`).join('')}</select></label>`
-    : `<p><b>${esc(cur.label)}</b></p>`;
-  let pack;
-  try {
-    pack = await api('/api/gsheet?sid=' + encodeURIComponent(cur.sid) + '&gid=' + encodeURIComponent(cur.gid));
-  } catch (e) {
-    const box = (e.code === 'SOURCE_UNAVAILABLE' || e.status === 503) ? emptySource(e) : errBlock(e) + '<button type="button" class="btn" data-act="reload">Muat ulang</button>';
-    return { html: `<h1>Monitoring</h1><p class="sub">${esc(title)}</p><div class="tabs">${tabs}</div><div class="panel">${sheetSel}${box}</div>`, meta: null, view: { page: 'mon', bidang } };
+  const role = S.user.role;
+  const st = doc.status;
+  let aksi = '';
+  if (role === 'mitra' && st !== 'ditutup' && st !== 'dibatalkan') {
+    aksi += '<button type="button" class="btn ghost" data-act="kor-baca" data-id="' + esc(doc.id) + '">Tandai dibaca</button>';
+    aksi += `<form id="kor-tanggap" class="fld" style="margin-top:12px"><label for="tanggapan">Tanggapan</label><textarea class="inp" id="tanggapan" name="tanggapan" maxlength="1000"></textarea>
+      <label style="flex-direction:row;align-items:center;gap:8px;margin-top:8px"><input type="checkbox" name="diperbaiki"> Sudah diperbaiki</label>
+      <button class="btn" type="submit" style="margin-top:8px">Kirim tanggapan</button></form>`;
   }
-  const meta = pack.meta || null;
-  const rows = Array.isArray(pack.rows) ? pack.rows : [];
-  S.sheetRows = { title: cur.label, rows };
-  const head = rows[0] || [];
-  const q = String(st.q || '').trim().toLowerCase();
-  const body = rows.slice(1).filter(r => !q || r.some(c => String(c || '').toLowerCase().includes(q)));
-  const pages = Math.max(1, Math.ceil(body.length / 50));
-  if (st.page >= pages) st.page = pages - 1;
-  if (st.page < 0) st.page = 0;
-  const slice = body.slice(st.page * 50, st.page * 50 + 50);
-  const table = head.length ? `<div class="scroller"><table class="tbl"><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr>
-      ${slice.map(r => `<tr>${head.map((_, i) => `<td>${esc(r[i] == null ? '' : r[i])}</td>`).join('')}</tr>`).join('') || '<tr><td colspan="' + head.length + '">Tidak ada baris.</td></tr>'}
-    </table></div>` : '<p>Sheet kosong.</p>';
-  const href = 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(cur.sid) + '/edit?gid=' + encodeURIComponent(cur.gid) + '#gid=' + encodeURIComponent(cur.gid);
-  const html = `<h1>Monitoring</h1><p class="sub">${esc(title)}. Sumber: Google Sheet BPS Kebumen.</p>
-    <div class="tabs">${tabs}</div>
-    <section class="panel">
-      <div class="filters">${sheetSel}
-        <label>Cari teks<input class="inp" id="mon-q" data-bidang="${esc(bidang)}" value="${esc(st.q || '')}" autocomplete="off"></label>
-      </div>
-      <div class="actions" style="margin-bottom:8px">
-        <a class="btn ghost" style="display:inline-flex;align-items:center;text-decoration:none" target="_blank" rel="noopener" href="${esc(href)}">Buka sheet asli</a>
-        <button type="button" class="btn ghost" data-act="mon-pdf">Unduh PDF</button>
-        <button type="button" class="btn ghost" data-act="mon-xlsx">Unduh Excel</button>
-        <button type="button" class="btn ghost" data-act="reload">Muat ulang</button>
-      </div>
-      ${table}
-      <div class="pager"><button type="button" class="btn ghost" data-act="mon-page" data-bidang="${esc(bidang)}" data-dir="-1">Sebelumnya</button>
-        <span>${fmt(st.page + 1)} / ${fmt(pages)} · ${fmt(body.length)} baris</span>
-        <button type="button" class="btn ghost" data-act="mon-page" data-bidang="${esc(bidang)}" data-dir="1">Berikutnya</button>
-      </div>
-    </section>`;
-  return { html, meta, view: { page: 'mon', bidang } };
+  if (role === 'pml' && (st === 'terkirim' || st === 'dibaca')) {
+    aksi += `<form id="kor-ubah" class="fld" style="margin-top:12px"><label>Catatan</label><textarea class="inp" name="catatan">${esc(doc.catatan || '')}</textarea><button class="btn ghost" type="submit">Ubah koreksi</button></form>`;
+    aksi += '<button type="button" class="btn ghost" data-act="ask-batal-kor" data-id="' + esc(doc.id) + '">Batalkan</button>';
+  }
+  if ((role === 'pml' || role === 'admin') && st !== 'ditutup' && st !== 'dibatalkan') {
+    aksi += '<button type="button" class="btn" data-act="ask-tutup-kor" data-id="' + esc(doc.id) + '">Tutup</button>';
+  }
+  if (role === 'pml' && (st === 'ditanggapi' || st === 'diperbaiki' || st === 'ditutup')) {
+    aksi += '<button type="button" class="btn ghost" data-act="ask-buka-kor" data-id="' + esc(doc.id) + '">Buka lagi</button>';
+  }
+  if (role === 'admin' && !doc.dihapus) aksi += '<button type="button" class="btn ghost" data-act="ask-hapus-kor" data-id="' + esc(doc.id) + '">Hapus</button>';
+  if (role === 'admin' && doc.dihapus) aksi += '<button type="button" class="btn ghost" data-act="pulih-kor" data-id="' + esc(doc.id) + '">Pulihkan</button>';
+  const riw = (doc.riwayat || []).map(v => `<tr><td>${esc(fmtWib(v.waktu))}</td><td>${esc(orangText(v.oleh))}</td><td>${esc(v.aksi || '')}</td><td>${esc(v.dari || '')} → ${esc(v.ke || '')}</td><td>${esc(v.catatan || '')}</td></tr>`).join('') || '<tr><td colspan="5">Belum ada riwayat.</td></tr>';
+  S.koreksiDoc = doc;
+  const html = `<p><a href="#koreksi">Kembali</a></p><h1>${esc(doc.id)}</h1><p class="sub">${koreksiMark(st)} · versi ${esc(doc.versi)} · ${esc(rujukanTeks(doc))}</p>
+    <section class="panel"><h2>Catatan</h2><p>${esc(doc.catatan || '')}</p>${doc.bagian ? `<p class="hint">Bagian: ${esc(doc.bagian)}</p>` : ''}<p class="hint">Mitra ${esc(orangText(doc.mitra))} · PML ${esc(orangText(doc.pml))}</p>
+    ${doc.tanggapan ? `<h2 style="margin-top:12px">Tanggapan</h2><p>${esc(doc.tanggapan)}</p>` : ''}${aksi}</section>
+    <section class="panel"><h2>Riwayat</h2><div class="scroller-x"><table class="tbl"><tr><th>Waktu</th><th>Oleh</th><th>Aksi</th><th>Status</th><th>Catatan</th></tr>${riw}</table></div></section>`;
+  return { html, meta: null, view: { page: 'koreksi', id: doc.id } };
+}
+async function pageAudit() {
+  const q = new URLSearchParams();
+  if (S.auditEntitas) q.set('entitas', S.auditEntitas);
+  if (S.auditId) q.set('id', S.auditId);
+  q.set('limit', '50');
+  let res;
+  try { res = await api('/api/admin/audit?' + q.toString()); }
+  catch (e) {
+    if (e.status === 401) throw e;
+    if (fiturMati(e)) return { html: `<h1>Audit</h1>${fiturBox(e)}`, meta: null, view: { page: 'audit' } };
+    throw e;
+  }
+  const rows = (res.data || []).map(a => `<tr><td>${esc(fmtWib(a.waktu))}</td><td>${esc(a.oleh || '')}</td><td>${esc(a.peran || '')}</td><td>${esc(a.entitas || '')}</td><td>${esc(a.entitasId || '')}</td><td>${esc(a.aksi || '')}</td><td>${esc(a.data && a.data.alasan || '')}</td></tr>`).join('') || '<tr><td colspan="7">Belum ada jejak.</td></tr>';
+  const html = `<h1>Audit</h1><p class="sub">${fmt(res.meta && res.meta.total)} jejak. Jejak tidak bisa diubah.</p>
+    <section class="panel"><div class="filters">
+      <label>Entitas<select class="inp" id="audit-entitas"><option value="">Semua</option>${['akun', 'foto', 'isian'].map(x => `<option value="${x}"${S.auditEntitas === x ? ' selected' : ''}>${x}</option>`).join('')}</select></label>
+      <label>ID<input class="inp" id="audit-id" value="${esc(S.auditId || '')}"></label>
+      <button type="button" class="btn ghost" data-act="audit-go">Tampilkan</button>
+    </div><div class="scroller-x"><table class="tbl"><tr><th>Waktu</th><th>Oleh</th><th>Peran</th><th>Entitas</th><th>ID</th><th>Aksi</th><th>Alasan</th></tr>${rows}</table></div></section>`;
+  return { html, meta: null, view: { page: 'audit' } };
+}
+async function pageAkunDetail(id) {
+  let akun;
+  try { akun = await api('/api/admin/akun/' + encodeURIComponent(id)); }
+  catch (e) {
+    if (e.status === 401) throw e;
+    if (fiturMati(e)) return { html: `<h1>Akun ${esc(id)}</h1>${fiturBox(e)}`, meta: null, view: { page: 'akun', id } };
+    if (e.status === 404) return { html: `<h1>Akun</h1>${errBlock(e)}`, meta: null, view: { page: 'akun', id } };
+    throw e;
+  }
+  const terkunci = akun.id === '3305';
+  const aksi = terkunci
+    ? '<p class="lock">Akun 3305 terkunci. Tidak dapat dinonaktifkan.</p>'
+    : (akun.aktif
+      ? '<button type="button" class="btn warn" data-act="ask-nonaktif" data-id="' + esc(akun.id) + '">Nonaktifkan</button>'
+      : '<button type="button" class="btn" data-act="ask-aktif" data-id="' + esc(akun.id) + '">Aktifkan lagi</button>');
+  const html = `<p><a href="#akun">Kembali</a></p><h1>${esc(akun.nama || akun.id)}</h1><p class="sub">${esc(akun.id)} · ${esc(roleLabel(akun.role))}</p>
+    <section class="panel"><dl class="kv"><dt>Peran</dt><dd>${esc(roleLabel(akun.role))}</dd><dt>PML</dt><dd>${akun.pml ? esc(orangText(akun.pml)) : '—'}</dd><dt>Status</dt><dd>${akun.aktif ? 'Aktif' : 'Nonaktif'}</dd><dt>Sampel</dt><dd>${fmt(akun.jumlahSampel)}</dd></dl>
+    <p class="hint">Password sama dengan ID dan tidak diubah di sini.</p>${aksi}</section>`;
+  return { html, meta: null, view: { page: 'akun', id: akun.id } };
 }
 async function pageMitra(id) {
   let nama = id;
@@ -1145,7 +1390,11 @@ async function build() {
       view: { page: 'sampel' },
     });
   }
+  if (p[0] === 'akun' && p[1]) return pageAkunDetail(p[1]);
   if (p[0] === 'akun') return pageAkun();
+  if (p[0] === 'audit') return pageAudit();
+  if (p[0] === 'koreksi' && p[1]) return pageKoreksiDetail(p[1]);
+  if (p[0] === 'koreksi') return pageKoreksi();
   if (p[0] === 'mon') return pageMon(p[1]);
   if (p[0] === 'mitra' && p[1]) return pageMitra(p.slice(1).join('/'));
   return { html: '<div class="panel">Halaman tidak ada.</div>', meta: null, view: { page: 'missing' } };
@@ -1511,8 +1760,8 @@ async function exportCsv() {
 async function exportMon(kind) {
   const pack = S.sheetRows;
   if (!pack || !pack.rows || !pack.rows.length) return;
-  const head = pack.rows[0].map((h, i) => h || ('Kolom ' + (i + 1)));
-  const data = pack.rows.slice(1).map(r => {
+  const head = (pack.header || pack.rows[0] || []).map((h, i) => h || ('Kolom ' + (i + 1)));
+  const data = (pack.header ? pack.rows : pack.rows.slice(1)).map(r => {
     const o = {};
     head.forEach((h, i) => { o[h] = r[i] == null ? '' : r[i]; });
     return o;
@@ -1534,6 +1783,120 @@ async function copyText(text) {
   if (old) old.remove();
   host.insertAdjacentHTML('afterbegin', `<div class="lock" role="status">${esc(S.banner.message)}</div>`);
   S.banner = null;
+}
+function gagalAksi(e) {
+  if (!e || e.status === 401) return;
+  if (e.code === 'CONFLICT') {
+    S.koreksiDoc = null;
+    S.holdFetch = false;
+    S.modal = { type: 'conflict', message: e.message };
+    render();
+    return;
+  }
+  if (e.code === 'LOCKED') {
+    S.modal = null;
+    S.banner = e;
+    render();
+    return;
+  }
+  if (fiturMati(e)) {
+    S.modal = null;
+    S.banner = null;
+    S.fiturTampil = e;
+    render();
+    return;
+  }
+  S.banner = e;
+  render();
+}
+async function kirimKoreksiBaru(form) {
+  const jenis = S.view.jenis;
+  const id = S.view.id;
+  const bagian = String(form.bagian.value || '').trim();
+  const catatan = String(form.catatan.value || '').trim();
+  const body = { rujukan: { jenis, id }, catatan };
+  if (bagian) body.bagian = bagian;
+  try {
+    await api('/api/koreksi', { method: 'POST', json: body });
+    S.modal = null;
+    render();
+  } catch (e) { gagalAksi(e); }
+}
+async function kirimKoreksiMonitoring(form) {
+  const bidang = S.view.bidang;
+  const st = S.mon[bidang];
+  const tabId = st && st.tabId;
+  const baris = String(form.baris.value || '').trim();
+  const catatan = String(form.catatan.value || '').trim();
+  const mitraId = String(form.mitraId ? form.mitraId.value : '').trim();
+  if (!tabId || !baris || !catatan || !mitraId) {
+    S.banner = Object.assign(new Error('Isi kode baris, ID mitra, dan catatan.'), { code: 'LOCAL' });
+    render();
+    return;
+  }
+  try {
+    await api('/api/koreksi', { method: 'POST', json: { rujukan: { tipe: 'monitoring', tabId, baris, mitraId }, catatan } });
+    S.banner = null;
+    render();
+  } catch (e) { gagalAksi(e); }
+}
+async function tanggapiKoreksi(form) {
+  const doc = S.koreksiDoc;
+  if (!doc) return;
+  try {
+    await api('/api/koreksi/' + doc.id + '/tanggapi', { method: 'POST', json: { tanggapan: form.tanggapan.value, diperbaiki: !!form.diperbaiki.checked, versi: doc.versi } });
+    S.koreksiDoc = null;
+    render();
+  } catch (e) { gagalAksi(e); }
+}
+async function ubahKoreksi(form) {
+  const doc = S.koreksiDoc;
+  if (!doc) return;
+  try {
+    await api('/api/koreksi/' + doc.id, { method: 'PATCH', json: { catatan: form.catatan.value, versi: doc.versi } });
+    S.koreksiDoc = null;
+    render();
+  } catch (e) { gagalAksi(e); }
+}
+async function jalankanModal(form) {
+  const m = S.modal;
+  if (!m) return;
+  const catatan = form.catatan ? String(form.catatan.value || '').trim() : '';
+  try {
+    if (m.act === 'hapus-isian') {
+      await api('/api/sampel/' + m.jenis + '/' + encodeURIComponent(m.id) + '/isian', { method: 'DELETE', json: { versi: m.versi, alasan: catatan } });
+      S.holdFetch = false; S.detailDoc = null;
+    } else if (m.act === 'pulih-isian') {
+      await api('/api/admin/sampel/' + m.jenis + '/' + encodeURIComponent(m.id) + '/isian/pulihkan', { method: 'POST', json: { versi: m.versi } });
+      S.holdFetch = false; S.detailDoc = null;
+    } else if (m.act === 'hapus-foto') {
+      await api('/api/sampel/' + m.jenis + '/' + encodeURIComponent(m.id) + '/foto/' + m.slot, { method: 'DELETE', json: { alasan: catatan } });
+      S.holdFetch = false; S.detailDoc = null;
+    } else if (m.act === 'pulih-foto') {
+      await api('/api/admin/sampel/' + m.jenis + '/' + encodeURIComponent(m.id) + '/foto/' + m.slot + '/pulihkan', { method: 'POST', json: {} });
+      S.holdFetch = false; S.detailDoc = null;
+    } else if (m.act === 'nonaktif') {
+      await api('/api/admin/akun/' + encodeURIComponent(m.id), { method: 'DELETE', json: { alasan: catatan } });
+    } else if (m.act === 'aktif') {
+      await api('/api/admin/akun/' + encodeURIComponent(m.id), { method: 'PATCH', json: { aktif: true, alasan: catatan } });
+    } else if (m.act === 'batal-kor') {
+      await api('/api/koreksi/' + m.id, { method: 'DELETE', json: { alasan: catatan, versi: m.versi } });
+      S.koreksiDoc = null;
+    } else if (m.act === 'tutup-kor') {
+      await api('/api/koreksi/' + m.id + '/tutup', { method: 'POST', json: { catatan, versi: m.versi } });
+      S.koreksiDoc = null;
+    } else if (m.act === 'buka-kor') {
+      await api('/api/koreksi/' + m.id + '/buka', { method: 'POST', json: { catatan, versi: m.versi } });
+      S.koreksiDoc = null;
+    } else if (m.act === 'hapus-kor') {
+      await api('/api/koreksi/' + m.id, { method: 'DELETE', json: { alasan: catatan, versi: m.versi } });
+      S.koreksiDoc = null;
+    }
+    S.modal = null;
+    S.banner = null;
+    S.cache = null;
+    render();
+  } catch (e) { gagalAksi(e); }
 }
 function onClick(e) {
   const t = e.target.closest('[data-act], [data-set-mitra]');
@@ -1600,6 +1963,8 @@ function onClick(e) {
     S.dashReadyPath = '';
     S.dashErr = null;
     S.listHold = null;
+    S.monCat = null;
+    S.tabCache = null;
     S.banner = null;
     S.holdFetch = false;
     S.keepScroll = true;
@@ -1633,6 +1998,34 @@ function onClick(e) {
     }
     S.modal = { type: 'kirim' };
     render();
+    return;
+  }
+  if (act === 'ask-hapus-isian' || act === 'ask-pulih-isian' || act === 'ask-hapus-foto' || act === 'ask-pulih-foto' || act === 'ask-nonaktif' || act === 'ask-aktif' || act === 'ask-batal-kor' || act === 'ask-tutup-kor' || act === 'ask-buka-kor' || act === 'ask-hapus-kor') {
+    const doc = S.detailDoc;
+    const kor = S.koreksiDoc;
+    const map = {
+      'ask-hapus-isian': { type: 'confirm', title: 'Hapus isian', text: 'Isian akan dihapus lunak dan status kembali belum. Riwayat lama tetap ada.', yes: 'Hapus', act: 'hapus-isian', jenis: S.view.jenis, id: S.view.id, versi: doc && doc.versi },
+      'ask-pulih-isian': { type: 'confirm', title: 'Pulihkan isian', text: 'Isian sebelum hapus akan dikembalikan sebagai versi baru.', yes: 'Pulihkan', act: 'pulih-isian', jenis: S.view.jenis, id: S.view.id, versi: doc && doc.versi },
+      'ask-hapus-foto': { type: 'confirm', title: 'Hapus foto', text: 'Unggahan pada slot ini ditandai terhapus. Berkas di Drive tidak dihapus.', yes: 'Hapus', act: 'hapus-foto', jenis: S.view.jenis, id: S.view.id, slot: t.dataset.slot },
+      'ask-pulih-foto': { type: 'confirm', title: 'Pulihkan foto', text: 'Penanda hapus foto pada slot ini dibuka kembali.', yes: 'Pulihkan', act: 'pulih-foto', jenis: S.view.jenis, id: S.view.id, slot: t.dataset.slot },
+      'ask-nonaktif': { type: 'confirm', title: 'Nonaktifkan akun', text: 'Akun tidak bisa masuk lagi sampai diaktifkan. Password tetap sama dengan ID.', yes: 'Nonaktifkan', act: 'nonaktif', id: t.dataset.id },
+      'ask-aktif': { type: 'confirm', title: 'Aktifkan akun', text: 'Akun ini bisa masuk lagi.', yes: 'Aktifkan', act: 'aktif', id: t.dataset.id },
+      'ask-batal-kor': { type: 'confirm', title: 'Batalkan koreksi', text: 'Koreksi yang belum ditanggapi akan dibatalkan.', yes: 'Batalkan', act: 'batal-kor', id: t.dataset.id, versi: kor && kor.versi },
+      'ask-tutup-kor': { type: 'confirm', title: 'Tutup koreksi', text: 'Koreksi ditutup. PML dapat membuka lagi dengan catatan.', yes: 'Tutup', act: 'tutup-kor', id: t.dataset.id, versi: kor && kor.versi },
+      'ask-buka-kor': { type: 'buka-kor', title: 'Buka lagi koreksi', text: 'Catatan wajib diisi.', yes: 'Buka lagi', act: 'buka-kor', id: t.dataset.id, versi: kor && kor.versi },
+      'ask-hapus-kor': { type: 'confirm', title: 'Hapus koreksi', text: 'Koreksi dihapus lunak. Hanya admin yang masih melihatnya.', yes: 'Hapus', act: 'hapus-kor', id: t.dataset.id, versi: kor && kor.versi },
+    };
+    S.modal = map[act];
+    render();
+    return;
+  }
+  if (act === 'ask-koreksi') { S.modal = { type: 'koreksi-baru' }; render(); return; }
+  if (act === 'kor-baca') {
+    api('/api/koreksi/' + t.dataset.id + '/baca', { method: 'POST', json: {} }).then(() => { S.koreksiDoc = null; render(); }).catch(gagalAksi);
+    return;
+  }
+  if (act === 'pulih-kor') {
+    api('/api/koreksi/' + t.dataset.id + '/pulihkan', { method: 'POST', json: {} }).then(() => { S.koreksiDoc = null; render(); }).catch(gagalAksi);
     return;
   }
   if (act === 'ask-tolak') {
@@ -1676,8 +2069,24 @@ function onClick(e) {
     const st = S.mon[t.dataset.bidang];
     if (!st) return;
     st.survei = t.dataset.survei;
-    st.idx = 0;
+    st.tabId = '';
     st.page = 0;
+    render();
+    return;
+  }
+  if (act === 'mon-tab') {
+    const st = S.mon[t.dataset.bidang];
+    if (!st) return;
+    st.tabId = t.dataset.id;
+    st.page = 0;
+    render();
+    return;
+  }
+  if (act === 'audit-go') {
+    const ent = document.getElementById('audit-entitas');
+    const id = document.getElementById('audit-id');
+    S.auditEntitas = ent ? ent.value : '';
+    S.auditId = id ? id.value.trim() : '';
     render();
     return;
   }
@@ -1702,6 +2111,18 @@ function onChange(e) {
     return;
   }
   if (t.id === 'kec-sort') { S.kecSort = t.value; S.keepScroll = true; render(); return; }
+  if (t.id === 'mon-arsip') {
+    const st = S.mon[t.dataset.bidang];
+    if (!st) return;
+    st.arsip = t.checked;
+    st.tabId = '';
+    st.survei = '';
+    S.monCat = null;
+    S.tabCache = null;
+    render();
+    return;
+  }
+  if (t.id === 'kor-status') { S.koreksiStatus = t.value; render(); return; }
   if (t.id === 'mon-sheet') {
     const st = S.mon[t.dataset.bidang];
     if (!st) return;
@@ -1758,9 +2179,15 @@ function onSubmit(e) {
   if (formId === 'login') { e.preventDefault(); doLogin(); }
   if (formId === 'dlg') {
     e.preventDefault();
-    if (S.modal && S.modal.type === 'kirim') doSave(true);
-    else if (S.modal && S.modal.type === 'tolak') doTolak();
+    if (!S.modal) return;
+    if (S.modal.type === 'kirim') doSave(true);
+    else if (S.modal.type === 'tolak') doTolak();
+    else if (S.modal.type === 'koreksi-baru') kirimKoreksiBaru(e.target);
+    else if (S.modal.type === 'confirm' || S.modal.type === 'buka-kor') jalankanModal(e.target);
   }
+  if (formId === 'kor-mon') { e.preventDefault(); kirimKoreksiMonitoring(e.target); }
+  if (formId === 'kor-tanggap') { e.preventDefault(); tanggapiKoreksi(e.target); }
+  if (formId === 'kor-ubah') { e.preventDefault(); ubahKoreksi(e.target); }
 }
 function onKey(e) {
   if (e.key === 'Escape' && S.modal) {
@@ -1774,7 +2201,7 @@ document.getElementById('app').addEventListener('change', onChange);
 document.getElementById('app').addEventListener('input', onInput);
 document.getElementById('app').addEventListener('submit', onSubmit);
 document.addEventListener('keydown', onKey);
-window.addEventListener('hashchange', () => { S.navOpen = false; window.scrollTo(0, 0); render(); });
+window.addEventListener('hashchange', () => { S.navOpen = false; S.fiturTampil = null; window.scrollTo(0, 0); render(); });
 (function boot() {
   if (S.dark) document.documentElement.classList.add('dark');
   const saved = localStorage.getItem('sp_session');
